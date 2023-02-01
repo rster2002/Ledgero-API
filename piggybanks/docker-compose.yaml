@@ -1,0 +1,11 @@
+version: '3.1'
+
+services:
+  piggybanks-dev:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+      - "5462:5432"
