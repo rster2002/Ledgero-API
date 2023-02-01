@@ -4,6 +4,7 @@ mod models;
 mod prelude;
 mod error;
 mod routes;
+mod shared_types;
 
 use std::fs;
 use rocket::routes;

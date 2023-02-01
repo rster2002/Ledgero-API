@@ -1,7 +1,12 @@
+use std::ops::Add;
+use chrono::{Duration, Utc};
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
+use uuid::Uuid;
+use crate::error::http_error::HttpError;
+use crate::models::dto::jwt_refresh_dto::JwtRefreshDto;
 use crate::models::dto::jwt_response::JwtResponse;
 use crate::models::dto::login_user_dto::LoginUserDto;
 use crate::models::dto::register_user::RegisterUserDto;
@@ -11,6 +16,7 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::models::service::jwt_service::JwtService;
 use crate::models::service::password_hash_service::PasswordHashService;
 use crate::prelude::*;
+use crate::shared_types::{SharedJwtService, SharedPool};
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login]
@@ -31,8 +37,8 @@ pub async fn register(body: Json<RegisterUserDto<'_>>, pool: &State<Pool<Postgre
 #[post("/login", data = "<body>")]
 async fn login<'a>(
     body: Json<LoginUserDto<'a>>,
-    pool: &'a State<Pool<Postgres>>,
-    jwt_service: &'a State<JwtService>,
+    pool: &'a SharedPool,
+    jwt_service: &'a SharedJwtService,
 ) -> Result<Json<JwtResponse>> {
     let body = body.0;
 
@@ -68,6 +74,37 @@ async fn login<'a>(
 }
 
 #[post("/refresh", data = "<body>")]
-async fn refresh() -> Result<JwtResponse> {
+async fn refresh(body: Json<JwtRefreshDto<'_>>, pool: &SharedPool, jwt_service: &SharedJwtService) -> Result<Json<JwtResponse>> {
+    let body = body.0;
+
+    let (mut claims, access_payload) = jwt_service.decode_access_token_unchecked::<JwtUserPayload>(body.access_token)?;
+    let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
+
+    let Some(_) = User::by_id(pool, access_payload.uuid).await? else {
+        return Err(
+            HttpError::from_status(Status::NotFound)
+                .message("No user with the give id was found. The user might have been deleted")
+                .into()
+        );
+    };
+
+    let Some(grant) = Grant::by_id(pool, refresh_payload.grant_id).await? else {
+        return Err(
+            HttpError::from_status(Status::Unauthorized)
+                .message("The given refresh token has been revoked")
+                .into()
+        );
+    };
+
+    claims.exp = (Utc::now().add(Duration::seconds(jwt_service.get_access_token_seconds()))).timestamp();
+    claims.nbf = Utc::now().timestamp();
+    claims.iat = Utc::now().timestamp();
+    claims.jti = Uuid::new_v4().to_string();
+
+    todo!()
+}
+
+#[post("/revoke")]
+async fn revoke() -> Result<()> {
     todo!()
 }

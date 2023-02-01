@@ -1,4 +1,5 @@
 pub mod jwt_error;
+pub mod http_error;
 
 use rocket::http::{ContentType, Status};
 use rocket::response::{Responder};
@@ -8,6 +9,7 @@ use std::io;
 use std::io::Cursor;
 use std::string::FromUtf8Error;
 use base64_url::base64::DecodeError;
+use crate::error::http_error::HttpError;
 use crate::error::jwt_error::JwtError;
 
 #[derive(Debug)]
@@ -21,6 +23,7 @@ pub enum Error {
     DecodeError(DecodeError),
     Utf8Error(FromUtf8Error),
     JwtError(JwtError),
+    HttpError(HttpError),
 }
 
 impl Error {
@@ -71,6 +74,12 @@ impl From<JwtError> for Error {
     }
 }
 
+impl From<HttpError> for Error {
+    fn from(value: HttpError) -> Self {
+        Error::HttpError(value)
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
@@ -79,16 +88,26 @@ impl Error {
             _ => 500
         }
     }
+
+    fn get_body(&self) -> Option<String> {
+        match self {
+            _ => None,
+        }
+    }
 }
 
 impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
     fn respond_to(self, _request: &'r Request<'_>) -> rocket::response::Result<'o> {
-        let err = format!("{:?}", self);
+        let mut builder = Response::build();
 
-        Response::build()
+        builder
             .header(ContentType::JSON)
-            .sized_body(err.len(), Cursor::new(err))
-            .status(Status::new(self.get_status_code()))
-            .ok()
+            .status(Status::new(self.get_status_code()));
+
+        if let Some(body) = self.get_body() {
+            builder.sized_body(body.len(), Cursor::new(body));
+        }
+
+        builder.ok()
     }
 }
