@@ -1,9 +1,8 @@
-use entity_macro::{Entity, table_name};
+use sqlx::FromRow;
 
 /// An external account is used to group transactions to another party of the transaction, like for
 /// example a super market.
-#[derive(Debug, FromRow, Entity)]
-#[table_name("ExternalAccounts")]
+#[derive(Debug, FromRow)]
 #[sqlx(rename_all = "PascalCase")]
 pub struct ExternalAccount {
     pub id: String,

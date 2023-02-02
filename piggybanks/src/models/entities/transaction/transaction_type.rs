@@ -1,7 +1,8 @@
+use serde::Serialize;
 use sqlx::Type;
 
 /// Dictates the behaviour of the transaction and how is should be used.
-#[derive(Debug, Type)]
+#[derive(Debug, Type, Serialize)]
 #[sqlx(type_name = "color")] // only for Postgres to match a type definition
 #[sqlx(rename_all = "lowercase")]
 pub enum TransactionType {

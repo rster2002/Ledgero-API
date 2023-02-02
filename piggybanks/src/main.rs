@@ -14,6 +14,8 @@ use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
+use crate::routes::importing::create_importing_routes;
+use crate::routes::transactions::create_transaction_routes;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -57,6 +59,8 @@ async fn main() -> Result<(), rocket::Error> {
         .manage(pool)
         .manage(jwt_service)
         .mount("/auth", create_auth_routes())
+        .mount("/transactions", create_transaction_routes())
+        .mount("/import", create_importing_routes())
         .launch()
         .await
         .expect("Failed to start rocket");

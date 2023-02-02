@@ -1,12 +1,11 @@
 pub mod transaction_type;
 
+use chrono::Utc;
 use sqlx::FromRow;
-use entity_macro::{Entity, table_name};
 use crate::models::entities::transaction::transaction_type::TransactionType;
 
 /// A single transaction of money.
-#[derive(Debug, FromRow, Entity)]
-#[table_name("Transactions")]
+#[derive(Debug, FromRow)]
 #[sqlx(rename_all = "PascalCase")]
 pub struct Transaction {
     pub id: String,
@@ -17,6 +16,11 @@ pub struct Transaction {
     /// A unique number for the transaction. This is different from the [id] in that this must be
     /// set when importing so that duplicate transaction are not accidentally imported twice.
     pub follow_number: String,
+
+    /// The original description of the transaction. This should always match the description of
+    /// the actual description of the transaction on the user's back account and should not be
+    /// changed after creation.
+    pub original_description: String,
 
     /// The description of the transaction. This is used to tell transactions apart from each-other.
     pub description: String,
@@ -29,6 +33,13 @@ pub struct Transaction {
 
     /// The current amount of the transaction. This may be changed by creating a split.
     pub amount: i64,
+
+    /// [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) formatted datetime on which the
+    /// transaction has taken place.
+    pub date: String,
+
+    /// The account id associated with the transaction.
+    pub bank_account_id: String,
 
     /// The category this transaction belongs to. If the category id is [None] is is not part of
     /// a real category, but instead should be considered part of an "unsorted" category.

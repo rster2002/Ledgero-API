@@ -1,3 +1,4 @@
+use sqlx::FromRow;
 use entity_macro::{Entity, table_name};
 
 /// Used to link a name in the [Transaction::external_account_name] to an actual [ExternalAccount].
