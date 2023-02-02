@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Display, Formatter};
 use rocket::http::Status;
+use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Debug)]
 pub enum JwtError {

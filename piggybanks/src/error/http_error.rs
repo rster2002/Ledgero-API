@@ -1,5 +1,5 @@
-use rocket::http::Status;
 use crate::models::dto::error_dto::ErrorDTO;
+use rocket::http::Status;
 
 #[derive(Debug)]
 pub struct HttpError {
@@ -34,7 +34,7 @@ impl HttpError {
         let json_string = serde_json::to_string(&ErrorDTO {
             message: message.to_string(),
         })
-            .expect("Failed to serialize error DTO");
+        .expect("Failed to serialize error DTO");
 
         Some(json_string)
     }

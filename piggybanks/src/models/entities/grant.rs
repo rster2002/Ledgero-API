@@ -1,6 +1,9 @@
-use chrono::{Months, Utc};
+use crate::prelude::*;
+use crate::shared_types::DbPool;
+use chrono::{DateTime, Months, Utc};
+use entity_macro::{table_name, Entity};
+use sqlx::{Pool, Postgres};
 use uuid::Uuid;
-use entity_macro::{Entity, table_name};
 
 /// A grant is used to verify that the refresh token is still valid and may still be used to
 /// generate a new JWT token. The grant is removed from the database in the following situations:
@@ -45,5 +48,43 @@ impl Grant {
             user_id: user_id.into(),
             expire_at: expire_utc.to_rfc3339(),
         }
+    }
+
+    pub fn set_expire_at(&mut self, expire_at: DateTime<Utc>) {
+        self.expire_at = expire_at.to_rfc3339();
+    }
+
+    pub async fn update(&self, pool: &DbPool) -> Result<()> {
+        sqlx::query!(
+            r#"
+                UPDATE Grants
+                SET UserId = $1, ExpireAt = $2
+            "#,
+            self.user_id,
+            self.expire_at
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn delete(&self, pool: &DbPool) -> Result<()> {
+        Self::delete_by_id(pool, &self.id);
+        Ok(())
+    }
+
+    pub async fn delete_by_id(pool: &DbPool, id: impl Into<String>) -> Result<()> {
+        sqlx::query!(
+            r#"
+                DELETE FROM Grants
+                WHERE Id = $1;
+            "#,
+            id.into()
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
     }
 }

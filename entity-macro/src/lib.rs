@@ -1,29 +1,30 @@
-mod create_by_fn;
 mod col_mapping;
+mod create_by_fn;
 
-use proc_macro::{TokenStream};
-use quote::__private::{TokenTree};
-use convert_case::Case;
-use syn::{Attribute, Data, DeriveInput, Ident, parse_macro_input};
-use quote::{quote, ToTokens};
 use crate::col_mapping::ColMapping;
 use crate::create_by_fn::create_by_fn;
+use convert_case::Case;
+use proc_macro::TokenStream;
+use quote::__private::TokenTree;
+use quote::{quote, ToTokens};
+use syn::{parse_macro_input, Attribute, Data, DeriveInput, Ident};
 
 #[proc_macro_derive(Entity)]
 pub fn derive(input: TokenStream) -> TokenStream {
-    let DeriveInput { ident, data, attrs, .. } = parse_macro_input!(input as DeriveInput);
+    let DeriveInput {
+        ident, data, attrs, ..
+    } = parse_macro_input!(input as DeriveInput);
 
-    let table_name = get_table_name(&attrs)
-        .unwrap_or_else(|| ident.to_string());
+    let table_name = get_table_name(&attrs).unwrap_or_else(|| ident.to_string());
 
-    let naming = get_rename_all_casing(&attrs)
-        .unwrap_or(Case::Pascal);
+    let naming = get_rename_all_casing(&attrs).unwrap_or(Case::Pascal);
 
     let Data::Struct(data) = data else {
         panic!("Not a struct");
     };
 
-    let columns: Vec<ColMapping<'_>> = data.fields
+    let columns: Vec<ColMapping<'_>> = data
+        .fields
         .iter()
         .filter_map(|field| ColMapping::from_field(field, &naming))
         .collect();
@@ -35,11 +36,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
         i += 1;
     }
 
-    let insert_statement = format!("INSERT INTO {} VALUES ({})", table_name, value_parts.join(", "));
+    let insert_statement = format!(
+        "INSERT INTO {} VALUES ({})",
+        table_name,
+        value_parts.join(", ")
+    );
 
-    let col_idents: Vec<&Ident> = columns.iter()
-        .map(|c| c.source_ident)
-        .collect();
+    let col_idents: Vec<&Ident> = columns.iter().map(|c| c.source_ident).collect();
 
     let function_declarations: Vec<quote::__private::TokenStream> = columns
         .iter()
@@ -67,21 +70,19 @@ pub fn derive(input: TokenStream) -> TokenStream {
 }
 
 fn get_table_name(attributes: &[Attribute]) -> Option<String> {
-    let table_name_attribute = attributes.iter()
-        .find(|attribute| {
-            attribute.path.segments.iter()
-                .any(|segment| {
-                    segment.ident == *"table_name"
-                })
-        });
+    let table_name_attribute = attributes.iter().find(|attribute| {
+        attribute
+            .path
+            .segments
+            .iter()
+            .any(|segment| segment.ident == *"table_name")
+    });
 
     let Some(table_name_attribute) = table_name_attribute else {
         panic!("Incorrect table name attribute");
     };
 
-    let mut stream = table_name_attribute.tokens
-        .to_token_stream()
-        .into_iter();
+    let mut stream = table_name_attribute.tokens.to_token_stream().into_iter();
 
     let Some(TokenTree::Group(group)) = stream.next() else {
         panic!("Incorrect table name attribute");
@@ -95,21 +96,19 @@ fn get_table_name(attributes: &[Attribute]) -> Option<String> {
 }
 
 fn get_rename_all_casing(attributes: &[Attribute]) -> Option<Case> {
-    let sqlx_attribute = attributes.iter()
-        .find(|attribute| {
-            attribute.path.segments.iter()
-                .any(|segment| {
-                    segment.ident == *"sqlx"
-                })
-        });
+    let sqlx_attribute = attributes.iter().find(|attribute| {
+        attribute
+            .path
+            .segments
+            .iter()
+            .any(|segment| segment.ident == *"sqlx")
+    });
 
     let Some(sqlx_attribute) = sqlx_attribute else {
         return None;
     };
 
-    let mut stream = sqlx_attribute.tokens
-        .to_token_stream()
-        .into_iter();
+    let mut stream = sqlx_attribute.tokens.to_token_stream().into_iter();
 
     let Some(TokenTree::Group(group)) = stream.next() else {
         return None;
@@ -156,5 +155,3 @@ fn get_rename_all_casing(attributes: &[Attribute]) -> Option<Case> {
 pub fn table_name(_attr: TokenStream, item: TokenStream) -> TokenStream {
     item
 }
-
-

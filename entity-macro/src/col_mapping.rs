@@ -1,6 +1,6 @@
-use quote::__private::{TokenTree};
 use convert_case::{Case, Casing};
 use quote::ToTokens;
+use quote::__private::TokenTree;
 use syn::{Attribute, Field, Ident, Type};
 
 pub struct ColMapping<'a> {
@@ -32,21 +32,19 @@ impl<'a> ColMapping<'a> {
 }
 
 fn get_rename_attribute(attributes: &[Attribute]) -> Option<String> {
-    let sqlx_attribute = attributes.iter()
-        .find(|attribute| {
-            attribute.path.segments.iter()
-                .any(|segment| {
-                    segment.ident == *"sqlx"
-                })
-        });
+    let sqlx_attribute = attributes.iter().find(|attribute| {
+        attribute
+            .path
+            .segments
+            .iter()
+            .any(|segment| segment.ident == *"sqlx")
+    });
 
     let Some(sqlx_attribute) = sqlx_attribute else {
         return None;
     };
 
-    let mut stream = sqlx_attribute.tokens
-        .to_token_stream()
-        .into_iter();
+    let mut stream = sqlx_attribute.tokens.to_token_stream().into_iter();
 
     let Some(TokenTree::Group(group)) = stream.next() else {
         return None;

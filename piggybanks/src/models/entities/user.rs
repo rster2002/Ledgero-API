@@ -1,5 +1,5 @@
+use entity_macro::{table_name, Entity};
 use uuid::Uuid;
-use entity_macro::{Entity, table_name};
 
 #[derive(Debug, sqlx::FromRow, Entity)]
 #[table_name("Users")]

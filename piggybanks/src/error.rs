@@ -1,16 +1,16 @@
-pub mod jwt_error;
 pub mod http_error;
+pub mod jwt_error;
 
 use rocket::http::{ContentType, Status};
-use rocket::response::{Responder};
+use rocket::response::Responder;
 
+use crate::error::http_error::HttpError;
+use crate::error::jwt_error::JwtError;
+use base64_url::base64::DecodeError;
 use rocket::{Request, Response};
 use std::io;
 use std::io::Cursor;
 use std::string::FromUtf8Error;
-use base64_url::base64::DecodeError;
-use crate::error::http_error::HttpError;
-use crate::error::jwt_error::JwtError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -85,7 +85,7 @@ impl Error {
         match self {
             Error::JwtError(error) => error.get_status_code(),
             Error::SerdeJson(_) => Status::BadRequest.code,
-            _ => 500
+            _ => 500,
         }
     }
 

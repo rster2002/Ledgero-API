@@ -6,6 +6,7 @@ use crate::models::jwt::jwt_claims::JwtClaims;
 use crate::models::jwt::jwt_headers::JwtHeader;
 use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
 use crate::models::jwt::jwt_token_type::JwtTokenType;
+use crate::prelude::Result;
 use chrono::{Duration, Months, Utc};
 use rsa::pkcs1v15::SigningKey;
 use rsa::signature::{SignatureEncoding, Signer};
@@ -14,7 +15,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use sha2::Sha256;
 use uuid::Uuid;
-use crate::prelude::Result;
 
 /// Service with functions to generate and verify JWT tokens
 #[derive(Debug)]
@@ -67,10 +67,7 @@ impl JwtService {
 
     /// Creates a refresh token for the given grant and sets the [JwtHeader] and [JwtClaims]
     /// accordingly. A refresh token has an expire time of three months.
-    pub fn create_refresh_token(
-        &self,
-        grant: &Grant,
-    ) -> Result<String> {
+    pub fn create_refresh_token(&self, grant: &Grant) -> Result<String> {
         let header = JwtHeader {
             cty: JwtTokenType::Refresh,
             ..Default::default()
@@ -95,12 +92,7 @@ impl JwtService {
 
     /// Internal function which is used by the [JwtService::create_access_token] and
     /// [JwtService::create_refresh_token] function to create the token.
-    fn create_token<T>(
-        &self,
-        header: JwtHeader,
-        claims: JwtClaims,
-        payload: T,
-    ) -> Result<String>
+    fn create_token<T>(&self, header: JwtHeader, claims: JwtClaims, payload: T) -> Result<String>
     where
         T: Serialize,
     {
@@ -118,11 +110,7 @@ impl JwtService {
 
     /// Merges the JSON representation for the [JwtClaims] with the payload for the token and
     /// returns a single JSON object to be used as the JWT payload.
-    fn merge_claims_with_payload<T>(
-        &self,
-        claims: JwtClaims,
-        payload: T,
-    ) -> Result<Value>
+    fn merge_claims_with_payload<T>(&self, claims: JwtClaims, payload: T) -> Result<Value>
     where
         T: Serialize,
     {
@@ -171,10 +159,7 @@ impl JwtService {
     }
 
     /// Decodes the given access token and makes sure the token can be used at the current time.
-    pub fn decode_access_token<T>(
-        &self,
-        token: impl Into<String>,
-    ) -> Result<T>
+    pub fn decode_access_token<T>(&self, token: impl Into<String>) -> Result<T>
     where
         for<'a> T: Deserialize<'a>,
     {
@@ -203,10 +188,7 @@ impl JwtService {
     }
 
     /// Decodes the given refresh token and makes sure the token can be used at the current time.
-    pub fn decode_refresh_token(
-        &self,
-        token: impl Into<String>,
-    ) -> Result<JwtRefreshPayload> {
+    pub fn decode_refresh_token(&self, token: impl Into<String>) -> Result<JwtRefreshPayload> {
         let (claims, payload) = self.decode_refresh_token_unchecked(token)?;
         JwtService::check_claims(&claims)?;
 
@@ -231,10 +213,7 @@ impl JwtService {
     /// Decodes the given JWT token and returns all the given important parts of the token. It
     /// doesn't perform any checks apart from checking the signature. All checks for usage should
     /// done by the caller.
-    pub fn decode_jwt<T>(
-        &self,
-        token: String,
-    ) -> Result<(JwtHeader, JwtClaims, T)>
+    pub fn decode_jwt<T>(&self, token: String) -> Result<(JwtHeader, JwtClaims, T)>
     where
         for<'a> T: Deserialize<'a>,
     {
