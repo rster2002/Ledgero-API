@@ -63,5 +63,7 @@ CREATE TABLE Transactions
     ExternalAccountId   varchar             null
         references ExternalAccounts (Id)
             on update cascade
-            on delete cascade
+            on delete cascade,
+
+    CONSTRAINT unique_follow_number UNIQUE (FollowNumber)
 )
