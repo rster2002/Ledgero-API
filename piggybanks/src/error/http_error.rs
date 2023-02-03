@@ -1,5 +1,6 @@
-use crate::models::dto::error_dto::ErrorDTO;
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 use rocket::http::Status;
+use crate::error::error_dto_trait::ToErrorDto;
 
 #[derive(Debug)]
 pub struct HttpError {
@@ -25,17 +26,16 @@ impl HttpError {
     }
 }
 
-impl HttpError {
-    pub fn get_body(&self) -> Option<String> {
+impl ToErrorDto for HttpError {
+    fn get_status_code(&self) -> Status {
+        Status::new(self.code)
+    }
+
+    fn get_description(&self) -> String {
         let Some(message) = &self.message else {
-            return None;
+            return "Unknown error".to_string();
         };
 
-        let json_string = serde_json::to_string(&ErrorDTO {
-            message: message.to_string(),
-        })
-        .expect("Failed to serialize error DTO");
-
-        Some(json_string)
+        message.to_string()
     }
 }

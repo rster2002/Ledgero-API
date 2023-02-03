@@ -100,6 +100,7 @@ pub async fn import_csv(
             .ok_or("Column for external_account_name does not exist")?
             .to_string();
 
+        // TODO resolve automatic category id
         let external_account_id = external_account_map.get(&*external_account_name)
             .map(|x| x.to_string());
 

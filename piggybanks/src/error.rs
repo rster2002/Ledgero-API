@@ -1,6 +1,9 @@
 pub mod http_error;
 pub mod jwt_error;
 pub mod import_error;
+pub mod wrapped_sqlx_error;
+pub mod error_dto_trait;
+pub mod wrapped_csv_error;
 
 use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
@@ -14,22 +17,25 @@ use std::io::Cursor;
 use std::num::{ParseFloatError, ParseIntError};
 use std::string::FromUtf8Error;
 use chrono::ParseError;
+use crate::error::error_dto_trait::ToErrorDto;
 use crate::error::import_error::ImportError;
-use crate::models::dto::error_dto::ErrorDTO;
+use crate::error::wrapped_csv_error::WrappedCsvError;
+use crate::error::wrapped_sqlx_error::WrappedSqlxError;
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 
 #[derive(Debug)]
 pub enum Error {
     Generic(String),
     IO(io::Error),
     DotEnv(dotenv::Error),
-    SQLX(sqlx::Error),
+    SQLX(WrappedSqlxError),
     Status(Status),
     SerdeJson(serde_json::Error),
     DecodeError(DecodeError),
     Utf8Error(FromUtf8Error),
     JwtError(JwtError),
     HttpError(HttpError),
-    CSV(csv::Error),
+    CSV(WrappedCsvError),
     ImportError(ImportError),
 }
 
@@ -47,8 +53,7 @@ impl From<dotenv::Error> for Error {
 
 impl From<sqlx::Error> for Error {
     fn from(value: sqlx::Error) -> Self {
-        dbg!(&value);
-        Error::SQLX(value)
+        Error::SQLX(WrappedSqlxError::new(value))
     }
 }
 
@@ -90,7 +95,7 @@ impl From<HttpError> for Error {
 
 impl From<csv::Error> for Error {
     fn from(value: csv::Error) -> Self {
-        Error::CSV(value)
+        Error::CSV(WrappedCsvError::new(value))
     }
 }
 
@@ -129,49 +134,41 @@ impl Error {
         match self {
             Error::JwtError(error) => error.get_status_code(),
             Error::ImportError(error) => error.get_status_code(),
+            Error::SQLX(error) => error.get_status_code().code,
+            Error::CSV(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
         }
     }
 
-    fn get_body(&self) -> Option<String> {
-        match self {
-            Error::Generic(message) => {
-                Some(
-                    serde_json::to_string(&ErrorDTO {
-                        message: message.to_string(),
-                    })
-                        .expect("Failed to serialize error dto")
-                )
-            },
-            Error::ImportError(error) => Some(error.get_body()),
-            Error::IO(_) => Some("IO".to_string()),
-            Error::DotEnv(_) => Some("DotEnv".to_string()),
-            Error::SQLX(_) => Some("SQLX".to_string()),
-            Error::Status(_) => Some("Status".to_string()),
-            Error::SerdeJson(_) => Some("SerdeJson".to_string()),
-            Error::DecodeError(_) => Some("DecodeError".to_string()),
-            Error::Utf8Error(_) => Some("Utf8Error".to_string()),
-            Error::JwtError(_) => Some("JwtError".to_string()),
-            Error::HttpError(_) => Some("HttpError".to_string()),
-            Error::CSV(_) => Some("Generic".to_string()),
-            _ => None,
-        }
+    fn get_body(&self) -> String {
+        let error_dto = match self {
+            Error::SQLX(error) => error.to_error_dto(),
+            Error::CSV(error) => error.to_error_dto(),
+            _ => {
+                ErrorDTO {
+                    error: ErrorContent {
+                        code: 500,
+                        reason: "Internal Server Error".to_string(),
+                        description: "An unknown error occurred".to_string(),
+                    }
+                }
+            }
+        };
+
+        serde_json::to_string(&error_dto)
+            .expect("Failed to serialize error dto")
     }
 }
 
 impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
     fn respond_to(self, _request: &'r Request<'_>) -> rocket::response::Result<'o> {
-        let mut builder = Response::build();
+        let body = self.get_body();
 
-        builder
+        Response::build()
             .header(ContentType::JSON)
-            .status(Status::new(self.get_status_code()));
-
-        if let Some(body) = self.get_body() {
-            builder.sized_body(body.len(), Cursor::new(body));
-        }
-
-        builder.ok()
+            .status(Status::new(self.get_status_code()))
+            .sized_body(body.len(), Cursor::new(body))
+            .ok()
     }
 }

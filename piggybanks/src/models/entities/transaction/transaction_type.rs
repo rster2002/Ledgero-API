@@ -6,6 +6,7 @@ use sqlx::postgres::PgTypeInfo;
 #[derive(Debug, Type, Serialize, Copy, Clone)]
 // #[sqlx(type_name = "varchar")] // only for Postgres to match a type definition
 #[sqlx(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 pub enum TransactionType {
     /// Indicates that the transaction should be considered real and is actually talking about
     /// money. This is what most of transaction should be.
@@ -25,6 +26,17 @@ pub enum TransactionType {
     /// not be used to indicate a move between real bank accounts, as that should be a real
     /// [TransactionType::Transaction].
     Move,
+}
+
+impl From<&str> for TransactionType {
+    fn from(value: &str) -> Self {
+        match value {
+            "split" => TransactionType::Split,
+            "correction" => TransactionType::Correction,
+            "move" => TransactionType::Move,
+            _ => TransactionType::Transaction,
+        }
+    }
 }
 
 impl Into<&str> for TransactionType {

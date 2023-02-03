@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use rocket::http::Status;
-use crate::models::dto::error_dto::ErrorDTO;
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 
 #[derive(Debug)]
 pub enum ImportError {
@@ -24,7 +24,11 @@ impl ImportError {
 
     pub fn get_body(&self) -> String {
         serde_json::to_string(&ErrorDTO {
-            message: self.to_string(),
+            error: ErrorContent {
+                code: Status::BadRequest.code,
+                reason: "Bad Request".to_string(),
+                description: self.to_string(),
+            },
         })
             .expect("Failed to serialize error dto")
     }
