@@ -1,9 +1,10 @@
 use serde::Serialize;
-use sqlx::Type;
+use sqlx::{Postgres, Type};
+use sqlx::postgres::PgTypeInfo;
 
 /// Dictates the behaviour of the transaction and how is should be used.
-#[derive(Debug, Type, Serialize)]
-#[sqlx(type_name = "color")] // only for Postgres to match a type definition
+#[derive(Debug, Type, Serialize, Copy, Clone)]
+// #[sqlx(type_name = "varchar")] // only for Postgres to match a type definition
 #[sqlx(rename_all = "lowercase")]
 pub enum TransactionType {
     /// Indicates that the transaction should be considered real and is actually talking about
@@ -24,4 +25,15 @@ pub enum TransactionType {
     /// not be used to indicate a move between real bank accounts, as that should be a real
     /// [TransactionType::Transaction].
     Move,
+}
+
+impl Into<&str> for TransactionType {
+    fn into(self) -> &'static str {
+        match self {
+            TransactionType::Transaction => "transaction",
+            TransactionType::Split => "split",
+            TransactionType::Correction => "correction",
+            TransactionType::Move => "move"
+        }
+    }
 }

@@ -10,7 +10,10 @@ use base64_url::base64::DecodeError;
 use rocket::{Request, Response};
 use std::io;
 use std::io::Cursor;
+use std::num::{ParseFloatError, ParseIntError};
 use std::string::FromUtf8Error;
+use chrono::ParseError;
+use crate::models::dto::error_dto::ErrorDTO;
 
 #[derive(Debug)]
 pub enum Error {
@@ -24,6 +27,7 @@ pub enum Error {
     Utf8Error(FromUtf8Error),
     JwtError(JwtError),
     HttpError(HttpError),
+    CSV(csv::Error)
 }
 
 impl Error {
@@ -40,6 +44,7 @@ impl From<dotenv::Error> for Error {
 
 impl From<sqlx::Error> for Error {
     fn from(value: sqlx::Error) -> Self {
+        dbg!(&value);
         Error::SQLX(value)
     }
 }
@@ -80,6 +85,36 @@ impl From<HttpError> for Error {
     }
 }
 
+impl From<csv::Error> for Error {
+    fn from(value: csv::Error) -> Self {
+        Error::CSV(value)
+    }
+}
+
+impl From<&str> for Error {
+    fn from(value: &str) -> Self {
+        Error::Generic(value.into())
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(value: ParseIntError) -> Self {
+        Error::generic("Failed to parse int")
+    }
+}
+
+impl From<ParseFloatError> for Error {
+    fn from(value: ParseFloatError) -> Self {
+        Error::generic("Failed to parse int")
+    }
+}
+
+impl From<chrono::ParseError> for Error {
+    fn from(error: ParseError) -> Self {
+        Error::generic(format!("Failed parsing date time: {}", error.to_string()))
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
@@ -91,6 +126,24 @@ impl Error {
 
     fn get_body(&self) -> Option<String> {
         match self {
+            Error::Generic(message) => {
+                Some(
+                    serde_json::to_string(&ErrorDTO {
+                        message: message.to_string(),
+                    })
+                        .expect("Failed to serialize error dto")
+                )
+            },
+            Error::IO(_) => Some("IO".to_string()),
+            Error::DotEnv(_) => Some("DotEnv".to_string()),
+            Error::SQLX(_) => Some("SQLX".to_string()),
+            Error::Status(_) => Some("Status".to_string()),
+            Error::SerdeJson(_) => Some("SerdeJson".to_string()),
+            Error::DecodeError(_) => Some("DecodeError".to_string()),
+            Error::Utf8Error(_) => Some("Utf8Error".to_string()),
+            Error::JwtError(_) => Some("JwtError".to_string()),
+            Error::HttpError(_) => Some("HttpError".to_string()),
+            Error::CSV(_) => Some("Generic".to_string()),
             _ => None,
         }
     }

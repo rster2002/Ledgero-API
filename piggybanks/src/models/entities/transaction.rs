@@ -2,7 +2,10 @@ pub mod transaction_type;
 
 use chrono::Utc;
 use sqlx::FromRow;
+use entity_macro::{Entity, table_name};
 use crate::models::entities::transaction::transaction_type::TransactionType;
+use crate::shared_types::DbPool;
+use crate::prelude::*;
 
 /// A single transaction of money.
 #[derive(Debug, FromRow)]
@@ -56,4 +59,36 @@ pub struct Transaction {
     /// The id referencing an external account entity. The [external_account_name] does not have
     /// to match with the actual name of the external account.
     pub external_account_id: Option<String>,
+}
+
+impl Transaction {
+    pub async fn create(&self, pool: &DbPool) -> Result<()> {
+        let transaction_type: &str = self.transaction_type.into();
+
+        sqlx::query!(
+            r#"
+                INSERT INTO Transactions
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                ON CONFLICT DO NOTHING;
+            "#,
+            self.id,
+            self.user_id,
+            Some(transaction_type),
+            self.follow_number,
+            self.description,
+            self.original_description,
+            self.complete_amount,
+            self.amount,
+            self.date,
+            self.category_id,
+            self.parent_transaction_id,
+            self.external_account_name,
+            self.external_account_id,
+            self.bank_account_id
+        )
+            .execute(pool)
+            .await?;
+
+        Ok(())
+    }
 }
