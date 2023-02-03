@@ -1,5 +1,6 @@
 pub mod http_error;
 pub mod jwt_error;
+pub mod import_error;
 
 use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
@@ -13,6 +14,7 @@ use std::io::Cursor;
 use std::num::{ParseFloatError, ParseIntError};
 use std::string::FromUtf8Error;
 use chrono::ParseError;
+use crate::error::import_error::ImportError;
 use crate::models::dto::error_dto::ErrorDTO;
 
 #[derive(Debug)]
@@ -27,7 +29,8 @@ pub enum Error {
     Utf8Error(FromUtf8Error),
     JwtError(JwtError),
     HttpError(HttpError),
-    CSV(csv::Error)
+    CSV(csv::Error),
+    ImportError(ImportError),
 }
 
 impl Error {
@@ -115,10 +118,17 @@ impl From<chrono::ParseError> for Error {
     }
 }
 
+impl From<ImportError> for Error {
+    fn from(value: ImportError) -> Self {
+        Error::ImportError(value)
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
             Error::JwtError(error) => error.get_status_code(),
+            Error::ImportError(error) => error.get_status_code(),
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
         }
@@ -134,6 +144,7 @@ impl Error {
                         .expect("Failed to serialize error dto")
                 )
             },
+            Error::ImportError(error) => Some(error.get_body()),
             Error::IO(_) => Some("IO".to_string()),
             Error::DotEnv(_) => Some("DotEnv".to_string()),
             Error::SQLX(_) => Some("SQLX".to_string()),

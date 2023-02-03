@@ -7,6 +7,7 @@ use rocket::Route;
 use rocket::serde::json::Json;
 use rocket::time::macros::date;
 use uuid::Uuid;
+use crate::error::import_error::ImportError;
 use crate::models::csv::csv_mapping::{AmountMapping, DateMapping};
 use crate::models::dto::importing::import_csv_dto::ImportCsvDto;
 use crate::models::entities::bank_account::BankAccount;
@@ -31,8 +32,8 @@ pub async fn import_csv(
     let body = body.0;
     let mappings = body.mappings;
 
-    // Start a transaction
-    let transaction = pool.begin().await?;
+    // Start a database transaction
+    let db_transaction = pool.begin().await?;
 
     let mut bank_account_map = get_bank_accounts_map(pool, &user.uuid)
         .await?;
@@ -46,15 +47,15 @@ pub async fn import_csv(
         let record = record?;
 
         let follow_number = record.get(mappings.follow_number as usize)
-            .ok_or("Column for follow_number does not exist")?
+            .ok_or(ImportError::missing_column("follow_number"))?
             .to_string();
 
         let description = record.get(mappings.description as usize)
-            .ok_or("Column for description does not exist")?
+            .ok_or(ImportError::missing_column("description"))?
             .to_string();
 
         let temp_amount = record.get(mappings.amount as usize)
-            .ok_or("Column for amount does not exist")?
+            .ok_or(ImportError::missing_column("amount"))?
             .replace('+', "")
             .replace(',', ".")
             .parse::<f64>()?;
@@ -65,13 +66,13 @@ pub async fn import_csv(
         };
 
         let date_string = record.get(mappings.date as usize)
-            .ok_or("Column for date does not exist")?
+            .ok_or(ImportError::missing_column("date"))?
             .to_string();
 
         let date = map_datetime(&date_string, &mappings.date_mapping)?;
 
         let bank_account_iban = record.get(mappings.account_iban as usize)
-            .ok_or("Column for iban does not exist")?
+            .ok_or(ImportError::missing_column("iban"))?
             .to_string();
 
         let bank_account_id: Result<String> = match bank_account_map.get(&*bank_account_iban) {
@@ -123,7 +124,7 @@ pub async fn import_csv(
             .await?;
     }
 
-    transaction.commit()
+    db_transaction.commit()
         .await?;
 
     Ok(())
@@ -177,8 +178,6 @@ fn map_datetime(col_value: &String, date_mapping: &DateMapping) -> Result<String
     if let Some(template) = &date_mapping.template {
         working_value = template.replace('$', &*working_value);
     }
-
-    dbg!(&working_value);
 
     let datetime = DateTime::parse_from_str(&working_value, &date_mapping.format)?;
 

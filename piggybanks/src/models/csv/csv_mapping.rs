@@ -3,6 +3,7 @@ use serde::Deserialize;
 /// Used to map a column number to a required field of a transaction. The columns count starts
 /// as usual at 0.
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CsvMapping {
     pub account_iban: u32,
     pub date: u32,
@@ -25,6 +26,7 @@ pub enum AmountMapping {
 
 /// Used to configure the datetime mapping for the column.
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DateMapping {
     /// Template for formatting the datetime. Used for when the actual value of the date column
     /// cannot be used as a datetime. For example: if the date column has a value '2023-02-03', it
@@ -32,10 +34,6 @@ pub struct DateMapping {
     /// be replaced with the value of the column. Then the result can be parsed using the [format]
     /// option.
     pub template: Option<String>,
-
-    // /// The timezone the date is in. This will be used to convert the datetime to a timezone that
-    // /// is the same for every transaction.
-    // pub timezone: String,
 
     /// The format to use when parsing the date. Check the
     /// [chrono documentation](https://docs.rs/chrono/0.4.23/chrono/format/strftime/index.html) for
