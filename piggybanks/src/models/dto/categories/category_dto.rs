@@ -6,4 +6,5 @@ pub struct CategoryDto {
     pub name: String,
     pub description: String,
     pub hex_color: String,
+    pub amount: Option<i64>,
 }

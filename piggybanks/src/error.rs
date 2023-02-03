@@ -136,6 +136,7 @@ impl Error {
             Error::ImportError(error) => error.get_status_code(),
             Error::SQLX(error) => error.get_status_code().code,
             Error::CSV(error) => error.get_status_code().code,
+            Error::HttpError(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
         }
@@ -145,6 +146,7 @@ impl Error {
         let error_dto = match self {
             Error::SQLX(error) => error.to_error_dto(),
             Error::CSV(error) => error.to_error_dto(),
+            Error::HttpError(error) => error.to_error_dto(),
             _ => {
                 ErrorDTO {
                     error: ErrorContent {

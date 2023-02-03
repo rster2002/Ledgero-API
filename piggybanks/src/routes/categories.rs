@@ -27,7 +27,11 @@ pub async fn get_all_categories(
 
     let records = sqlx::query!(
         r#"
-            SELECT *
+            SELECT *, (
+                SELECT SUM(Amount)::bigint
+                FROM Transactions
+                WHERE Categories.Id = Transactions.CategoryId
+            ) AS Amount
             FROM Categories
             WHERE UserId = $1;
         "#,
@@ -44,6 +48,7 @@ pub async fn get_all_categories(
                     name: record.name,
                     description: record.description,
                     hex_color: record.hexcolor,
+                    amount: record.amount,
                 }
             })
             .collect()
@@ -74,6 +79,7 @@ pub async fn create_new_category(
         name: category.name,
         description: category.description,
         hex_color: category.hex_color,
+        amount: Some(0),
     }))
 }
 
@@ -87,7 +93,11 @@ pub async fn get_category_by_id(
 
     let record = sqlx::query!(
         r#"
-            SELECT *
+            SELECT *, (
+                SELECT SUM(Amount)::bigint
+                FROM Transactions
+                WHERE Categories.Id = Transactions.CategoryId
+            ) AS Amount
             FROM Categories
             WHERE Id = $1 AND UserId = $2;
         "#,
@@ -102,6 +112,7 @@ pub async fn get_category_by_id(
         name: record.name,
         description: record.description,
         hex_color: record.hexcolor,
+        amount: record.amount,
     }))
 }
 
@@ -138,6 +149,7 @@ pub async fn update_category(
         name: body.name,
         description: body.description,
         hex_color: body.hex_color,
+        amount: None,
     }))
 }
 
