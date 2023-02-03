@@ -15,6 +15,7 @@ use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
 use crate::routes::categories::create_category_routes;
+use crate::routes::external_accounts::create_external_account_routes;
 use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
 
@@ -62,6 +63,7 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/auth", create_auth_routes())
         .mount("/transactions", create_transaction_routes())
         .mount("/categories", create_category_routes())
+        .mount("/external-accounts", create_external_account_routes())
         .mount("/import", create_importing_routes())
         .launch()
         .await

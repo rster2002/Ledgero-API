@@ -1,9 +1,8 @@
-use serde::Serialize;
+use serde::Deserialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ExternalAccountDto {
-    pub id: String,
+pub struct NewExternalAccountDto {
     pub name: String,
     pub description: String,
     pub default_category_id: Option<String>,

@@ -45,15 +45,25 @@ async fn login<'a>(
     pool: &'a SharedPool,
     jwt_service: &'a SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
+    let pool = pool.inner();
     let body = body.0;
 
-    let user = User::by_username(pool, body.username).await?;
+    let user = sqlx::query!(
+        r#"
+            SELECT *
+            FROM Users
+            WHERE Username = $1;
+        "#,
+        body.username
+    )
+        .fetch_optional(pool)
+        .await?;
 
     let Some(user) = user else {
         return Err(Status::Unauthorized.into());
     };
 
-    let valid_password = PasswordHashService::verify(user.password_hash, body.password);
+    let valid_password = PasswordHashService::verify(user.passwordhash, body.password);
     if !valid_password {
         return Err(Status::Unauthorized.into());
     }
@@ -66,7 +76,7 @@ async fn login<'a>(
     };
 
     let jwt = jwt_service.create_access_token(&user_payload)?;
-    let refresh = jwt_service.create_refresh_token(&grant)?;
+    let refresh = jwt_service.create_refresh_token(&grant.id)?;
 
     grant.create(pool).await?;
 
@@ -84,13 +94,25 @@ async fn refresh(
     pool: &SharedPool,
     jwt_service: &SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
+    let pool = pool.inner();
     let body = body.0;
 
     let (_, access_payload) =
         jwt_service.decode_access_token_unchecked::<JwtUserPayload>(body.access_token)?;
     let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
 
-    let Some(_) = User::by_id(pool, &access_payload.uuid).await? else {
+    let user = sqlx::query!(
+        r#"
+            SELECT Id
+            FROM Users
+            WHERE Id = $1;
+        "#,
+        access_payload.uuid
+    )
+        .fetch_optional(pool)
+        .await?;
+
+    let Some(_) = user else {
         return Err(
             HttpError::from_status(Status::NotFound)
                 .message("No user with the give id was found. The user might have been deleted")
@@ -98,7 +120,18 @@ async fn refresh(
         );
     };
 
-    let Some(mut grant) = Grant::by_id(pool, refresh_payload.grant_id).await? else {
+    let grant = sqlx::query!(
+        r#"
+            SELECT *
+            FROM Grants
+            WHERE Id = $1;
+        "#,
+        refresh_payload.grant_id
+    )
+        .fetch_optional(pool)
+        .await?;
+
+    let Some(mut grant) = grant else {
         return Err(
             HttpError::from_status(Status::Unauthorized)
                 .message("The given refresh token has been revoked")
@@ -106,11 +139,20 @@ async fn refresh(
         );
     };
 
-    grant.set_expire_at(Utc::now() + Months::new(3));
-    grant.update(pool).await?;
+    sqlx::query!(
+        r#"
+            UPDATE Grants
+            SET ExpireAt = $2
+            WHERE Id = $1;
+        "#,
+        grant.id,
+        (Utc::now() + Months::new(3)).to_rfc3339()
+    )
+        .execute(pool)
+        .await?;
 
     let access_token = jwt_service.create_access_token(&access_payload)?;
-    let refresh_token = jwt_service.create_refresh_token(&grant)?;
+    let refresh_token = jwt_service.create_refresh_token(&grant.id)?;
 
     Ok(Json(JwtResponseDto {
         access_token,

@@ -62,7 +62,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 Ok(())
             }
 
-            #(#function_declarations)*
+            // #(#function_declarations)*
         }
     };
 

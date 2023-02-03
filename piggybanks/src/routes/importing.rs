@@ -100,11 +100,7 @@ pub async fn import_csv(
             .ok_or("Column for external_account_name does not exist")?
             .to_string();
 
-        // TODO resolve automatic category id
-        let external_account_id = external_account_map.get(&*external_account_name)
-            .map(|x| x.to_string());
-
-        let transaction = Transaction {
+        let mut transaction = Transaction {
             id: Uuid::new_v4().to_string(),
             user_id: user.uuid.to_string(),
             transaction_type: TransactionType::Transaction,
@@ -117,9 +113,19 @@ pub async fn import_csv(
             bank_account_id: bank_account_id?,
             category_id: None,
             parent_transaction_id: None,
-            external_account_name,
-            external_account_id,
+            external_account_name: external_account_name.to_string(),
+            external_account_id: None,
         };
+
+        let external_account_id = external_account_map.get(&*external_account_name)
+            .map(|(id, category)| {
+                (id.to_string(), category.to_owned())
+            });
+
+        if let Some((external_id, category_id)) = external_account_id {
+            transaction.external_account_id = Some(external_id);
+            transaction.category_id = category_id;
+        }
 
         transaction.create(pool)
             .await?;
@@ -152,12 +158,13 @@ async fn get_bank_accounts_map(pool: &DbPool, user_id: &String) -> Result<HashMa
     Ok(map)
 }
 
-async fn get_external_accounts_map(pool: &DbPool, user_id: &String) -> Result<HashMap<String, String>> {
+async fn get_external_accounts_map(pool: &DbPool, user_id: &String) -> Result<HashMap<String, (String, Option<String>)>> {
     let records = sqlx::query!(
         r#"
-            SELECT Name, ParentExternalAccount
+            SELECT ExternalAccountNames.Name, ParentExternalAccount, e.DefaultCategoryId
             FROM ExternalAccountNames
-            WHERE UserId = $1;
+            INNER JOIN ExternalAccounts e ON e.Id = ExternalAccountNames.ParentExternalAccount
+            WHERE ExternalAccountNames.UserId = $1;
         "#,
         user_id
     )
@@ -167,7 +174,7 @@ async fn get_external_accounts_map(pool: &DbPool, user_id: &String) -> Result<Ha
     let mut map = HashMap::new();
 
     for record in records {
-        map.insert(record.name, record.parentexternalaccount);
+        map.insert(record.name, (record.parentexternalaccount, record.defaultcategoryid));
     }
 
     Ok(map)

@@ -67,7 +67,7 @@ impl JwtService {
 
     /// Creates a refresh token for the given grant and sets the [JwtHeader] and [JwtClaims]
     /// accordingly. A refresh token has an expire time of three months.
-    pub fn create_refresh_token(&self, grant: &Grant) -> Result<String> {
+    pub fn create_refresh_token(&self, grant_id: &String) -> Result<String> {
         let header = JwtHeader {
             cty: JwtTokenType::Refresh,
             ..Default::default()
@@ -84,7 +84,7 @@ impl JwtService {
         };
 
         let payload = JwtRefreshPayload {
-            grant_id: grant.id.to_string(),
+            grant_id: grant_id.to_string(),
         };
 
         self.create_token(header, claims, payload)
