@@ -14,6 +14,7 @@ use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
+use crate::routes::aggregates::create_aggregate_routes;
 use crate::routes::categories::create_category_routes;
 use crate::routes::external_accounts::create_external_account_routes;
 use crate::routes::importing::create_importing_routes;
@@ -64,6 +65,7 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/transactions", create_transaction_routes())
         .mount("/categories", create_category_routes())
         .mount("/external-accounts", create_external_account_routes())
+        .mount("/aggregates", create_aggregate_routes())
         .mount("/import", create_importing_routes())
         .launch()
         .await

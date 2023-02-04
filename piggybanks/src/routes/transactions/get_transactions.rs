@@ -55,7 +55,7 @@ pub async fn get_all_transactions(
             LEFT JOIN categories c on transactions.categoryid = c.id
             LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
             LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
-            WHERE Transactions.UserId = $1;
+            WHERE TransactionType = 'transaction' AND Transactions.UserId = $1;
         "#,
         user.uuid
     )

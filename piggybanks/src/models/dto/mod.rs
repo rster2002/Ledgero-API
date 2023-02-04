@@ -5,3 +5,4 @@ pub mod categories;
 pub mod external_accounts;
 pub mod importing;
 pub mod bank_accounts;
+pub mod aggregates;

@@ -1,3 +1,4 @@
+use std::error::Error;
 use chrono::Utc;
 use rocket::serde::json::Json;
 use uuid::Uuid;
@@ -80,19 +81,7 @@ pub async fn create_split(
         .fetch_one(pool)
         .await?;
 
-    if parent_transaction.amount > 0 && body.amount > parent_transaction.amount {
-        return Err(
-            HttpError::new(400)
-                .message("Cannot create a split with an amount bigger than the remaining about of the parent")
-                .into()
-        );
-    } else if parent_transaction.amount < 0 && body.amount < parent_transaction.amount {
-        return Err(
-            HttpError::new(400)
-                .message("Cannot create a split with an amount bigger than the remaining about of the parent")
-                .into()
-        );
-    }
+    guard_amount(parent_transaction.amount, body.amount)?;
 
     let db_transaction = pool.begin()
         .await?;
@@ -138,14 +127,86 @@ pub async fn create_split(
     Ok(())
 }
 
-#[put("/<transaction_id>/splits/<split_id>")]
+#[put("/<transaction_id>/splits/<split_id>", data="<body>")]
 pub async fn update_split(
     pool: &SharedPool,
     user: JwtUserPayload,
     transaction_id: String,
     split_id: String,
-) -> Result<Json<SplitDto>> {
-    todo!()
+    body: Json<NewSplitDto>,
+) -> Result<()> {
+    let pool = pool.inner();
+    let body = body.0;
+
+    let parent_transaction = sqlx::query!(
+        r#"
+            SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId
+            FROM Transactions
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        transaction_id,
+        user.uuid
+    )
+        .fetch_one(pool)
+        .await?;
+
+    let split = sqlx::query!(
+        r#"
+            SELECT Id, Amount
+            FROM Transactions
+            WHERE
+                TransactionType = 'split' AND
+                UserId = $1 AND
+                ParentTransactionId = $2 AND
+                Id = $3;
+        "#,
+        user.uuid,
+        transaction_id,
+        split_id
+    )
+        .fetch_one(pool)
+        .await?;
+
+    let db_transaction = pool.begin()
+        .await?;
+
+    let available_amount = parent_transaction.amount + split.amount;
+    guard_amount(available_amount, body.amount)?;
+
+    let new_parent_amount = available_amount - body.amount;
+
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET Description = $3, Amount = $4, CategoryId = $5
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        split_id,
+        user.uuid,
+        body.description,
+        body.amount,
+        body.category_id
+    )
+        .execute(pool)
+        .await?;
+
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET Amount = $3
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        transaction_id,
+        user.uuid,
+        new_parent_amount
+    )
+        .execute(pool)
+        .await?;
+
+    db_transaction.commit()
+        .await?;
+
+    Ok(())
 }
 
 #[delete("/<transaction_id>/splits/<split_id>")]
@@ -154,12 +215,87 @@ pub async fn delete_split(
     user: JwtUserPayload,
     transaction_id: String,
     split_id: String,
-) -> Result<Json<SplitDto>> {
-    todo!()
+) -> Result<()> {
+    let pool = pool.inner();
+
+    let split_record = sqlx::query!(
+        r#"
+            SELECT Amount, ParentTransactionId
+            FROM Transactions
+            WHERE TransactionType = 'split' AND Id = $1 AND UserId = $2;
+        "#,
+        split_id,
+        user.uuid
+    )
+        .fetch_one(pool)
+        .await?;
+
+    let Some(parent_id) = split_record.parenttransactionid else {
+        return Err(
+            HttpError::new(404)
+                .message("Could not find a split with the given id for this transaction")
+                .into()
+        );
+    };
+
+    if parent_id != transaction_id {
+        return Err(
+            HttpError::new(404)
+                .message("Could not find a split with the given id for this transaction")
+                .into()
+        );
+    }
+
+    let transaction_record = sqlx::query!(
+        r#"
+            SELECT Amount
+            FROM Transactions
+            WHERE TransactionType = 'transaction' AND Id = $1 AND UserId = $2;
+        "#,
+        transaction_id,
+        user.uuid
+    )
+        .fetch_one(pool)
+        .await?;
+
+    let new_transaction_amount = transaction_record.amount + split_record.amount;
+
+    let db_transaction = pool.begin()
+        .await?;
+
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET Amount = $3
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        transaction_id,
+        user.uuid,
+        new_transaction_amount
+    )
+        .execute(pool)
+        .await?;
+
+    sqlx::query!(
+        r#"
+            DELETE FROM Transactions
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        split_id,
+        user.uuid
+    )
+        .execute(pool)
+        .await?;
+
+    db_transaction.commit()
+        .await?;
+
+    Ok(())
 }
 
 fn map_split_record(record: SplitRecord) -> SplitDto {
     let mut split_dto = SplitDto {
+        id: record.id,
         description: record.description,
         amount: record.amount,
         category: None,
@@ -179,4 +315,22 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
     }
 
     split_dto
+}
+
+fn guard_amount(parent_amount: i64, split_amount: i64) -> Result<()> {
+    if parent_amount > 0 && split_amount > parent_amount {
+        return Err(
+            HttpError::new(400)
+                .message("Cannot create a split with an amount bigger than the remaining about of the parent")
+                .into()
+        );
+    } else if parent_amount < 0 && split_amount < parent_amount {
+        return Err(
+            HttpError::new(400)
+                .message("Cannot create a split with an amount bigger than the remaining about of the parent")
+                .into()
+        );
+    }
+
+    Ok(())
 }
