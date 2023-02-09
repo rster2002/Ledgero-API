@@ -70,8 +70,7 @@ impl Grant {
     }
 
     pub async fn delete(&self, pool: &DbPool) -> Result<()> {
-        Self::delete_by_id(pool, &self.id)
-            .await?;
+        Self::delete_by_id(pool, &self.id).await?;
         Ok(())
     }
 

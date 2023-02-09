@@ -6,7 +6,6 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtUserPayload {
     pub uuid: String,

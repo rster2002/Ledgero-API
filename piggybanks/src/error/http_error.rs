@@ -1,6 +1,5 @@
-
-use rocket::http::Status;
 use crate::error::error_dto_trait::ToErrorDto;
+use rocket::http::Status;
 
 #[derive(Debug)]
 pub struct HttpError {

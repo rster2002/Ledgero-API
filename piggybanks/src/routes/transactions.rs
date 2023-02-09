@@ -1,23 +1,10 @@
 pub mod get_transactions;
 pub mod splits;
 
-
-
 use rocket::Route;
-
-
-
-
-
-
-
-
-
-
 
 use crate::routes::transactions::get_transactions::*;
 use crate::routes::transactions::splits::*;
-
 
 pub fn create_transaction_routes() -> Vec<Route> {
     routes![
@@ -30,4 +17,3 @@ pub fn create_transaction_routes() -> Vec<Route> {
         delete_split,
     ]
 }
-

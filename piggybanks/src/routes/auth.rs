@@ -18,7 +18,6 @@ use rocket::serde::json::Json;
 use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
 
-
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]
 }
@@ -55,8 +54,8 @@ async fn login<'a>(
         "#,
         body.username
     )
-        .fetch_optional(pool)
-        .await?;
+    .fetch_optional(pool)
+    .await?;
 
     let Some(user) = user else {
         return Err(Status::Unauthorized.into());
@@ -108,8 +107,8 @@ async fn refresh(
         "#,
         access_payload.uuid
     )
-        .fetch_optional(pool)
-        .await?;
+    .fetch_optional(pool)
+    .await?;
 
     let Some(_) = user else {
         return Err(
@@ -127,8 +126,8 @@ async fn refresh(
         "#,
         refresh_payload.grant_id
     )
-        .fetch_optional(pool)
-        .await?;
+    .fetch_optional(pool)
+    .await?;
 
     let Some(grant) = grant else {
         return Err(
@@ -147,8 +146,8 @@ async fn refresh(
         grant.id,
         (Utc::now() + Months::new(3)).to_rfc3339()
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     let access_token = jwt_service.create_access_token(&access_payload)?;
     let refresh_token = jwt_service.create_refresh_token(&grant.id)?;

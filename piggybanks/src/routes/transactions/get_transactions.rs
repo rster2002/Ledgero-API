@@ -1,16 +1,15 @@
-
-use rocket::serde::json::Json;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
 use crate::models::entities::category::Category;
-use crate::models::entities::transaction::Transaction;
 use crate::models::entities::transaction::transaction_type::TransactionType;
+use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::shared_types::SharedPool;
 use crate::prelude::*;
+use crate::shared_types::SharedPool;
+use rocket::serde::json::Json;
 
 pub struct TransactionRecord {
     pub transactionid: String,
@@ -62,10 +61,7 @@ pub async fn get_all_transactions(
         .fetch_all(pool)
         .await?;
 
-    let transactions = records
-        .into_iter()
-        .map(map_record)
-        .collect();
+    let transactions = records.into_iter().map(map_record).collect();
 
     Ok(Json(transactions))
 }
@@ -103,7 +99,7 @@ pub async fn get_single_transaction(
     Ok(Json(transaction))
 }
 
-#[patch("/<id>/category", data="<body>")]
+#[patch("/<id>/category", data = "<body>")]
 pub async fn change_category_for_transaction(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -113,12 +109,10 @@ pub async fn change_category_for_transaction(
     let pool = pool.inner();
     let body = body.0;
 
-    Transaction::guard_one(pool, &id, &user.uuid)
-        .await?;
+    Transaction::guard_one(pool, &id, &user.uuid).await?;
 
     if let Some(category_id) = &body.category_id {
-        Category::guard_one(pool, category_id, &user.uuid)
-            .await?;
+        Category::guard_one(pool, category_id, &user.uuid).await?;
     }
 
     sqlx::query!(
@@ -131,8 +125,8 @@ pub async fn change_category_for_transaction(
         user.uuid,
         body.category_id
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     Ok(())
 }
@@ -161,11 +155,14 @@ pub fn map_record(record: TransactionRecord) -> TransactionDto {
     if let Some(id) = record.CategoryId {
         transaction.category = Some(CategoryDto {
             id,
-            name: record.CategoryName
+            name: record
+                .CategoryName
                 .expect("Category id was not null, but the category name was"),
-            description: record.CategoryDescription
+            description: record
+                .CategoryDescription
                 .expect("Category id was not null, but the category description was"),
-            hex_color: record.CategoryHexColor
+            hex_color: record
+                .CategoryHexColor
                 .expect("Category id was not null, but the category hex color was"),
             amount: None,
         });
@@ -174,10 +171,12 @@ pub fn map_record(record: TransactionRecord) -> TransactionDto {
     if let Some(id) = record.ExternalAccountId {
         transaction.external_account = Some(ExternalAccountDto {
             id,
-            name: record.ExternalAccountEntityName
+            name: record
+                .ExternalAccountEntityName
                 .expect("External account id was not null, the the external account name was"),
-            description: record.ExternalAccountDescription
-                .expect("External account id was not null, the the external account description was"),
+            description: record.ExternalAccountDescription.expect(
+                "External account id was not null, the the external account description was",
+            ),
             default_category_id: record.ExternalAccounDefaultCategoryId,
         })
     }

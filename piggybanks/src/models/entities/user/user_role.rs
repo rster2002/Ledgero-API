@@ -1,6 +1,6 @@
-use std::cmp::Ordering;
 use serde::Serialize;
 use sqlx::Type;
+use std::cmp::Ordering;
 
 /// The role of the user may allow for extra operation to be used throughout the application.
 #[derive(Debug, Type, Serialize, PartialEq, Eq, Copy, Clone)]

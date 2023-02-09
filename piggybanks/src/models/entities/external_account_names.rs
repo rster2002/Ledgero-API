@@ -1,7 +1,7 @@
-use sqlx::FromRow;
-use entity_macro::{Entity, table_name};
-use crate::shared_types::DbPool;
 use crate::prelude::*;
+use crate::shared_types::DbPool;
+use entity_macro::{table_name, Entity};
+use sqlx::FromRow;
 
 /// Used to link a name in the [Transaction::external_account_name] to an actual [ExternalAccount].
 #[derive(Debug, FromRow, Entity)]
@@ -29,8 +29,8 @@ impl ExternalAccountName {
             id,
             user_id
         )
-            .fetch_one(pool)
-            .await?;
+        .fetch_one(pool)
+        .await?;
 
         Ok(())
     }

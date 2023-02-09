@@ -1,15 +1,13 @@
-use rocket::Route;
-use rocket::serde::json::Json;
 use crate::error::http_error::HttpError;
 use crate::models::dto::aggregates::user_total_dto::UserTotalDto;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::shared_types::SharedPool;
+use rocket::serde::json::Json;
+use rocket::Route;
 
 pub fn create_aggregate_routes() -> Vec<Route> {
-    routes![
-        get_user_total_amount,
-    ]
+    routes![get_user_total_amount,]
 }
 
 #[get("/total")]
@@ -27,14 +25,14 @@ pub async fn get_user_total_amount(
         "#,
         user.uuid
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
     Ok(Json(UserTotalDto {
         total: record.total.ok_or::<Error>(
             HttpError::new(500)
                 .message("Failed to calculate aggregate")
-                .into()
+                .into(),
         )?,
     }))
 }

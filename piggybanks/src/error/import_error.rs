@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
-use rocket::http::Status;
 use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
+use rocket::http::Status;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
 pub enum ImportError {
@@ -30,14 +30,16 @@ impl ImportError {
                 description: self.to_string(),
             },
         })
-            .expect("Failed to serialize error dto")
+        .expect("Failed to serialize error dto")
     }
 }
 
 impl Display for ImportError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let string = match self {
-            ImportError::MissingColumn(col) => format!("No column could be found for mapping '{}'", col)
+            ImportError::MissingColumn(col) => {
+                format!("No column could be found for mapping '{}'", col)
+            }
         };
 
         write!(f, "{}", string)

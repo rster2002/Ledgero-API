@@ -1,6 +1,3 @@
-use rocket::Route;
-use rocket::serde::json::Json;
-use uuid::Uuid;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::dto::external_accounts::external_account_name_dto::ExternalAccountNameDto;
 use crate::models::dto::external_accounts::new_external_account_dto::NewExternalAccountDto;
@@ -11,6 +8,9 @@ use crate::models::entities::external_account_names::ExternalAccountName;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::shared_types::SharedPool;
+use rocket::serde::json::Json;
+use rocket::Route;
+use uuid::Uuid;
 
 pub fn create_external_account_routes() -> Vec<Route> {
     routes![
@@ -28,7 +28,7 @@ pub fn create_external_account_routes() -> Vec<Route> {
 #[get("/")]
 pub async fn get_all_external_accounts(
     pool: &SharedPool,
-    user: JwtUserPayload
+    user: JwtUserPayload,
 ) -> Result<Json<Vec<ExternalAccountDto>>> {
     let pool = pool.inner();
 
@@ -40,24 +40,23 @@ pub async fn get_all_external_accounts(
         "#,
         user.uuid
     )
-        .fetch_all(pool)
-        .await?;
+    .fetch_all(pool)
+    .await?;
 
     Ok(Json(
-        records.into_iter()
-            .map(|record| {
-                ExternalAccountDto {
-                    id: record.id,
-                    name: record.name,
-                    description: record.description,
-                    default_category_id: record.defaultcategoryid,
-                }
+        records
+            .into_iter()
+            .map(|record| ExternalAccountDto {
+                id: record.id,
+                name: record.name,
+                description: record.description,
+                default_category_id: record.defaultcategoryid,
             })
-            .collect()
+            .collect(),
     ))
 }
 
-#[post("/", data="<body>")]
+#[post("/", data = "<body>")]
 pub async fn create_new_external_account(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -67,8 +66,7 @@ pub async fn create_new_external_account(
     let body = body.0;
 
     if let Some(category_id) = &body.default_category_id {
-        Category::guard_one(pool, category_id, &user.uuid)
-            .await?;
+        Category::guard_one(pool, category_id, &user.uuid).await?;
     }
 
     let external_account = ExternalAccount {
@@ -79,8 +77,7 @@ pub async fn create_new_external_account(
         default_category_id: body.default_category_id,
     };
 
-    external_account.create(pool)
-        .await?;
+    external_account.create(pool).await?;
 
     Ok(Json(ExternalAccountDto {
         id: external_account.id,
@@ -107,8 +104,8 @@ pub async fn get_external_account_by_id(
         id,
         user.uuid
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
     Ok(Json(ExternalAccountDto {
         id,
@@ -118,7 +115,7 @@ pub async fn get_external_account_by_id(
     }))
 }
 
-#[put("/<id>", data="<body>")]
+#[put("/<id>", data = "<body>")]
 pub async fn update_external_account(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -128,12 +125,10 @@ pub async fn update_external_account(
     let pool = pool.inner();
     let body = body.0;
 
-    ExternalAccount::guard_one(pool, &id, &user.uuid)
-        .await?;
+    ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
     if let Some(category_id) = &body.default_category_id {
-        Category::guard_one(pool, category_id, &user.uuid)
-            .await?;
+        Category::guard_one(pool, category_id, &user.uuid).await?;
     }
 
     sqlx::query!(
@@ -148,8 +143,8 @@ pub async fn update_external_account(
         body.description,
         body.default_category_id
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     Ok(Json(ExternalAccountDto {
         id,
@@ -167,8 +162,7 @@ pub async fn delete_external_account(
 ) -> Result<()> {
     let pool = pool.inner();
 
-    ExternalAccount::guard_one(pool, &id, &user.uuid)
-        .await?;
+    ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
     sqlx::query!(
         r#"
@@ -178,8 +172,8 @@ pub async fn delete_external_account(
         id,
         user.uuid
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     Ok(())
 }
@@ -192,8 +186,7 @@ pub async fn get_external_account_names(
 ) -> Result<Json<Vec<ExternalAccountNameDto>>> {
     let pool = pool.inner();
 
-    ExternalAccount::guard_one(pool, &id, &user.uuid)
-        .await?;
+    ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
     let records = sqlx::query!(
         r#"
@@ -203,23 +196,22 @@ pub async fn get_external_account_names(
         "#,
         user.uuid
     )
-        .fetch_all(pool)
-        .await?;
+    .fetch_all(pool)
+    .await?;
 
     Ok(Json(
-        records.into_iter()
-            .map(|record| {
-                ExternalAccountNameDto {
-                    id: record.id,
-                    name: record.name,
-                    parent_external_account: record.parentexternalaccount,
-                }
+        records
+            .into_iter()
+            .map(|record| ExternalAccountNameDto {
+                id: record.id,
+                name: record.name,
+                parent_external_account: record.parentexternalaccount,
             })
-            .collect()
+            .collect(),
     ))
 }
 
-#[post("/<id>/names", data="<body>")]
+#[post("/<id>/names", data = "<body>")]
 pub async fn new_external_account_name(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -229,8 +221,7 @@ pub async fn new_external_account_name(
     let pool = pool.inner();
     let body = body.0;
 
-    ExternalAccount::guard_one(pool, &id, &user.uuid)
-        .await?;
+    ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
     let external_account_name = ExternalAccountName {
         id: Uuid::new_v4().to_string(),
@@ -239,8 +230,7 @@ pub async fn new_external_account_name(
         parent_external_account: id,
     };
 
-    external_account_name.create(pool)
-        .await?;
+    external_account_name.create(pool).await?;
 
     Ok(Json(ExternalAccountNameDto {
         id: external_account_name.id,
@@ -258,11 +248,9 @@ pub async fn delete_external_account_name(
 ) -> Result<()> {
     let pool = pool.inner();
 
-    ExternalAccount::guard_one(pool, &id, &user.uuid)
-        .await?;
+    ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
-    ExternalAccountName::guard_one(pool, &name_id, &user.uuid)
-        .await?;
+    ExternalAccountName::guard_one(pool, &name_id, &user.uuid).await?;
 
     sqlx::query!(
         r#"
@@ -272,8 +260,8 @@ pub async fn delete_external_account_name(
         name_id,
         user.uuid
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     Ok(())
 }

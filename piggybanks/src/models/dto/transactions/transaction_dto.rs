@@ -1,8 +1,8 @@
-use serde::Serialize;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::entities::transaction::transaction_type::TransactionType;
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

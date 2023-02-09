@@ -1,11 +1,11 @@
 pub mod transaction_type;
 
-use chrono::Utc;
-use sqlx::FromRow;
-use entity_macro::{Entity, table_name};
 use crate::models::entities::transaction::transaction_type::TransactionType;
-use crate::shared_types::DbPool;
 use crate::prelude::*;
+use crate::shared_types::DbPool;
+use chrono::Utc;
+use entity_macro::{table_name, Entity};
+use sqlx::FromRow;
 
 /// A single transaction of money.
 #[derive(Debug, FromRow)]
@@ -86,8 +86,8 @@ impl Transaction {
             self.external_account_id,
             self.bank_account_id
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(())
     }
@@ -102,8 +102,8 @@ impl Transaction {
             id,
             user_id
         )
-            .fetch_one(pool)
-            .await?;
+        .fetch_one(pool)
+        .await?;
 
         Ok(())
     }

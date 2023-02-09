@@ -1,14 +1,13 @@
-
-use chrono::Utc;
-use rocket::serde::json::Json;
-use uuid::Uuid;
 use crate::error::http_error::HttpError;
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
 use crate::models::dto::transactions::split_dto::SplitDto;
+use chrono::Utc;
+use rocket::serde::json::Json;
+use uuid::Uuid;
 
-use crate::models::entities::transaction::Transaction;
 use crate::models::entities::transaction::transaction_type::TransactionType;
+use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::shared_types::SharedPool;
@@ -31,8 +30,7 @@ pub async fn get_splits(
 ) -> Result<Json<Vec<SplitDto>>> {
     let pool = pool.inner();
 
-    Transaction::guard_one(pool, &transaction_id, &user.uuid)
-        .await?;
+    Transaction::guard_one(pool, &transaction_id, &user.uuid).await?;
 
     let records = sqlx::query_as!(
         SplitRecord,
@@ -51,20 +49,19 @@ pub async fn get_splits(
         .await?;
 
     Ok(Json(
-        records.into_iter()
-            .map(|record| {
-                map_split_record(record)
-            })
-            .collect()
+        records
+            .into_iter()
+            .map(|record| map_split_record(record))
+            .collect(),
     ))
 }
 
-#[post("/<transaction_id>/splits", data="<body>")]
+#[post("/<transaction_id>/splits", data = "<body>")]
 pub async fn create_split(
     pool: &SharedPool,
     user: JwtUserPayload,
     transaction_id: String,
-    body: Json<NewSplitDto>
+    body: Json<NewSplitDto>,
 ) -> Result<()> {
     let pool = pool.inner();
     let body = body.0;
@@ -78,13 +75,12 @@ pub async fn create_split(
         transaction_id,
         user.uuid
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
     guard_amount(parent_transaction.amount, body.amount)?;
 
-    let db_transaction = pool.begin()
-        .await?;
+    let db_transaction = pool.begin().await?;
 
     let split_transaction = Transaction {
         id: Uuid::new_v4().to_string(),
@@ -103,8 +99,7 @@ pub async fn create_split(
         external_account_id: parent_transaction.externalaccountid,
     };
 
-    split_transaction.create(pool)
-        .await?;
+    split_transaction.create(pool).await?;
 
     let new_amount = parent_transaction.amount - split_transaction.amount;
 
@@ -118,16 +113,15 @@ pub async fn create_split(
         user.uuid,
         new_amount
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
-    db_transaction.commit()
-        .await?;
+    db_transaction.commit().await?;
 
     Ok(())
 }
 
-#[put("/<transaction_id>/splits/<split_id>", data="<body>")]
+#[put("/<transaction_id>/splits/<split_id>", data = "<body>")]
 pub async fn update_split(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -147,8 +141,8 @@ pub async fn update_split(
         transaction_id,
         user.uuid
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
     let split = sqlx::query!(
         r#"
@@ -164,11 +158,10 @@ pub async fn update_split(
         transaction_id,
         split_id
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
-    let db_transaction = pool.begin()
-        .await?;
+    let db_transaction = pool.begin().await?;
 
     let available_amount = parent_transaction.amount + split.amount;
     guard_amount(available_amount, body.amount)?;
@@ -187,8 +180,8 @@ pub async fn update_split(
         body.amount,
         body.category_id
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     sqlx::query!(
         r#"
@@ -200,11 +193,10 @@ pub async fn update_split(
         user.uuid,
         new_parent_amount
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
-    db_transaction.commit()
-        .await?;
+    db_transaction.commit().await?;
 
     Ok(())
 }
@@ -227,8 +219,8 @@ pub async fn delete_split(
         split_id,
         user.uuid
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
     let Some(parent_id) = split_record.parenttransactionid else {
         return Err(
@@ -239,11 +231,9 @@ pub async fn delete_split(
     };
 
     if parent_id != transaction_id {
-        return Err(
-            HttpError::new(404)
-                .message("Could not find a split with the given id for this transaction")
-                .into()
-        );
+        return Err(HttpError::new(404)
+            .message("Could not find a split with the given id for this transaction")
+            .into());
     }
 
     let transaction_record = sqlx::query!(
@@ -255,13 +245,12 @@ pub async fn delete_split(
         transaction_id,
         user.uuid
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
     let new_transaction_amount = transaction_record.amount + split_record.amount;
 
-    let db_transaction = pool.begin()
-        .await?;
+    let db_transaction = pool.begin().await?;
 
     sqlx::query!(
         r#"
@@ -273,8 +262,8 @@ pub async fn delete_split(
         user.uuid,
         new_transaction_amount
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     sqlx::query!(
         r#"
@@ -284,11 +273,10 @@ pub async fn delete_split(
         split_id,
         user.uuid
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
-    db_transaction.commit()
-        .await?;
+    db_transaction.commit().await?;
 
     Ok(())
 }
@@ -304,11 +292,14 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
     if let Some(id) = record.CategoryId {
         split_dto.category = Some(CategoryDto {
             id,
-            name: record.CategoryName
+            name: record
+                .CategoryName
                 .expect("Category id was not null, but the category name was"),
-            description: record.CategoryDescription
+            description: record
+                .CategoryDescription
                 .expect("Category id was not null, but the category description was"),
-            hex_color: record.CategoryHexColor
+            hex_color: record
+                .CategoryHexColor
                 .expect("Category id was not null, but the category hex color was"),
             amount: None,
         });
@@ -318,7 +309,9 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
 }
 
 fn guard_amount(parent_amount: i64, split_amount: i64) -> Result<()> {
-    if (parent_amount > 0 && split_amount > parent_amount) || (parent_amount < 0 && split_amount < parent_amount) {
+    if (parent_amount > 0 && split_amount > parent_amount)
+        || (parent_amount < 0 && split_amount < parent_amount)
+    {
         return Err(
             HttpError::new(400)
                 .message("Cannot create a split with an amount bigger than the remaining about of the parent")

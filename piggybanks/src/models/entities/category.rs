@@ -1,7 +1,7 @@
-use sqlx::FromRow;
-use entity_macro::{Entity, table_name};
 use crate::prelude::*;
 use crate::shared_types::DbPool;
+use entity_macro::{table_name, Entity};
+use sqlx::FromRow;
 
 #[derive(Debug, FromRow, Entity)]
 #[table_name("Categories")]
@@ -25,8 +25,8 @@ impl Category {
             id,
             user_id
         )
-            .fetch_one(pool)
-            .await?;
+        .fetch_one(pool)
+        .await?;
 
         Ok(())
     }

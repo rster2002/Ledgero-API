@@ -1,7 +1,6 @@
+use crate::error::error_dto_trait::ToErrorDto;
 use rocket::http::Status;
 use sqlx::Error;
-use crate::error::error_dto_trait::ToErrorDto;
-
 
 #[derive(Debug)]
 pub struct WrappedSqlxError {
@@ -10,9 +9,7 @@ pub struct WrappedSqlxError {
 
 impl WrappedSqlxError {
     pub fn new(error: Error) -> Self {
-        Self {
-            inner: error,
-        }
+        Self { inner: error }
     }
 }
 
@@ -41,7 +38,7 @@ impl ToErrorDto for WrappedSqlxError {
             Error::PoolClosed => "Database pool closed",
             Error::WorkerCrashed => "The database worker crashed",
             Error::Migrate(_) => "Failed to migrate database",
-            _ => "Unknown error"
+            _ => "Unknown error",
         };
 
         message.to_string()

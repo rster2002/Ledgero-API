@@ -1,27 +1,27 @@
-pub mod http_error;
-pub mod jwt_error;
-pub mod import_error;
-pub mod wrapped_sqlx_error;
 pub mod error_dto_trait;
+pub mod http_error;
+pub mod import_error;
+pub mod jwt_error;
 pub mod wrapped_csv_error;
+pub mod wrapped_sqlx_error;
 
 use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
 
+use crate::error::error_dto_trait::ToErrorDto;
 use crate::error::http_error::HttpError;
+use crate::error::import_error::ImportError;
 use crate::error::jwt_error::JwtError;
+use crate::error::wrapped_csv_error::WrappedCsvError;
+use crate::error::wrapped_sqlx_error::WrappedSqlxError;
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 use base64_url::base64::DecodeError;
+use chrono::ParseError;
 use rocket::{Request, Response};
 use std::io;
 use std::io::Cursor;
 use std::num::{ParseFloatError, ParseIntError};
 use std::string::FromUtf8Error;
-use chrono::ParseError;
-use crate::error::error_dto_trait::ToErrorDto;
-use crate::error::import_error::ImportError;
-use crate::error::wrapped_csv_error::WrappedCsvError;
-use crate::error::wrapped_sqlx_error::WrappedSqlxError;
-use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 
 #[derive(Debug)]
 pub enum Error {
@@ -147,19 +147,16 @@ impl Error {
             Error::Sqlx(error) => error.to_error_dto(),
             Error::Csv(error) => error.to_error_dto(),
             Error::HttpError(error) => error.to_error_dto(),
-            _ => {
-                ErrorDTO {
-                    error: ErrorContent {
-                        code: 500,
-                        reason: "Internal Server Error".to_string(),
-                        description: "An unknown error occurred".to_string(),
-                    }
-                }
-            }
+            _ => ErrorDTO {
+                error: ErrorContent {
+                    code: 500,
+                    reason: "Internal Server Error".to_string(),
+                    description: "An unknown error occurred".to_string(),
+                },
+            },
         };
 
-        serde_json::to_string(&error_dto)
-            .expect("Failed to serialize error dto")
+        serde_json::to_string(&error_dto).expect("Failed to serialize error dto")
     }
 }
 

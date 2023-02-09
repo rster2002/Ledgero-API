@@ -1,5 +1,5 @@
+use entity_macro::{table_name, Entity};
 use sqlx::FromRow;
-use entity_macro::{Entity, table_name};
 
 /// A bank account something like a single IBAN. Used to differentiate between for example a savings
 /// account and a 'regular' bank account.

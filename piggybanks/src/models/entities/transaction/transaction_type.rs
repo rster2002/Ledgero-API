@@ -1,6 +1,6 @@
 use serde::Serialize;
-use sqlx::{Postgres, Type};
 use sqlx::postgres::PgTypeInfo;
+use sqlx::{Postgres, Type};
 
 /// Dictates the behaviour of the transaction and how is should be used.
 #[derive(Debug, Type, Serialize, Copy, Clone)]
@@ -44,7 +44,7 @@ impl Into<&str> for TransactionType {
             TransactionType::Transaction => "transaction",
             TransactionType::Split => "split",
             TransactionType::Correction => "correction",
-            TransactionType::Move => "move"
+            TransactionType::Move => "move",
         }
     }
 }

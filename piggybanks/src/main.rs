@@ -8,17 +8,17 @@ mod routes;
 mod shared_types;
 
 use crate::models::service::jwt_service::JwtService;
-use crate::routes::auth::{create_auth_routes};
+use crate::routes::auth::create_auth_routes;
 
-use rsa::pkcs1::DecodeRsaPrivateKey;
-use rsa::RsaPrivateKey;
-use sqlx::postgres::PgPoolOptions;
-use std::fs;
 use crate::routes::aggregates::create_aggregate_routes;
 use crate::routes::categories::create_category_routes;
 use crate::routes::external_accounts::create_external_account_routes;
 use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
+use rsa::pkcs1::DecodeRsaPrivateKey;
+use rsa::RsaPrivateKey;
+use sqlx::postgres::PgPoolOptions;
+use std::fs;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
