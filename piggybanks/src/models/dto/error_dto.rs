@@ -1,4 +1,4 @@
-use rocket::Responder;
+
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]

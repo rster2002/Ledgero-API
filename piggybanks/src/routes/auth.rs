@@ -7,18 +7,17 @@ use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::grant::Grant;
 use crate::models::entities::user::User;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::models::service::jwt_service::JwtService;
+
 use crate::models::service::password_hash_service::PasswordHashService;
 use crate::prelude::*;
 use crate::shared_types::{SharedJwtService, SharedPool};
-use chrono::format::Numeric::Month;
-use chrono::{Duration, Months, Utc};
+
+use chrono::{Months, Utc};
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
-use std::ops::Add;
-use uuid::Uuid;
+
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]
@@ -131,7 +130,7 @@ async fn refresh(
         .fetch_optional(pool)
         .await?;
 
-    let Some(mut grant) = grant else {
+    let Some(grant) = grant else {
         return Err(
             HttpError::from_status(Status::Unauthorized)
                 .message("The given refresh token has been revoked")

@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+
 use rocket::serde::json::Json;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::categories::category_dto::CategoryDto;
@@ -64,7 +64,7 @@ pub async fn get_all_transactions(
 
     let transactions = records
         .into_iter()
-        .map(|record| map_record(record))
+        .map(map_record)
         .collect();
 
     Ok(Json(transactions))
@@ -117,7 +117,7 @@ pub async fn change_category_for_transaction(
         .await?;
 
     if let Some(category_id) = &body.category_id {
-        Category::guard_one(pool, &category_id, &user.uuid)
+        Category::guard_one(pool, category_id, &user.uuid)
             .await?;
     }
 

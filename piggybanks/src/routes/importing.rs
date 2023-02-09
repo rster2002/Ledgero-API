@@ -1,11 +1,11 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{HashMap};
 use std::io::Cursor;
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
-use csv::StringRecord;
-use rocket::figment::map;
+use chrono::{DateTime};
+
+
 use rocket::Route;
 use rocket::serde::json::Json;
-use rocket::time::macros::date;
+
 use uuid::Uuid;
 use crate::error::import_error::ImportError;
 use crate::models::csv::csv_mapping::{AmountMapping, DateMapping};
@@ -38,7 +38,7 @@ pub async fn import_csv(
     let mut bank_account_map = get_bank_accounts_map(pool, &user.uuid)
         .await?;
 
-    let mut external_account_map = get_external_accounts_map(pool, &user.uuid)
+    let external_account_map = get_external_accounts_map(pool, &user.uuid)
         .await?;
 
     let mut reader = csv::Reader::from_reader(Cursor::new(body.csv));
@@ -184,7 +184,7 @@ fn map_datetime(col_value: &String, date_mapping: &DateMapping) -> Result<String
     let mut working_value = col_value.to_string();
 
     if let Some(template) = &date_mapping.template {
-        working_value = template.replace('$', &*working_value);
+        working_value = template.replace('$', &working_value);
     }
 
     let datetime = DateTime::parse_from_str(&working_value, &date_mapping.format)?;

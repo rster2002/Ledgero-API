@@ -5,7 +5,7 @@ use rocket::outcome::Outcome::{Failure, Success};
 use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, Postgres};
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtUserPayload {

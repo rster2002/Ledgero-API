@@ -1,4 +1,4 @@
-use std::error::Error;
+
 use chrono::Utc;
 use rocket::serde::json::Json;
 use uuid::Uuid;
@@ -6,7 +6,7 @@ use crate::error::http_error::HttpError;
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
 use crate::models::dto::transactions::split_dto::SplitDto;
-use crate::models::dto::transactions::transaction_dto::TransactionDto;
+
 use crate::models::entities::transaction::Transaction;
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;

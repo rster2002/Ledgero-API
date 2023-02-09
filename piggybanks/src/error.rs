@@ -28,14 +28,14 @@ pub enum Error {
     Generic(String),
     IO(io::Error),
     DotEnv(dotenv::Error),
-    SQLX(WrappedSqlxError),
+    Sqlx(WrappedSqlxError),
     Status(Status),
     SerdeJson(serde_json::Error),
     DecodeError(DecodeError),
     Utf8Error(FromUtf8Error),
     JwtError(JwtError),
     HttpError(HttpError),
-    CSV(WrappedCsvError),
+    Csv(WrappedCsvError),
     ImportError(ImportError),
 }
 
@@ -53,7 +53,7 @@ impl From<dotenv::Error> for Error {
 
 impl From<sqlx::Error> for Error {
     fn from(value: sqlx::Error) -> Self {
-        Error::SQLX(WrappedSqlxError::new(value))
+        Error::Sqlx(WrappedSqlxError::new(value))
     }
 }
 
@@ -95,7 +95,7 @@ impl From<HttpError> for Error {
 
 impl From<csv::Error> for Error {
     fn from(value: csv::Error) -> Self {
-        Error::CSV(WrappedCsvError::new(value))
+        Error::Csv(WrappedCsvError::new(value))
     }
 }
 
@@ -106,20 +106,20 @@ impl From<&str> for Error {
 }
 
 impl From<ParseIntError> for Error {
-    fn from(value: ParseIntError) -> Self {
+    fn from(_value: ParseIntError) -> Self {
         Error::generic("Failed to parse int")
     }
 }
 
 impl From<ParseFloatError> for Error {
-    fn from(value: ParseFloatError) -> Self {
+    fn from(_value: ParseFloatError) -> Self {
         Error::generic("Failed to parse int")
     }
 }
 
 impl From<chrono::ParseError> for Error {
     fn from(error: ParseError) -> Self {
-        Error::generic(format!("Failed parsing date time: {}", error.to_string()))
+        Error::generic(format!("Failed parsing date time: {}", error))
     }
 }
 
@@ -134,8 +134,8 @@ impl Error {
         match self {
             Error::JwtError(error) => error.get_status_code(),
             Error::ImportError(error) => error.get_status_code(),
-            Error::SQLX(error) => error.get_status_code().code,
-            Error::CSV(error) => error.get_status_code().code,
+            Error::Sqlx(error) => error.get_status_code().code,
+            Error::Csv(error) => error.get_status_code().code,
             Error::HttpError(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
@@ -144,8 +144,8 @@ impl Error {
 
     fn get_body(&self) -> String {
         let error_dto = match self {
-            Error::SQLX(error) => error.to_error_dto(),
-            Error::CSV(error) => error.to_error_dto(),
+            Error::Sqlx(error) => error.to_error_dto(),
+            Error::Csv(error) => error.to_error_dto(),
             Error::HttpError(error) => error.to_error_dto(),
             _ => {
                 ErrorDTO {

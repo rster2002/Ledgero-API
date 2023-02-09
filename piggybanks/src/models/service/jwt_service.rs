@@ -1,7 +1,7 @@
 use std::ops::Add;
 
 use crate::error::jwt_error::JwtError;
-use crate::models::entities::grant::Grant;
+
 use crate::models::jwt::jwt_claims::JwtClaims;
 use crate::models::jwt::jwt_headers::JwtHeader;
 use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
@@ -138,7 +138,7 @@ impl JwtService {
             final_map.insert(key, value);
         }
 
-        Ok(Value::Object(final_map.into()))
+        Ok(Value::Object(final_map))
     }
 
     /// Takes the base64url encoded header and payload and creates a signature using HMAC HS256
@@ -236,8 +236,8 @@ impl JwtService {
         let header_string = String::from_utf8(header_bytes)?;
         let payload_string = String::from_utf8(payload_bytes)?;
 
-        let header = serde_json::from_str(&*header_string)?;
-        let payload = serde_json::from_str(&*payload_string)?;
+        let header = serde_json::from_str(&header_string)?;
+        let payload = serde_json::from_str(&payload_string)?;
 
         let (claims, payload) = JwtService::split_payload(payload)?;
 

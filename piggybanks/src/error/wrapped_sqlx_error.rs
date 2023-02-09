@@ -1,7 +1,7 @@
 use rocket::http::Status;
 use sqlx::Error;
 use crate::error::error_dto_trait::ToErrorDto;
-use crate::models::dto::error_dto::ErrorDTO;
+
 
 #[derive(Debug)]
 pub struct WrappedSqlxError {

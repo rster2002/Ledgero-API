@@ -2,7 +2,7 @@ use crate::prelude::*;
 use crate::shared_types::DbPool;
 use chrono::{DateTime, Months, Utc};
 use entity_macro::{table_name, Entity};
-use sqlx::{Pool, Postgres};
+
 use uuid::Uuid;
 
 /// A grant is used to verify that the refresh token is still valid and may still be used to
@@ -70,7 +70,8 @@ impl Grant {
     }
 
     pub async fn delete(&self, pool: &DbPool) -> Result<()> {
-        Self::delete_by_id(pool, &self.id);
+        Self::delete_by_id(pool, &self.id)
+            .await?;
         Ok(())
     }
 

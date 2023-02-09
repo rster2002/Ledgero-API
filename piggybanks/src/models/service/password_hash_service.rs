@@ -28,7 +28,7 @@ impl PasswordHashService {
         let mut hash_parts = hash.split('$');
         hash_parts.next();
 
-        let version = hash_parts.next().unwrap();
+        let _version = hash_parts.next().unwrap();
         let salt = hash_parts.next().unwrap();
         let hash = hash_parts.next().unwrap();
 

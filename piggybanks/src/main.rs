@@ -8,8 +8,8 @@ mod routes;
 mod shared_types;
 
 use crate::models::service::jwt_service::JwtService;
-use crate::routes::auth::{create_auth_routes, register};
-use rocket::routes;
+use crate::routes::auth::{create_auth_routes};
+
 use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;

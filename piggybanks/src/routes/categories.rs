@@ -5,7 +5,7 @@ use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::new_category_dto::NewCategoryDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::category::Category;
-use crate::models::entities::transaction::transaction_type::TransactionType::Transaction;
+
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::routes::transactions::get_transactions::{map_record, TransactionRecord};
@@ -207,7 +207,7 @@ pub async fn get_category_transactions(
 
     let transactions = records
         .into_iter()
-        .map(|record| map_record(record))
+        .map(map_record)
         .collect();
 
     Ok(Json(transactions))
