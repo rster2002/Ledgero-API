@@ -4,7 +4,6 @@ use sqlx::postgres::PgTypeInfo;
 
 /// Dictates the behaviour of the transaction and how is should be used.
 #[derive(Debug, Type, Serialize, Copy, Clone)]
-// #[sqlx(type_name = "varchar")] // only for Postgres to match a type definition
 #[sqlx(rename_all = "lowercase")]
 #[serde(rename_all = "camelCase")]
 pub enum TransactionType {

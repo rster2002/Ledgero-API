@@ -3,9 +3,12 @@ use rocket::serde::json::Json;
 use uuid::Uuid;
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::new_category_dto::NewCategoryDto;
+use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::category::Category;
+use crate::models::entities::transaction::transaction_type::TransactionType::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
+use crate::routes::transactions::get_transactions::{map_record, TransactionRecord};
 use crate::shared_types::SharedPool;
 
 pub fn create_category_routes() -> Vec<Route> {
@@ -15,6 +18,7 @@ pub fn create_category_routes() -> Vec<Route> {
         get_category_by_id,
         update_category,
         delete_category,
+        get_category_transactions,
     ]
 }
 
@@ -62,25 +66,22 @@ pub async fn create_new_category(
     body: Json<NewCategoryDto>,
 ) -> Result<Json<CategoryDto>> {
     let body = body.0;
+    let inner_pool = pool.inner();
 
+    let uuid = Uuid::new_v4();
     let category = Category {
-        id: Uuid::new_v4().to_string(),
+        id: uuid.to_string(),
         user_id: user.uuid.to_string(),
         name: body.name,
         description: body.description,
         hex_color: body.hex_color,
     };
 
-    category.create(pool)
+    category.create(inner_pool)
         .await?;
 
-    Ok(Json(CategoryDto {
-        id: category.id,
-        name: category.name,
-        description: category.description,
-        hex_color: category.hex_color,
-        amount: Some(0),
-    }))
+    get_category_by_id(pool, user, uuid.to_string())
+        .await
 }
 
 #[get("/<id>")]
@@ -124,9 +125,9 @@ pub async fn update_category(
     body: Json<NewCategoryDto>,
 ) -> Result<Json<CategoryDto>> {
     let body = body.0;
-    let pool = pool.inner();
+    let inner_pool = pool.inner();
 
-    Category::guard_one(pool, &id, &user.uuid)
+    Category::guard_one(inner_pool, &id, &user.uuid)
         .await?;
 
     sqlx::query!(
@@ -141,16 +142,11 @@ pub async fn update_category(
         body.description,
         body.hex_color,
     )
-        .execute(pool)
+        .execute(inner_pool)
         .await?;
 
-    Ok(Json(CategoryDto {
-        id,
-        name: body.name,
-        description: body.description,
-        hex_color: body.hex_color,
-        amount: None,
-    }))
+    get_category_by_id(pool, user, id)
+        .await
 }
 
 #[delete("/<id>")]
@@ -176,4 +172,43 @@ pub async fn delete_category(
         .await?;
 
     Ok(())
+}
+
+#[get("/<id>/transactions")]
+pub async fn get_category_transactions(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: String,
+) -> Result<Json<Vec<TransactionDto>>> {
+    let pool = pool.inner();
+
+    Category::guard_one(pool, &id, &user.uuid)
+        .await?;
+
+    let records = sqlx::query_as!(
+        TransactionRecord,
+        r#"
+            SELECT
+                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, ExternalAccountName,
+                c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
+                b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
+                e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
+            FROM Transactions
+            LEFT JOIN categories c on transactions.categoryid = c.id
+            LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
+            LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
+            WHERE CategoryId = $1 AND Transactions.UserId = $2;
+        "#,
+        id,
+        user.uuid
+    )
+        .fetch_all(pool)
+        .await?;
+
+    let transactions = records
+        .into_iter()
+        .map(|record| map_record(record))
+        .collect();
+
+    Ok(Json(transactions))
 }

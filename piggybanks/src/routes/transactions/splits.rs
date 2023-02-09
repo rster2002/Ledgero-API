@@ -318,13 +318,7 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
 }
 
 fn guard_amount(parent_amount: i64, split_amount: i64) -> Result<()> {
-    if parent_amount > 0 && split_amount > parent_amount {
-        return Err(
-            HttpError::new(400)
-                .message("Cannot create a split with an amount bigger than the remaining about of the parent")
-                .into()
-        );
-    } else if parent_amount < 0 && split_amount < parent_amount {
+    if (parent_amount > 0 && split_amount > parent_amount) || (parent_amount < 0 && split_amount < parent_amount) {
         return Err(
             HttpError::new(400)
                 .message("Cannot create a split with an amount bigger than the remaining about of the parent")

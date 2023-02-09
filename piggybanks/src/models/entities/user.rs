@@ -1,3 +1,5 @@
+pub mod user_role;
+
 use entity_macro::{table_name, Entity};
 use uuid::Uuid;
 

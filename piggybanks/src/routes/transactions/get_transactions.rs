@@ -12,7 +12,7 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::shared_types::SharedPool;
 use crate::prelude::*;
 
-struct TransactionRecord {
+pub struct TransactionRecord {
     pub transactionid: String,
     pub transactiontype: String,
     pub follownumber: String,
@@ -62,14 +62,9 @@ pub async fn get_all_transactions(
         .fetch_all(pool)
         .await?;
 
-    let mut hashmap = BTreeMap::new();
-
-    for record in records {
-        let transaction = map_record(record);
-        hashmap.insert(transaction.id.to_string(), transaction);
-    }
-
-    let transactions = hashmap.into_values()
+    let transactions = records
+        .into_iter()
+        .map(|record| map_record(record))
         .collect();
 
     Ok(Json(transactions))
@@ -142,7 +137,7 @@ pub async fn change_category_for_transaction(
     Ok(())
 }
 
-fn map_record(record: TransactionRecord) -> TransactionDto {
+pub fn map_record(record: TransactionRecord) -> TransactionDto {
     let mut transaction = TransactionDto {
         id: record.transactionid,
         transaction_type: TransactionType::from(&*record.transactiontype),
