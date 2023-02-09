@@ -1,9 +1,9 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::cmp::Ordering;
 
 /// The role of the user may allow for extra operation to be used throughout the application.
-#[derive(Debug, Type, Serialize, PartialEq, Eq, Copy, Clone)]
+#[derive(Debug, Type, Serialize, Deserialize, PartialEq, Eq, Copy, Clone)]
 #[sqlx(rename_all = "lowercase")]
 #[serde(rename_all = "camelCase")]
 pub enum UserRole {
@@ -31,5 +31,26 @@ impl PartialOrd for UserRole {
         let other_score = other.get_score();
 
         Some(self_score.cmp(&other_score))
+    }
+}
+
+impl From<String> for UserRole {
+    fn from(value: String) -> Self {
+        let str = &*value;
+
+        if str == "system" {
+            return UserRole::System;
+        }
+
+        UserRole::User
+    }
+}
+
+impl Into<&str> for UserRole {
+    fn into(self) -> &'static str {
+        match self {
+            UserRole::User => "user",
+            UserRole::System => "system",
+        }
     }
 }

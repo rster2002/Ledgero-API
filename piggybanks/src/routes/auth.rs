@@ -12,11 +12,13 @@ use crate::models::service::password_hash_service::PasswordHashService;
 use crate::prelude::*;
 use crate::shared_types::{SharedJwtService, SharedPool};
 
+use crate::models::entities::user::user_role::UserRole;
 use chrono::{Months, Utc};
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
+use uuid::Uuid;
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]
@@ -24,13 +26,18 @@ pub fn create_auth_routes() -> Vec<Route> {
 
 #[post("/register", data = "<body>")]
 pub async fn register(
-    body: Json<RegisterUserDto<'_>>,
     pool: &State<Pool<Postgres>>,
+    body: Json<RegisterUserDto<'_>>,
 ) -> Result<Status> {
     let body = body.0;
 
     let password_hash = PasswordHashService::create_new_hash(body.password);
-    let user = User::new(body.username, password_hash);
+    let user = User {
+        id: Uuid::new_v4().to_string(),
+        username: body.username.to_string(),
+        password_hash,
+        role: UserRole::User,
+    };
 
     user.create(pool).await?;
 
@@ -39,8 +46,8 @@ pub async fn register(
 
 #[post("/login", data = "<body>")]
 async fn login<'a>(
-    body: Json<LoginUserDto<'a>>,
     pool: &'a SharedPool,
+    body: Json<LoginUserDto<'a>>,
     jwt_service: &'a SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
     let pool = pool.inner();
@@ -71,6 +78,7 @@ async fn login<'a>(
     let user_payload = JwtUserPayload {
         uuid: user.id.to_string(),
         username: user.username.to_string(),
+        role: UserRole::from(user.role),
     };
 
     let jwt = jwt_service.create_access_token(&user_payload)?;
@@ -88,8 +96,8 @@ async fn login<'a>(
 
 #[post("/refresh", data = "<body>")]
 async fn refresh(
-    body: Json<JwtRefreshDto<'_>>,
     pool: &SharedPool,
+    body: Json<JwtRefreshDto<'_>>,
     jwt_service: &SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
     let pool = pool.inner();
@@ -162,8 +170,8 @@ async fn refresh(
 
 #[post("/revoke", data = "<body>")]
 async fn revoke(
-    body: Json<RevokeDto>,
     pool: &SharedPool,
+    body: Json<RevokeDto>,
     jwt_service: &SharedJwtService,
 ) -> Result<()> {
     let body = body.0;

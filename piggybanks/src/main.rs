@@ -6,6 +6,7 @@ mod models;
 mod prelude;
 mod routes;
 mod shared_types;
+mod utils;
 
 use crate::models::service::jwt_service::JwtService;
 use crate::routes::auth::create_auth_routes;
@@ -15,6 +16,7 @@ use crate::routes::categories::create_category_routes;
 use crate::routes::external_accounts::create_external_account_routes;
 use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
+use crate::routes::users::create_user_routes;
 use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
@@ -62,6 +64,7 @@ async fn main() -> Result<(), rocket::Error> {
         .manage(pool)
         .manage(jwt_service)
         .mount("/auth", create_auth_routes())
+        .mount("/users", create_user_routes())
         .mount("/transactions", create_transaction_routes())
         .mount("/categories", create_category_routes())
         .mount("/external-accounts", create_external_account_routes())

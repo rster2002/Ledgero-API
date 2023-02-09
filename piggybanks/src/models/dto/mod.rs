@@ -6,3 +6,4 @@ pub mod error_dto;
 pub mod external_accounts;
 pub mod importing;
 pub mod transactions;
+pub mod users;

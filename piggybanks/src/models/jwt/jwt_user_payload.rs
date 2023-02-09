@@ -1,3 +1,5 @@
+use crate::error::jwt_error::JwtError;
+use crate::models::entities::user::user_role::UserRole;
 use crate::models::service::jwt_service::JwtService;
 use crate::prelude::*;
 use rocket::http::Status;
@@ -10,6 +12,7 @@ use serde::{Deserialize, Serialize};
 pub struct JwtUserPayload {
     pub uuid: String,
     pub username: String,
+    pub role: UserRole,
 }
 
 #[rocket::async_trait]
@@ -25,11 +28,11 @@ impl<'r> FromRequest<'r> for JwtUserPayload {
         let authorization_value = request.headers().get("Authorization").next();
 
         let Some(bearer_value) = authorization_value else {
-            return Failure((Status::Unauthorized, Error::generic("Failed")));
+            return Failure((Status::Unauthorized, JwtError::MissingToken.into()));
         };
 
         if !bearer_value.starts_with("Bearer ") {
-            return Failure((Status::Unauthorized, Error::generic("Failed")));
+            return Failure((Status::Unauthorized, JwtError::MissingToken.into()));
         }
 
         let mut bearer_value = bearer_value.to_string();

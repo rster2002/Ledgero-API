@@ -21,10 +21,22 @@ impl ToErrorDto for WrappedSqlxError {
         }
     }
 
+    #[cfg(debug_assertions)]
     fn get_description(&self) -> String {
-        let message: &str = match self.inner {
+        self.inner.to_string()
+    }
+
+    #[cfg(not(debug_assertions))]
+    fn get_description(&self) -> String {
+        let message: &str = match &self.inner {
             Error::Configuration(_) => "Invalid database configuration",
-            Error::Database(_) => "Database error",
+            Error::Database(error) => {
+                if let Some(constraint) = error.constraint() {
+                    return format!("Failed constraint: {}", constraint);
+                }
+
+                "Database error"
+            }
             Error::Io(_) => "IO error",
             Error::Tls(_) => "TLS error",
             Error::Protocol(_) => "Protocol error",

@@ -1,9 +1,12 @@
 pub mod user_role;
 
+use crate::models::entities::user::user_role::UserRole;
+use crate::prelude::*;
+use crate::shared_types::DbPool;
 use entity_macro::{table_name, Entity};
 use uuid::Uuid;
 
-#[derive(Debug, sqlx::FromRow, Entity)]
+#[derive(Debug, sqlx::FromRow)]
 #[table_name("Users")]
 #[sqlx(rename_all = "PascalCase")]
 pub struct User {
@@ -12,14 +15,26 @@ pub struct User {
 
     #[sqlx(rename = "PasswordHash")]
     pub password_hash: String,
+    pub role: UserRole,
 }
 
 impl User {
-    pub fn new(username: impl Into<String>, password_hash: impl Into<String>) -> Self {
-        Self {
-            id: Uuid::new_v4().to_string(),
-            username: username.into(),
-            password_hash: password_hash.into(),
-        }
+    pub async fn create(&self, pool: &DbPool) -> Result<()> {
+        let user_role: &str = self.role.into();
+
+        sqlx::query!(
+            r#"
+                INSERT INTO Users
+                VALUES ($1, $2, $3, $4);
+            "#,
+            self.id,
+            self.username,
+            self.password_hash,
+            user_role
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
     }
 }

@@ -132,7 +132,7 @@ impl From<ImportError> for Error {
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
-            Error::JwtError(error) => error.get_status_code(),
+            Error::JwtError(error) => error.get_status_code().code,
             Error::ImportError(error) => error.get_status_code(),
             Error::Sqlx(error) => error.get_status_code().code,
             Error::Csv(error) => error.get_status_code().code,
@@ -147,6 +147,7 @@ impl Error {
             Error::Sqlx(error) => error.to_error_dto(),
             Error::Csv(error) => error.to_error_dto(),
             Error::HttpError(error) => error.to_error_dto(),
+            Error::JwtError(error) => error.to_error_dto(),
             _ => ErrorDTO {
                 error: ErrorContent {
                     code: 500,
