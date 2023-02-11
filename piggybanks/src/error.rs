@@ -29,7 +29,6 @@ pub enum Error {
     IO(io::Error),
     DotEnv(dotenv::Error),
     Sqlx(WrappedSqlxError),
-    Status(Status),
     SerdeJson(serde_json::Error),
     DecodeError(DecodeError),
     Utf8Error(FromUtf8Error),
@@ -59,7 +58,10 @@ impl From<sqlx::Error> for Error {
 
 impl From<Status> for Error {
     fn from(value: Status) -> Self {
-        Error::Status(value)
+        Error::HttpError(
+            HttpError::new(value.code)
+                .message(value.to_string())
+        )
     }
 }
 

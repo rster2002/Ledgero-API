@@ -7,3 +7,4 @@ pub mod external_accounts;
 pub mod importing;
 pub mod transactions;
 pub mod users;
+pub mod account;

@@ -1,3 +1,4 @@
+use rocket::http::Status;
 use crate::models::dto::users::new_user_dto::NewUserDto;
 use crate::models::dto::users::user_dto::UserDto;
 use crate::models::dto::users::user_info_dto::UserInfoDto;
@@ -11,6 +12,8 @@ use crate::utils::guard_role::guard_role;
 use rocket::serde::json::Json;
 use rocket::Route;
 use uuid::Uuid;
+use crate::error::http_error::HttpError;
+use crate::models::dto::users::update_user_password_dto::UpdateUserPasswordDto;
 
 pub fn create_user_routes() -> Vec<Route> {
     routes![
@@ -134,13 +137,33 @@ pub async fn update_user_information(
     get_user_by_id(pool, user, id).await
 }
 
-#[patch("/<id>/password")]
+#[patch("/<id>/password", data="<body>")]
 pub async fn update_user_password(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
-) -> Result<Json<UserDto>> {
-    todo!()
+    body: Json<UpdateUserPasswordDto<'_>>
+) -> Result<Status> {
+    guard_role(&user.role, UserRole::System)?;
+
+    let body = body.0;
+    let inner_pool = pool.inner();
+
+    let new_hash = PasswordHashService::create_new_hash(body.new_password);
+
+    sqlx::query!(
+        r#"
+            UPDATE Users
+            SET passwordHash = $2
+            WHERE Id = $1
+        "#,
+        user.uuid,
+        new_hash
+    )
+        .execute(inner_pool)
+        .await?;
+
+    Ok(Status::Accepted)
 }
 
 #[delete("/<id>")]
