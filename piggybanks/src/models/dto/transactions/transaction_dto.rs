@@ -14,6 +14,7 @@ pub struct TransactionDto {
     pub description: String,
     pub complete_amount: i64,
     pub amount: i64,
+    pub date: String,
     pub bank_account: BankAccountDto,
     pub category: Option<CategoryDto>,
     pub external_account_name: String,

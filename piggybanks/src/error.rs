@@ -22,6 +22,7 @@ use std::io;
 use std::io::Cursor;
 use std::num::{ParseFloatError, ParseIntError};
 use std::string::FromUtf8Error;
+use rocket::time::error::ComponentRange;
 
 #[derive(Debug)]
 pub enum Error {
@@ -128,6 +129,12 @@ impl From<chrono::ParseError> for Error {
 impl From<ImportError> for Error {
     fn from(value: ImportError) -> Self {
         Error::ImportError(value)
+    }
+}
+
+impl From<ComponentRange> for Error {
+    fn from(_: ComponentRange) -> Self {
+        Error::generic("ComponentRange")
     }
 }
 

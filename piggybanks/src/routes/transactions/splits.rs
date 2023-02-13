@@ -91,12 +91,13 @@ pub async fn create_split(
         description: body.description,
         complete_amount: body.amount,
         amount: body.amount,
-        date: Utc::now().to_rfc3339(),
+        date: Utc::now(),
         bank_account_id: parent_transaction.bankaccountid,
         category_id: body.category_id,
         parent_transaction_id: Some(parent_transaction.id),
         external_account_name: parent_transaction.externalaccountname,
         external_account_id: parent_transaction.externalaccountid,
+        parent_import_id: None,
     };
 
     split_transaction.create(pool).await?;

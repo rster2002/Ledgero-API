@@ -39,18 +39,20 @@ pub async fn update_me_password(
     user: JwtUserPayload,
     body: Json<UpdateUserPasswordDto<'_>>
 ) -> Result<()> {
-    let user = sqlx::query!(
+    let inner_pool = pool.inner();
+
+    let record = sqlx::query!(
         r#"
             SELECT *
             FROM Users
-            WHERE Username = $1;
+            WHERE Id = $1;
         "#,
-        body.username
+        user.uuid
     )
-        .fetch_one(pool)
+        .fetch_one(inner_pool)
         .await?;
 
-    let valid_password = PasswordHashService::verify(user.passwordhash, body.password);
+    let valid_password = PasswordHashService::verify(record.passwordhash, body.old_password);
     if !valid_password {
         return Err(Status::Unauthorized.into());
     }

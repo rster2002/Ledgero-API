@@ -10,6 +10,7 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::shared_types::SharedPool;
 use rocket::serde::json::Json;
+use sqlx::types::time::OffsetDateTime;
 
 pub struct TransactionRecord {
     pub transactionid: String,
@@ -19,6 +20,7 @@ pub struct TransactionRecord {
     pub description: String,
     pub completeamount: i64,
     pub amount: i64,
+    pub date: OffsetDateTime,
     pub bankaccountid: String,
     pub bankaccountiban: String,
     pub bankaccountname: String,
@@ -46,7 +48,7 @@ pub async fn get_all_transactions(
         TransactionRecord,
         r#"
             SELECT
-                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, ExternalAccountName,
+                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName,
                 c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
                 b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
                 e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
@@ -54,7 +56,8 @@ pub async fn get_all_transactions(
             LEFT JOIN categories c on transactions.categoryid = c.id
             LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
             LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
-            WHERE TransactionType = 'transaction' AND Transactions.UserId = $1;
+            WHERE TransactionType = 'transaction' AND Transactions.UserId = $1
+            ORDER BY Date DESC;
         "#,
         user.uuid
     )
@@ -78,7 +81,7 @@ pub async fn get_single_transaction(
         TransactionRecord,
         r#"
             SELECT
-                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, ExternalAccountName,
+                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, Date, ExternalAccountName,
                 c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
                 b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
                 e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
@@ -140,6 +143,7 @@ pub fn map_record(record: TransactionRecord) -> TransactionDto {
         description: record.description,
         complete_amount: record.completeamount,
         amount: record.amount,
+        date: record.date.to_string(),
         bank_account: BankAccountDto {
             id: record.bankaccountid,
             iban: record.bankaccountiban,

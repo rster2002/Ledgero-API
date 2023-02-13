@@ -11,7 +11,7 @@ dotenv = "0.15.0"
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"
-sqlx = { version = "0.6.2", features = ["runtime-tokio-rustls", "postgres"] }
+sqlx = { version = "0.6.2", features = ["runtime-tokio-rustls", "postgres", "time"] }
 uuid = { version = "1.2.2", features = ["v4", "fast-rng", "macro-diagnostics"] }
 chrono = "0.4.23"
 base64-url = "1.4.13"

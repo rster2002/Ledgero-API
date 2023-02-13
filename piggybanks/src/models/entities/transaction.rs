@@ -6,6 +6,7 @@ use crate::shared_types::DbPool;
 use chrono::Utc;
 use entity_macro::{table_name, Entity};
 use sqlx::FromRow;
+use sqlx::types::time::OffsetDateTime;
 
 /// A single transaction of money.
 #[derive(Debug, FromRow)]
@@ -37,9 +38,8 @@ pub struct Transaction {
     /// The current amount of the transaction. This may be changed by creating a split.
     pub amount: i64,
 
-    /// [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) formatted datetime on which the
-    /// transaction has taken place.
-    pub date: String,
+    /// Datetime of the transaction.
+    pub date: chrono::DateTime<Utc>,
 
     /// The account id associated with the transaction.
     pub bank_account_id: String,
@@ -59,6 +59,9 @@ pub struct Transaction {
     /// The id referencing an external account entity. The [external_account_name] does not have
     /// to match with the actual name of the external account.
     pub external_account_id: Option<String>,
+
+    /// The id of the parent [Import]. Used to group transactions that were created in an import.
+    pub parent_import_id: Option<String>,
 }
 
 impl Transaction {
@@ -68,7 +71,7 @@ impl Transaction {
         sqlx::query!(
             r#"
                 INSERT INTO Transactions
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
                 ON CONFLICT DO NOTHING;
             "#,
             self.id,
@@ -79,12 +82,13 @@ impl Transaction {
             self.original_description,
             self.complete_amount,
             self.amount,
-            self.date,
+            OffsetDateTime::from_unix_timestamp(self.date.timestamp())?,
             self.category_id,
             self.parent_transaction_id,
             self.external_account_name,
             self.external_account_id,
-            self.bank_account_id
+            self.bank_account_id,
+            self.parent_import_id
         )
         .execute(pool)
         .await?;

@@ -178,7 +178,7 @@ pub async fn get_category_transactions(
         TransactionRecord,
         r#"
             SELECT
-                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, ExternalAccountName,
+                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, Date, ExternalAccountName,
                 c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
                 b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
                 e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
