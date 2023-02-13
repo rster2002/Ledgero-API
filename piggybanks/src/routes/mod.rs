@@ -7,4 +7,3 @@ pub mod transactions;
 /// Used to query related data like total of the whole user or data for graphs etc.
 pub mod aggregates;
 pub mod users;
-pub mod account;
