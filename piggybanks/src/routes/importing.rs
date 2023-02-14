@@ -18,6 +18,7 @@ use crate::prelude::*;
 use crate::shared_types::{DbPool, SharedPool};
 use uuid::Uuid;
 use crate::models::dto::import::import_dto::ImportDto;
+use crate::models::dto::import::import_dto_with_numbers::ImportDtoWithNumbers;
 use crate::models::entities::import::Import;
 use crate::routes::importing::csv_import::import_csv;
 
@@ -34,14 +35,24 @@ pub fn create_importing_routes() -> Vec<Route> {
 pub async fn get_all_imports(
     pool: &SharedPool,
     user: JwtUserPayload,
-) -> Result<Json<Vec<ImportDto>>> {
+) -> Result<Json<Vec<ImportDtoWithNumbers>>> {
     let inner_pool = pool.inner();
 
     let records = sqlx::query!(
         r#"
-            SELECT *
+            SELECT *, (
+                SELECT COUNT(Id)
+                FROM Transactions
+                WHERE ParentImport = Imports.Id
+            )::int AS Imported,
+            (
+                SELECT COUNT(FollowNumber)
+                FROM SkippedTransactions
+                WHERE ImportId = Imports.Id
+            )::int AS Skipped
             FROM Imports
-            WHERE UserId = $1;
+            WHERE UserId = $1
+            ORDER BY ImportedAt DESC;
         "#,
         user.uuid
     )
@@ -50,10 +61,12 @@ pub async fn get_all_imports(
 
     let imports = records.into_iter()
         .map(|record| {
-            ImportDto {
+            ImportDtoWithNumbers {
                 id: record.id,
                 imported_at: record.importedat.to_string(),
                 filename: record.filename,
+                imported: record.imported.expect("Expected a number"),
+                skipped: record.skipped.expect("Expected a number"),
             }
         })
         .collect();
@@ -66,8 +79,26 @@ pub async fn get_import_by_id(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
-) -> Result<Json<Vec<ImportDto>>> {
-    todo!()
+) -> Result<Json<ImportDto>> {
+    let inner_pool = pool.inner();
+
+    let record = sqlx::query!(
+        r#"
+            SELECT *
+            FROM Imports
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        id,
+        user.uuid
+    )
+        .fetch_one(inner_pool)
+        .await?;
+
+    Ok(Json(ImportDto {
+        id: record.id,
+        imported_at: record.importedat.to_string(),
+        filename: record.filename,
+    }))
 }
 
 #[delete("/<id>")]
@@ -75,7 +106,23 @@ pub async fn delete_import(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
-) -> Result<Json<Vec<ImportDto>>> {
-    todo!()
+) -> Result<()> {
+    let inner_pool = pool.inner();
+
+    Import::guard_one(inner_pool, &id, &user.uuid)
+        .await?;
+
+    sqlx::query!(
+        r#"
+            DELETE FROM Imports
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        id,
+        user.uuid
+    )
+        .execute(inner_pool)
+        .await?;
+
+    Ok(())
 }
 

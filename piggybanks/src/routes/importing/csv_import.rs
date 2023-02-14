@@ -3,6 +3,7 @@ use std::io::Cursor;
 use chrono::{DateTime, Utc};
 use rocket::serde::json::Json;
 use uuid::Uuid;
+use crate::error::Error::Sqlx;
 use crate::error::import_error::ImportError;
 use crate::models::csv::csv_mapping::{AmountMapping, DateMapping};
 use crate::models::dto::importing::import_csv_dto::ImportCsvDto;
@@ -132,7 +133,38 @@ pub async fn import_csv(
             transaction.category_id = category_id;
         }
 
-        transaction.create(pool).await?;
+        let result = transaction.create(pool).await;
+
+        if let Ok(_) = result {
+            continue;
+        }
+
+        let error = result
+            .expect_err("Was Ok but also an error?");
+
+        let Sqlx(wrapped_error) = &error else {
+            return Err(error);
+        };
+
+        let Some(constraint) = wrapped_error.get_constraint() else {
+            return Err(error);
+        };
+
+        if constraint != "unique_follow_number" {
+            return Err(error);
+        }
+
+        sqlx::query!(
+            r#"
+                INSERT INTO SkippedTransactions
+                VALUES ($1, $2, $3);
+            "#,
+            import_uuid.to_string(),
+            user.uuid.to_string(),
+            transaction.follow_number
+        )
+            .execute(pool.inner())
+            .await?;
     }
 
     db_transaction.commit().await?;

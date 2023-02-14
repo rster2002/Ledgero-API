@@ -11,6 +11,14 @@ impl WrappedSqlxError {
     pub fn new(error: Error) -> Self {
         Self { inner: error }
     }
+
+    pub fn get_constraint(&self) -> Option<&str> {
+        let Error::Database(error) = &self.inner else {
+            return None;
+        };
+
+        error.constraint()
+    }
 }
 
 impl ToErrorDto for WrappedSqlxError {

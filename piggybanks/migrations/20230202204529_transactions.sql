@@ -102,4 +102,20 @@ CREATE TABLE Transactions
             on delete cascade,
 
     CONSTRAINT unique_follow_number UNIQUE (UserId, FollowNumber)
-)
+);
+
+CREATE TABLE SkippedTransactions
+(
+    ImportId     varchar(36) not null
+        references Imports (Id)
+            on update cascade
+            on delete cascade,
+    UserId       varchar(36) not null,
+    FollowNumber varchar(36) not null,
+
+    primary key (ImportId, UserId, FollowNumber),
+    foreign key (UserId, FollowNumber)
+        references Transactions (UserId, FollowNumber)
+            on update cascade
+            on delete cascade
+);

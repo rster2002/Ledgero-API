@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   piggybanks-dev:
-    image: postgres
+    image: docker.io/postgres
     restart: always
     environment:
       POSTGRES_USER: test
