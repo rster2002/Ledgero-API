@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use crate::shared_types::DbPool;
 use chrono::{DateTime, Months, Utc};
-use entity_macro::{table_name, Entity};
 
 use uuid::Uuid;
 
@@ -20,9 +19,7 @@ use uuid::Uuid;
 ///
 /// A grant expire time should be the same as the refresh token associated with it and so when
 /// a token is refreshed, the grant expire time should also be updated to match.
-#[derive(Debug, sqlx::FromRow, Entity)]
-#[table_name("Grants")]
-#[sqlx(rename_all = "PascalCase")]
+#[derive(Debug, sqlx::FromRow)]
 pub struct Grant {
     /// Id of the grant. Is used in the refresh token to verify the existence of a grant when
     /// refreshing a JWT.
@@ -48,6 +45,22 @@ impl Grant {
             user_id: user_id.into(),
             expire_at: expire_utc.to_rfc3339(),
         }
+    }
+
+    pub async fn create(&self, pool: &DbPool) -> Result<()> {
+        sqlx::query!(
+            r#"
+                INSERT INTO Grants
+                VALUES ($1, $2, $3);
+            "#,
+            self.id,
+            self.user_id,
+            self.expire_at
+        )
+            .execute(pool)
+            .await?;
+
+        Ok(())
     }
 
     pub fn set_expire_at(&mut self, expire_at: DateTime<Utc>) {

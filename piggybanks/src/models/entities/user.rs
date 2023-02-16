@@ -3,12 +3,9 @@ pub mod user_role;
 use crate::models::entities::user::user_role::UserRole;
 use crate::prelude::*;
 use crate::shared_types::DbPool;
-use entity_macro::{table_name, Entity};
 use uuid::Uuid;
 
 #[derive(Debug, sqlx::FromRow)]
-#[table_name("Users")]
-#[sqlx(rename_all = "PascalCase")]
 pub struct User {
     pub id: String,
     pub username: String,

@@ -4,7 +4,6 @@ use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
 use crate::shared_types::DbPool;
 use chrono::Utc;
-use entity_macro::{table_name, Entity};
 use sqlx::FromRow;
 use sqlx::types::time::OffsetDateTime;
 
