@@ -11,6 +11,8 @@ use crate::prelude::*;
 use crate::shared_types::SharedPool;
 use rocket::serde::json::Json;
 use sqlx::types::time::OffsetDateTime;
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 
 pub struct TransactionRecord {
     pub transactionid: String,
@@ -37,11 +39,12 @@ pub struct TransactionRecord {
     pub ExternalAccounDefaultCategoryId: Option<String>,
 }
 
-#[get("/")]
+#[get("/?<pagination..>")]
 pub async fn get_all_transactions(
     pool: &SharedPool,
     user: JwtUserPayload,
-) -> Result<Json<Vec<TransactionDto>>> {
+    pagination: PaginationQueryDto,
+) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
     let pool = pool.inner();
 
     let records = sqlx::query_as!(
@@ -57,16 +60,20 @@ pub async fn get_all_transactions(
             LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
             LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
             WHERE TransactionType = 'transaction' AND Transactions.UserId = $1
-            ORDER BY Date DESC;
+            ORDER BY Date DESC
+            OFFSET $2
+            LIMIT $3;
         "#,
-        user.uuid
+        user.uuid,
+        pagination.get_offset(),
+        pagination.get_limit()
     )
         .fetch_all(pool)
         .await?;
 
     let transactions = records.into_iter().map(map_record).collect();
 
-    Ok(Json(transactions))
+    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
 }
 
 #[get("/<id>")]

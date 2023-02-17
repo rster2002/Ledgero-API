@@ -595,152 +595,6 @@
     },
     "query": "\n                INSERT INTO Transactions\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);\n            "
   },
-  "503eea03061e05c3013db3d4e1ffee521e9ab0bdfe337200b93f73dce241064a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "transactionid",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "transactiontype",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "follownumber",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "originaldescription",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "date",
-          "ordinal": 5,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "completeamount",
-          "ordinal": 6,
-          "type_info": "Int8"
-        },
-        {
-          "name": "amount",
-          "ordinal": 7,
-          "type_info": "Int8"
-        },
-        {
-          "name": "externalaccountname",
-          "ordinal": 8,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryId?",
-          "ordinal": 9,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryName?",
-          "ordinal": 10,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryDescription?",
-          "ordinal": 11,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryHexColor?",
-          "ordinal": 12,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountid",
-          "ordinal": 13,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountiban",
-          "ordinal": 14,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountname",
-          "ordinal": 15,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountdescription",
-          "ordinal": 16,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccounthexcolor",
-          "ordinal": 17,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountId?",
-          "ordinal": 18,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountEntityName?",
-          "ordinal": 19,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountDescription?",
-          "ordinal": 20,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccounDefaultCategoryId?",
-          "ordinal": 21,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName,\n                c.Id as \"CategoryId?\", c.Name as \"CategoryName?\", c.Description as \"CategoryDescription?\", c.HexColor as \"CategoryHexColor?\",\n                b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,\n                e.Id as \"ExternalAccountId?\", e.Name as \"ExternalAccountEntityName?\", e.Description as \"ExternalAccountDescription?\", e.DefaultCategoryId as \"ExternalAccounDefaultCategoryId?\"\n            FROM Transactions\n            LEFT JOIN categories c on transactions.categoryid = c.id\n            LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id\n            LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid\n            WHERE TransactionType = 'transaction' AND Transactions.UserId = $1\n            ORDER BY Date DESC;\n        "
-  },
   "53411523d3f08e5d8813ca4a7084f4420e8b8d8e325e9ee9e78eb03bcf50127b": {
     "describe": {
       "columns": [],
@@ -1369,6 +1223,154 @@
       }
     },
     "query": "\n                SELECT Id\n                FROM ExternalAccountNames\n                WHERE Id = $1 AND UserId = $2;\n            "
+  },
+  "99d723db697f2ef1bba095253a8fce886681527705021fecf56b68ed29b455c0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "transactionid",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "transactiontype",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "follownumber",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "originaldescription",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "description",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "date",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "completeamount",
+          "ordinal": 6,
+          "type_info": "Int8"
+        },
+        {
+          "name": "amount",
+          "ordinal": 7,
+          "type_info": "Int8"
+        },
+        {
+          "name": "externalaccountname",
+          "ordinal": 8,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "CategoryId?",
+          "ordinal": 9,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "CategoryName?",
+          "ordinal": 10,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "CategoryDescription?",
+          "ordinal": 11,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "CategoryHexColor?",
+          "ordinal": 12,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "bankaccountid",
+          "ordinal": 13,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "bankaccountiban",
+          "ordinal": 14,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "bankaccountname",
+          "ordinal": 15,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "bankaccountdescription",
+          "ordinal": 16,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "bankaccounthexcolor",
+          "ordinal": 17,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "ExternalAccountId?",
+          "ordinal": 18,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "ExternalAccountEntityName?",
+          "ordinal": 19,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "ExternalAccountDescription?",
+          "ordinal": 20,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "ExternalAccounDefaultCategoryId?",
+          "ordinal": 21,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName,\n                c.Id as \"CategoryId?\", c.Name as \"CategoryName?\", c.Description as \"CategoryDescription?\", c.HexColor as \"CategoryHexColor?\",\n                b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,\n                e.Id as \"ExternalAccountId?\", e.Name as \"ExternalAccountEntityName?\", e.Description as \"ExternalAccountDescription?\", e.DefaultCategoryId as \"ExternalAccounDefaultCategoryId?\"\n            FROM Transactions\n            LEFT JOIN categories c on transactions.categoryid = c.id\n            LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id\n            LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid\n            WHERE TransactionType = 'transaction' AND Transactions.UserId = $1\n            ORDER BY Date DESC\n            OFFSET $2\n            LIMIT $3;\n        "
   },
   "9c42cf9749d27009a8daa6b2e42010c929c19d08baeddc763fd2406279c5c576": {
     "describe": {

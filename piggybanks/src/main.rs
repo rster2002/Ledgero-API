@@ -24,7 +24,7 @@ use std::fs;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
-    dotenv::dotenv().expect("Failed to load .env file");
+    let _ = dotenv::dotenv();
 
     let db_connection_string =
         std::env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
