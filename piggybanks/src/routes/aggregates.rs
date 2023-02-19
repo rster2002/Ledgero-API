@@ -29,10 +29,7 @@ pub async fn get_user_total_amount(
     .await?;
 
     Ok(Json(UserTotalDto {
-        total: record.total.ok_or::<Error>(
-            HttpError::new(500)
-                .message("Failed to calculate aggregate")
-                .into(),
-        )?,
+        total: record.total
+            .unwrap_or(0),
     }))
 }

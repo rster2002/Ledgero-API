@@ -16,6 +16,7 @@ pub struct CsvMapping {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum AmountMapping {
     /// Used when the value of the CSV looks like '129'
     Cents,

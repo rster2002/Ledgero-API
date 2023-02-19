@@ -7,6 +7,7 @@ mod prelude;
 mod routes;
 mod shared_types;
 mod utils;
+mod cors;
 
 use crate::models::service::jwt_service::JwtService;
 use crate::routes::auth::create_auth_routes;
@@ -21,6 +22,8 @@ use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
+use rocket::http::Status;
+use crate::cors::CORS;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -61,8 +64,10 @@ async fn main() -> Result<(), rocket::Error> {
     let jwt_service = JwtService::new(private_key, expire_seconds, issuer);
 
     let _rocket = rocket::build()
+        .attach(CORS)
         .manage(pool)
         .manage(jwt_service)
+        .mount("/", routes![all_options])
         .mount("/auth", create_auth_routes())
         .mount("/users", create_user_routes())
         .mount("/transactions", create_transaction_routes())
@@ -75,4 +80,11 @@ async fn main() -> Result<(), rocket::Error> {
         .expect("Failed to start rocket");
 
     Ok(())
+}
+
+/// Catches all OPTION requests in order to get the CORS related Fairing triggered.
+#[options("/<_..>")]
+fn all_options() -> Status {
+    Status::Ok
+    /* Intentionally left empty */
 }

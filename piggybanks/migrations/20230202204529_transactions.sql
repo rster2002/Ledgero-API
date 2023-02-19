@@ -82,7 +82,7 @@ CREATE TABLE Transactions
     CategoryId          varchar(36)              null
         references Categories (Id)
             on update cascade
-            on delete cascade,
+            on delete set null,
     ParentTransactionId varchar(36)              null
         references Transactions (Id)
             on update cascade
@@ -91,7 +91,7 @@ CREATE TABLE Transactions
     ExternalAccountId   varchar(36)              null
         references ExternalAccounts (Id)
             on update cascade
-            on delete cascade,
+            on delete set null,
     BankAccountId       varchar(36)              not null
         references BankAccounts (Id)
             on update cascade
