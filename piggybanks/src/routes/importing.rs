@@ -1,4 +1,6 @@
 pub mod csv_import;
+pub mod map_csv_record;
+pub mod check_csv_mapping;
 
 use chrono::{DateTime, NaiveDate, Utc};
 use std::collections::HashMap;
@@ -20,11 +22,13 @@ use uuid::Uuid;
 use crate::models::dto::import::import_dto::ImportDto;
 use crate::models::dto::import::import_dto_with_numbers::ImportDtoWithNumbers;
 use crate::models::entities::import::Import;
+use crate::routes::importing::check_csv_mapping::check_csv_mapping as check_csv_mapping_route;
 use crate::routes::importing::csv_import::import_csv;
 
 pub fn create_importing_routes() -> Vec<Route> {
     routes![
         import_csv,
+        check_csv_mapping_route,
         get_all_imports,
         get_import_by_id,
         delete_import,
