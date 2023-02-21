@@ -8,8 +8,8 @@ mod routes;
 mod shared_types;
 mod utils;
 mod cors;
+pub mod services;
 
-use crate::models::service::jwt_service::JwtService;
 use crate::routes::auth::create_auth_routes;
 
 use crate::routes::aggregates::create_aggregate_routes;
@@ -24,6 +24,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::fs;
 use rocket::http::Status;
 use crate::cors::CORS;
+use crate::services::jwt_service::JwtService;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {

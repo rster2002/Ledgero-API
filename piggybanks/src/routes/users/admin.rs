@@ -8,11 +8,11 @@ use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
 use crate::models::entities::user::User;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::models::service::password_hash_service::PasswordHashService;
 use crate::shared_types::SharedPool;
 use crate::utils::guard_role::guard_role;
 use crate::prelude::*;
 use crate::routes::users::shared_resolvers::{resolve_delete_user, resolve_update_user_info, resolve_update_user_password, resolve_user_by_id};
+use crate::services::password_hash_service::PasswordHashService;
 
 #[get("/")]
 pub async fn admin_get_users(pool: &SharedPool, user: JwtUserPayload) -> Result<Json<Vec<UserDto>>> {

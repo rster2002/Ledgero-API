@@ -1,6 +1,6 @@
-use crate::models::service::jwt_service::JwtService;
 use rocket::State;
 use sqlx::{Pool, Postgres};
+use crate::services::jwt_service::JwtService;
 
 pub type DbPool = Pool<Postgres>;
 

@@ -15,7 +15,6 @@ use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::entities::user::User;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::models::service::password_hash_service::PasswordHashService;
 use crate::prelude::*;
 use crate::shared_types::SharedPool;
 use crate::utils::guard_role::guard_role;

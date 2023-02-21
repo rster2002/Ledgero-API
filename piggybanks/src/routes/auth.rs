@@ -8,7 +8,6 @@ use crate::models::entities::grant::Grant;
 use crate::models::entities::user::User;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 
-use crate::models::service::password_hash_service::PasswordHashService;
 use crate::prelude::*;
 use crate::shared_types::{SharedJwtService, SharedPool};
 
@@ -19,6 +18,7 @@ use rocket::serde::json::Json;
 use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
+use crate::services::password_hash_service::PasswordHashService;
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]
