@@ -12,7 +12,8 @@ use crate::models::dto::pagination::pagination_response_dto::PaginationResponseD
 
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::queries::transactions_query::{TransactionListQuery, TransactionRecord};
+use crate::queries::categories_query::CategoriesQuery;
+use crate::queries::transactions_query::{TransactionListQuery};
 use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, subcategory_by_id, update_subcategory};
 use crate::shared_types::SharedPool;
 
@@ -39,35 +40,41 @@ pub async fn get_all_categories(
 ) -> Result<Json<Vec<CategoryDto>>> {
     let pool = pool.inner();
 
-    let records = sqlx::query!(
-        r#"
-            SELECT *, (
-                SELECT SUM(Amount)::bigint
-                FROM Transactions
-                WHERE Categories.Id = Transactions.CategoryId
-            ) AS Amount
-            FROM Categories
-            WHERE UserId = $1;
-        "#,
-        user.uuid
-    )
-    .fetch_all(pool)
-    .await?;
+    let categories = CategoriesQuery::new(&user.uuid)
+        .fetch_all(pool)
+        .await?;
 
-    Ok(Json(
-        records
-            .into_iter()
-            .map(|record| CategoryDto {
-                id: record.id,
-                name: record.name,
-                description: record.description,
-                hex_color: record.hexcolor,
-                amount: record.amount
-                    .unwrap_or(0),
-                subcategories: vec![],
-            })
-            .collect(),
-    ))
+    Ok(Json(categories))
+
+    // let records = sqlx::query!(
+    //     r#"
+    //         SELECT *, (
+    //             SELECT SUM(Amount)::bigint
+    //             FROM Transactions
+    //             WHERE Categories.Id = Transactions.CategoryId
+    //         ) AS Amount
+    //         FROM Categories
+    //         WHERE UserId = $1;
+    //     "#,
+    //     user.uuid
+    // )
+    // .fetch_all(pool)
+    // .await?;
+    //
+    // Ok(Json(
+    //     records
+    //         .into_iter()
+    //         .map(|record| CategoryDto {
+    //             id: record.id,
+    //             name: record.name,
+    //             description: record.description,
+    //             hex_color: record.hexcolor,
+    //             amount: record.amount
+    //                 .unwrap_or(0),
+    //             subcategories: vec![],
+    //         })
+    //         .collect(),
+    // ))
 }
 
 #[post("/", data = "<body>")]

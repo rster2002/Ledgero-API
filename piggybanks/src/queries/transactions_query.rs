@@ -2,6 +2,7 @@ use sqlx::{FromRow, Postgres, QueryBuilder};
 use sqlx::types::time::OffsetDateTime;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
+use crate::models::dto::categories::subcategories::slim_subcategory_dto::SlimSubcategoryDto;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
@@ -14,7 +15,7 @@ pub struct TransactionListQuery<'a> {
 }
 
 #[derive(FromRow)]
-pub struct TransactionRecord {
+struct TransactionRecord {
     pub transactionid: String,
     pub transactiontype: String,
     pub follownumber: String,
@@ -42,6 +43,18 @@ pub struct TransactionRecord {
     #[sqlx(rename = "CategoryHexColor?")]
     pub CategoryHexColor: Option<String>,
 
+    #[sqlx(rename = "SubcategoryId?")]
+    pub SubcategoryId: Option<String>,
+
+    #[sqlx(rename = "SubcategoryName?")]
+    pub SubcategoryName: Option<String>,
+
+    #[sqlx(rename = "SubcategoryDescription?")]
+    pub SubcategoryDescription: Option<String>,
+
+    #[sqlx(rename = "SubcategoryHexColor?")]
+    pub SubcategoryHexColor: Option<String>,
+
     #[sqlx(rename = "ExternalAccountId?")]
     pub ExternalAccountId: Option<String>,
 
@@ -62,10 +75,12 @@ impl<'a> TransactionListQuery<'a> {
                 SELECT
                     transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName,
                     c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
+                    s.Id as "SubcategoryId?", s.Name as "SubcategoryName?", s.Description as "SubcategoryDescription?", s.HexColor as "SubcategoryHexColor?",
                     b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
                     e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
                 FROM Transactions
                 LEFT JOIN categories c on transactions.categoryid = c.id
+                LEFT JOIN subcategories s on transactions.subcategoryid = s.id
                 LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
                 LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
                 WHERE Transactions.UserId =
@@ -152,6 +167,7 @@ impl<'a> TransactionListQuery<'a> {
                 hex_color: record.bankaccounthexcolor,
             },
             category: None,
+            subcategory: None,
             external_account_name: record.externalaccountname,
             external_account: None,
         };
@@ -168,6 +184,21 @@ impl<'a> TransactionListQuery<'a> {
                 hex_color: record
                     .CategoryHexColor
                     .expect("Category id was not null, but the category hex color was"),
+            });
+        }
+
+        if let Some(id) = record.SubcategoryId {
+            transaction.subcategory = Some(SlimSubcategoryDto {
+                id,
+                name: record
+                    .SubcategoryName
+                    .expect("Subcategory id was not null, but the subcategory name was"),
+                description: record
+                    .SubcategoryDescription
+                    .expect("Subcategory id was not null, but the subcategory description was"),
+                hex_color: record
+                    .SubcategoryHexColor
+                    .expect("Subcategory id was not null, but the subcategory hex color was"),
             });
         }
 

@@ -23,7 +23,7 @@ pub async fn subcategory_by_id(
             SELECT *, (
                 SELECT SUM(Amount)::bigint
                 FROM Transactions
-                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.Subcategory
+                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId
             )::bigint AS Amount
             FROM Subcategories
             WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;
@@ -82,7 +82,7 @@ pub async fn get_subcategories(
             SELECT *, (
                 SELECT SUM(Amount)::bigint
                 FROM Transactions
-                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.Subcategory
+                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId
             )::bigint AS Amount
             FROM Subcategories
             WHERE ParentCategory = $1 AND UserId = $2;

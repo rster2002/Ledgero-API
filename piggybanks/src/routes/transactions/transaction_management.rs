@@ -14,7 +14,8 @@ use sqlx::types::time::OffsetDateTime;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
-use crate::queries::transactions_query::{TransactionListQuery, TransactionRecord};
+use crate::models::entities::subcategory::Subcategory;
+use crate::queries::transactions_query::{TransactionListQuery};
 
 #[get("/?<pagination..>")]
 pub async fn get_all_transactions(
@@ -65,17 +66,32 @@ pub async fn change_category_for_transaction(
 
     if let Some(category_id) = &body.category_id {
         Category::guard_one(pool, category_id, &user.uuid).await?;
+
+        if let Some(subcategory_id) = &body.subcategory_id {
+            sqlx::query!(
+                r#"
+                    SELECT Id
+                    FROM Subcategories
+                    WHERE Id = $1 AND ParentCategory = $2;
+                "#,
+                category_id,
+                subcategory_id
+            )
+                .fetch_one(pool)
+                .await?;
+        }
     }
 
     sqlx::query!(
         r#"
             UPDATE Transactions
-            SET CategoryId = $3
+            SET CategoryId = $3, SubcategoryId = $4
             WHERE Id = $1 AND UserId = $2
         "#,
         id,
         user.uuid,
-        body.category_id
+        body.category_id,
+        body.subcategory_id
     )
     .execute(pool)
     .await?;

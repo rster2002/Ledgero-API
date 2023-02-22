@@ -1,14 +1,33 @@
 #[macro_use]
 extern crate rocket;
 
+/// The shared error type where all the different errors are casted too to create one constant
+/// error type.
 mod error;
+
+/// Contains all the structs like DTOs and entities.
 mod models;
+
+/// Module which allows other files to easily import some universal import.
 mod prelude;
+
+/// This module contains all the routes for the API and most of the business logic
+/// (yes the business logic is placed with the routing, come at me)
 mod routes;
+
+/// Contains alias types for large or commonly used types.
 mod shared_types;
+
+/// Shared utility functions used throughout the application.
 mod utils;
+
+/// Module for enabling CORS.
 mod cors;
+
+/// Contains shared logic that is used throughout the entire application.
 pub mod services;
+
+/// Houses certain big queries that need a lot of mapping and config.
 pub mod queries;
 
 use crate::routes::auth::create_auth_routes;
