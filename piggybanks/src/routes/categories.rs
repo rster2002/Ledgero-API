@@ -12,7 +12,7 @@ use crate::models::dto::pagination::pagination_response_dto::PaginationResponseD
 
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::queries::transaction_list_query::{TransactionListQuery, TransactionRecord};
+use crate::queries::transactions_query::{TransactionListQuery, TransactionRecord};
 use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, subcategory_by_id, update_subcategory};
 use crate::shared_types::SharedPool;
 

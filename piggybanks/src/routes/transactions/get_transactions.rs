@@ -14,7 +14,7 @@ use sqlx::types::time::OffsetDateTime;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
-use crate::queries::transaction_list_query::{TransactionListQuery, TransactionRecord};
+use crate::queries::transactions_query::{TransactionListQuery, TransactionRecord};
 
 #[get("/?<pagination..>")]
 pub async fn get_all_transactions(

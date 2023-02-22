@@ -1,1 +1,1 @@
-pub mod transaction_list_query;
+pub mod transactions_query;
