@@ -9,6 +9,7 @@ mod shared_types;
 mod utils;
 mod cors;
 pub mod services;
+pub mod queries;
 
 use crate::routes::auth::create_auth_routes;
 

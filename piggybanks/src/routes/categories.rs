@@ -12,8 +12,8 @@ use crate::models::dto::pagination::pagination_response_dto::PaginationResponseD
 
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
+use crate::queries::transaction_list_query::{TransactionListQuery, TransactionRecord};
 use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, subcategory_by_id, update_subcategory};
-use crate::routes::transactions::get_transactions::{map_record, TransactionRecord};
 use crate::shared_types::SharedPool;
 
 pub fn create_category_routes() -> Vec<Route> {
@@ -189,31 +189,12 @@ pub async fn get_category_transactions(
 
     Category::guard_one(pool, &id, &user.uuid).await?;
 
-    let records = sqlx::query_as!(
-        TransactionRecord,
-        r#"
-            SELECT
-                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, Date, ExternalAccountName,
-                c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
-                b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
-                e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
-            FROM Transactions
-            LEFT JOIN categories c on transactions.categoryid = c.id
-            LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
-            LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
-            WHERE CategoryId = $1 AND Transactions.UserId = $2
-            OFFSET $3
-            LIMIT $4;
-        "#,
-        id,
-        user.uuid,
-        pagination.get_offset(),
-        pagination.get_limit()
-    )
+    let transactions = TransactionListQuery::new(&user.uuid)
+        .where_category(&id)
+        .order()
+        .paginate(&pagination)
         .fetch_all(pool)
         .await?;
-
-    let transactions = records.into_iter().map(map_record).collect();
 
     Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
 }
