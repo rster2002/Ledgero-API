@@ -3,6 +3,7 @@ use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use serde::Serialize;
+use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,7 +17,7 @@ pub struct TransactionDto {
     pub amount: i64,
     pub date: String,
     pub bank_account: BankAccountDto,
-    pub category: Option<CategoryDto>,
+    pub category: Option<SlimCategoryDto>,
     pub external_account_name: String,
     pub external_account: Option<ExternalAccountDto>,
 }

@@ -11,6 +11,7 @@ use crate::prelude::*;
 use crate::shared_types::SharedPool;
 use rocket::serde::json::Json;
 use sqlx::types::time::OffsetDateTime;
+use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 
@@ -164,7 +165,7 @@ pub fn map_record(record: TransactionRecord) -> TransactionDto {
     };
 
     if let Some(id) = record.CategoryId {
-        transaction.category = Some(CategoryDto {
+        transaction.category = Some(SlimCategoryDto {
             id,
             name: record
                 .CategoryName
@@ -175,7 +176,6 @@ pub fn map_record(record: TransactionRecord) -> TransactionDto {
             hex_color: record
                 .CategoryHexColor
                 .expect("Category id was not null, but the category hex color was"),
-            amount: None,
         });
     }
 

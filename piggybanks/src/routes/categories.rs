@@ -1,3 +1,5 @@
+pub mod subcategories;
+
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::new_category_dto::NewCategoryDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
@@ -5,9 +7,12 @@ use crate::models::entities::category::Category;
 use rocket::serde::json::Json;
 use rocket::Route;
 use uuid::Uuid;
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
+use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, subcategory_by_id, update_subcategory};
 use crate::routes::transactions::get_transactions::{map_record, TransactionRecord};
 use crate::shared_types::SharedPool;
 
@@ -19,6 +24,11 @@ pub fn create_category_routes() -> Vec<Route> {
         update_category,
         delete_category,
         get_category_transactions,
+        subcategory_by_id,
+        delete_subcategory,
+        get_subcategories,
+        create_subcategory,
+        update_subcategory,
     ]
 }
 
@@ -52,7 +62,9 @@ pub async fn get_all_categories(
                 name: record.name,
                 description: record.description,
                 hex_color: record.hexcolor,
-                amount: record.amount,
+                amount: record.amount
+                    .unwrap_or(0),
+                subcategories: vec![],
             })
             .collect(),
     ))
@@ -110,7 +122,9 @@ pub async fn get_category_by_id(
         name: record.name,
         description: record.description,
         hex_color: record.hexcolor,
-        amount: record.amount,
+        amount: record.amount
+            .unwrap_or(0),
+        subcategories: vec![],
     }))
 }
 
@@ -164,12 +178,13 @@ pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: String
     Ok(())
 }
 
-#[get("/<id>/transactions")]
+#[get("/<id>/transactions?<pagination..>")]
 pub async fn get_category_transactions(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
-) -> Result<Json<Vec<TransactionDto>>> {
+    pagination: PaginationQueryDto,
+) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
     let pool = pool.inner();
 
     Category::guard_one(pool, &id, &user.uuid).await?;
@@ -186,15 +201,19 @@ pub async fn get_category_transactions(
             LEFT JOIN categories c on transactions.categoryid = c.id
             LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
             LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
-            WHERE CategoryId = $1 AND Transactions.UserId = $2;
+            WHERE CategoryId = $1 AND Transactions.UserId = $2
+            OFFSET $3
+            LIMIT $4;
         "#,
         id,
-        user.uuid
+        user.uuid,
+        pagination.get_offset(),
+        pagination.get_limit()
     )
         .fetch_all(pool)
         .await?;
 
     let transactions = records.into_iter().map(map_record).collect();
 
-    Ok(Json(transactions))
+    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
 }

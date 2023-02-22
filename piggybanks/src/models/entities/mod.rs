@@ -6,3 +6,4 @@ pub mod grant;
 pub mod transaction;
 pub mod user;
 pub mod import;
+pub mod subcategory;

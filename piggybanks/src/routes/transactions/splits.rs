@@ -5,6 +5,7 @@ use crate::models::dto::transactions::split_dto::SplitDto;
 use chrono::Utc;
 use rocket::serde::json::Json;
 use uuid::Uuid;
+use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::entities::transaction::Transaction;
@@ -291,7 +292,7 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
     };
 
     if let Some(id) = record.CategoryId {
-        split_dto.category = Some(CategoryDto {
+        split_dto.category = Some(SlimCategoryDto {
             id,
             name: record
                 .CategoryName
@@ -302,7 +303,6 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
             hex_color: record
                 .CategoryHexColor
                 .expect("Category id was not null, but the category hex color was"),
-            amount: None,
         });
     }
 
