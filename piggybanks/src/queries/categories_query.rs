@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use rocket::futures::FutureExt;
 use sqlx::{FromRow, Postgres, QueryBuilder};
 use crate::models::dto::categories::category_dto::CategoryDto;
@@ -61,6 +61,11 @@ impl<'a> CategoriesQuery<'a> {
         self
     }
 
+    pub fn order(mut self) -> Self {
+        self.builder.push(" ORDER BY OrderIndex ASC");
+        self
+    }
+
     pub async fn fetch_one(mut self, pool: &DbPool) -> Result<CategoryDto> {
         let categories = self.fetch_all(pool)
             .await?;
@@ -82,7 +87,11 @@ impl<'a> CategoriesQuery<'a> {
     }
 
     fn map_records(records: Vec<CategoryRecord>) -> Result<Vec<CategoryDto>> {
-        let mut category_map = HashMap::new();
+        let mut category_map = BTreeMap::new();
+
+        let ordering: Vec<String> = records.iter()
+            .map(|i| i.categoryid.to_string())
+            .collect();
 
         for record in records {
             if !category_map.contains_key(&record.categoryid) {
@@ -115,6 +124,10 @@ impl<'a> CategoriesQuery<'a> {
             }
         }
 
-        Ok(category_map.into_values().collect())
+        let categories = ordering.into_iter()
+            .map(|id| category_map.remove(&*id).expect("Id not in map"))
+            .collect();
+
+        Ok(categories)
     }
 }

@@ -1,4 +1,5 @@
 pub mod subcategories;
+pub mod ordering;
 
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::new_category_dto::NewCategoryDto;
@@ -14,6 +15,7 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::categories_query::CategoriesQuery;
 use crate::queries::transactions_query::{TransactionQuery};
+use crate::routes::categories::ordering::category_ordering;
 use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, get_subcategory_transactions, subcategory_by_id, update_subcategory};
 use crate::shared_types::SharedPool;
 
@@ -31,6 +33,7 @@ pub fn create_category_routes() -> Vec<Route> {
         create_subcategory,
         update_subcategory,
         get_subcategory_transactions,
+        category_ordering,
     ]
 }
 
@@ -42,6 +45,7 @@ pub async fn get_all_categories(
     let pool = pool.inner();
 
     let categories = CategoriesQuery::new(&user.uuid)
+        .order()
         .fetch_all(pool)
         .await?;
 
@@ -57,6 +61,17 @@ pub async fn create_new_category(
     let body = body.0;
     let inner_pool = pool.inner();
 
+    let ordering_index = sqlx::query!(
+        r#"
+            SELECT MAX(OrderIndex) AS MaxIndex
+            FROM Categories
+            WHERE UserId = $1;
+        "#,
+        user.uuid
+    )
+        .fetch_one(inner_pool)
+        .await?;
+
     let uuid = Uuid::new_v4();
     let category = Category {
         id: uuid.to_string(),
@@ -64,6 +79,7 @@ pub async fn create_new_category(
         name: body.name,
         description: body.description,
         hex_color: body.hex_color,
+        ordering_index: ordering_index.maxindex.unwrap_or(0) + 1,
     };
 
     category.create(inner_pool).await?;

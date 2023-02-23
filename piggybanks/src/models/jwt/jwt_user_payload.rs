@@ -8,7 +8,7 @@ use rocket::Request;
 use serde::{Deserialize, Serialize};
 use crate::services::jwt_service::JwtService;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JwtUserPayload {
     pub uuid: String,
     pub username: String,

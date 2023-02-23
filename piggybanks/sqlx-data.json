@@ -141,6 +141,40 @@
     },
     "query": "\n            SELECT *, (\n                SELECT COUNT(Id)\n                FROM Transactions\n                WHERE ParentImport = Imports.Id\n            )::int AS Imported,\n            (\n                SELECT COUNT(FollowNumber)\n                FROM SkippedTransactions\n                WHERE ImportId = Imports.Id\n            )::int AS Skipped\n            FROM Imports\n            WHERE UserId = $1\n            ORDER BY ImportedAt DESC;\n        "
   },
+  "147e5b70989a989f40ed78d3d98a2b2d5ad181b66dabbaa79624e95b5ceff62a": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Int4"
+        ]
+      }
+    },
+    "query": "\n                UPDATE Categories\n                SET OrderIndex = $3\n                WHERE Id = $1 AND UserId = $2;\n            "
+  },
+  "191d1075e1bc6ffbd52d8a89f1ecc97a06e4fe1efd66ff7314db0ab2c3c179b3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT Id\n            FROM Categories\n            WHERE UserId = $1;\n        "
+  },
   "20c1868d3f25b019265f3f820ffa53c7c22e0f04e7d9bb1cabd54e14faf927f1": {
     "describe": {
       "columns": [
@@ -691,22 +725,6 @@
     },
     "query": "\n                SELECT Id\n                FROM Transactions\n                WHERE Id = $1 AND UserId = $2;\n            "
   },
-  "625123b2aa84ba9914f884adaca23906b4a4ccd7fd53e3d7a1a6d8ea586011aa": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "\n                INSERT INTO Categories\n                VALUES ($1, $2, $3, $4, $5);\n            "
-  },
   "6b6bd4a514403121f2852a7812b914ba2220b88ca64053db84fe61f19e144b8b": {
     "describe": {
       "columns": [],
@@ -1030,6 +1048,26 @@
     },
     "query": "\n                INSERT INTO ExternalAccounts\n                VALUES ($1, $2, $3, $4, $5);\n            "
   },
+  "b453d01c706bd542a977047fc6a06690b3024b5bd0cf43b7880d52e485ec83f7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "maxindex",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT MAX(OrderIndex) AS MaxIndex\n            FROM Categories\n            WHERE UserId = $1;\n        "
+  },
   "b5b14c6088f37f3ed2753e49e806e1e5106e6fefea2294562fef748ca47777eb": {
     "describe": {
       "columns": [],
@@ -1329,5 +1367,22 @@
       }
     },
     "query": "\n            SELECT *\n            FROM Imports\n            WHERE Id = $1 AND UserId = $2;\n        "
+  },
+  "fe5e93c2ac5929e22bb682c30b839253bdaa63db671bdfa2137e7588e227af97": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4"
+        ]
+      }
+    },
+    "query": "\n                INSERT INTO Categories\n                VALUES ($1, $2, $3, $4, $5, $6);\n            "
   }
 }

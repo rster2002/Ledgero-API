@@ -1,6 +1,8 @@
+use rand::thread_rng;
 use crate::prelude::*;
 use crate::shared_types::DbPool;
 use sqlx::FromRow;
+use rand::Rng;
 
 #[derive(Debug, FromRow)]
 pub struct Category {
@@ -9,6 +11,7 @@ pub struct Category {
     pub name: String,
     pub description: String,
     pub hex_color: String,
+    pub ordering_index: i32,
 }
 
 impl Category {
@@ -16,13 +19,14 @@ impl Category {
         sqlx::query!(
             r#"
                 INSERT INTO Categories
-                VALUES ($1, $2, $3, $4, $5);
+                VALUES ($1, $2, $3, $4, $5, $6);
             "#,
             self.id,
             self.user_id,
             self.name,
             self.description,
-            self.hex_color
+            self.hex_color,
+            self.ordering_index
         )
             .execute(pool)
             .await?;
