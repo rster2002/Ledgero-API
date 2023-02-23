@@ -13,8 +13,8 @@ use crate::models::dto::pagination::pagination_response_dto::PaginationResponseD
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::categories_query::CategoriesQuery;
-use crate::queries::transactions_query::{TransactionListQuery};
-use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, subcategory_by_id, update_subcategory};
+use crate::queries::transactions_query::{TransactionQuery};
+use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, get_subcategory_transactions, subcategory_by_id, update_subcategory};
 use crate::shared_types::SharedPool;
 
 pub fn create_category_routes() -> Vec<Route> {
@@ -30,6 +30,7 @@ pub fn create_category_routes() -> Vec<Route> {
         get_subcategories,
         create_subcategory,
         update_subcategory,
+        get_subcategory_transactions,
     ]
 }
 
@@ -45,36 +46,6 @@ pub async fn get_all_categories(
         .await?;
 
     Ok(Json(categories))
-
-    // let records = sqlx::query!(
-    //     r#"
-    //         SELECT *, (
-    //             SELECT SUM(Amount)::bigint
-    //             FROM Transactions
-    //             WHERE Categories.Id = Transactions.CategoryId
-    //         ) AS Amount
-    //         FROM Categories
-    //         WHERE UserId = $1;
-    //     "#,
-    //     user.uuid
-    // )
-    // .fetch_all(pool)
-    // .await?;
-    //
-    // Ok(Json(
-    //     records
-    //         .into_iter()
-    //         .map(|record| CategoryDto {
-    //             id: record.id,
-    //             name: record.name,
-    //             description: record.description,
-    //             hex_color: record.hexcolor,
-    //             amount: record.amount
-    //                 .unwrap_or(0),
-    //             subcategories: vec![],
-    //         })
-    //         .collect(),
-    // ))
 }
 
 #[post("/", data = "<body>")]
@@ -108,31 +79,12 @@ pub async fn get_category_by_id(
 ) -> Result<Json<CategoryDto>> {
     let pool = pool.inner();
 
-    let record = sqlx::query!(
-        r#"
-            SELECT *, (
-                SELECT SUM(Amount)::bigint
-                FROM Transactions
-                WHERE Categories.Id = Transactions.CategoryId
-            ) AS Amount
-            FROM Categories
-            WHERE Id = $1 AND UserId = $2;
-        "#,
-        id,
-        user.uuid
-    )
-    .fetch_one(pool)
-    .await?;
+    let category = CategoriesQuery::new(&user.uuid)
+        .where_id(id)
+        .fetch_one(pool)
+        .await?;
 
-    Ok(Json(CategoryDto {
-        id: record.id,
-        name: record.name,
-        description: record.description,
-        hex_color: record.hexcolor,
-        amount: record.amount
-            .unwrap_or(0),
-        subcategories: vec![],
-    }))
+    Ok(Json(category))
 }
 
 #[put("/<id>", data = "<body>")]
@@ -196,7 +148,7 @@ pub async fn get_category_transactions(
 
     Category::guard_one(pool, &id, &user.uuid).await?;
 
-    let transactions = TransactionListQuery::new(&user.uuid)
+    let transactions = TransactionQuery::new(&user.uuid)
         .where_category(&id)
         .order()
         .paginate(&pagination)

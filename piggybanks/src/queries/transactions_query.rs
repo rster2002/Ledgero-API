@@ -10,7 +10,7 @@ use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
 use crate::shared_types::DbPool;
 
-pub struct TransactionListQuery<'a> {
+pub struct TransactionQuery<'a> {
     builder: QueryBuilder<'a, Postgres>,
 }
 
@@ -68,7 +68,7 @@ struct TransactionRecord {
     pub ExternalAccounDefaultCategoryId: Option<String>,
 }
 
-impl<'a> TransactionListQuery<'a> {
+impl<'a> TransactionQuery<'a> {
     pub fn new(user_id: impl Into<String>) -> Self {
         let mut builder = QueryBuilder::new(
             r#"
@@ -106,6 +106,12 @@ impl<'a> TransactionListQuery<'a> {
         self
     }
 
+    pub fn where_subcategory(mut self, subcategory_id: impl Into<String>) -> Self {
+        self.builder.push(" AND Transactions.SubcategoryId = ");
+        self.builder.push_bind(subcategory_id.into());
+        self
+    }
+
     pub fn where_type(mut self, transaction_type: TransactionType) -> Self {
         self.builder.push(" AND TransactionType = ");
         self.builder.push_bind::<&str>(transaction_type.into());
@@ -131,7 +137,7 @@ impl<'a> TransactionListQuery<'a> {
             .fetch_one(pool)
             .await?;
 
-        Ok(TransactionListQuery::map_record(record))
+        Ok(TransactionQuery::map_record(record))
     }
 
     pub async fn fetch_all(mut self, pool: &DbPool) -> Result<Vec<TransactionDto>> {
@@ -142,7 +148,7 @@ impl<'a> TransactionListQuery<'a> {
 
         let transactions = records.into_iter()
             .map(|record| {
-                TransactionListQuery::map_record(record)
+                TransactionQuery::map_record(record)
             })
             .collect();
 

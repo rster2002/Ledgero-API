@@ -15,7 +15,7 @@ use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 use crate::models::entities::subcategory::Subcategory;
-use crate::queries::transactions_query::{TransactionListQuery};
+use crate::queries::transactions_query::{TransactionQuery};
 
 #[get("/?<pagination..>")]
 pub async fn get_all_transactions(
@@ -25,7 +25,7 @@ pub async fn get_all_transactions(
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
     let pool = pool.inner();
 
-    let transactions = TransactionListQuery::new(&user.uuid)
+    let transactions = TransactionQuery::new(&user.uuid)
         .where_type(TransactionType::Transaction)
         .order()
         .paginate(&pagination)
@@ -43,7 +43,7 @@ pub async fn get_single_transaction(
 ) -> Result<Json<TransactionDto>> {
     let pool = pool.inner();
 
-    let transaction = TransactionListQuery::new(&user.uuid)
+    let transaction = TransactionQuery::new(&user.uuid)
         .where_type(TransactionType::Transaction)
         .where_id(&id)
         .fetch_one(pool)
@@ -74,8 +74,8 @@ pub async fn change_category_for_transaction(
                     FROM Subcategories
                     WHERE Id = $1 AND ParentCategory = $2;
                 "#,
-                category_id,
-                subcategory_id
+                subcategory_id,
+                category_id
             )
                 .fetch_one(pool)
                 .await?;

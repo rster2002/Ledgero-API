@@ -30,7 +30,7 @@ impl<'a> CategoriesQuery<'a> {
         let mut builder = QueryBuilder::new(
             r#"
                 SELECT
-                    c.Id as CategoryId, c.Name as CategoryName, c.Description as CategoryDescription, c.HexColor as CategoryHexColor,
+                    Categories.Id as CategoryId, Categories.Name as CategoryName, Categories.Description as CategoryDescription, Categories.HexColor as CategoryHexColor,
                     s.Id as SubcategoryId, s.Name as SubcategoryName, s.Description as SubcategoryDescription, s.HexColor as SubcategoryHexColor,
                 (
                     SELECT SUM(Amount)::bigint
@@ -40,11 +40,11 @@ impl<'a> CategoriesQuery<'a> {
                 (
                     SELECT SUM(Amount)::bigint
                     FROM Transactions
-                    WHERE Categories.Id = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId
+                    WHERE Categories.Id = Transactions.CategoryId AND s.Id = Transactions.SubcategoryId
                 ) AS SubcategoryAmount
-                FROM Categories AS c
-                lEFT JOIN Subcategories s ON c.Id = s.ParentCategory
-                WHERE UserId =
+                FROM Categories
+                lEFT JOIN Subcategories s ON Categories.Id = s.ParentCategory
+                WHERE Categories.UserId =
             "#
         );
 
@@ -55,11 +55,21 @@ impl<'a> CategoriesQuery<'a> {
         }
     }
 
+    pub fn where_id(mut self, category_id: impl Into<String>) -> Self {
+        self.builder.push(" AND Categories.Id = ");
+        self.builder.push_bind(category_id.into());
+        self
+    }
+
     pub async fn fetch_one(mut self, pool: &DbPool) -> Result<CategoryDto> {
         let categories = self.fetch_all(pool)
             .await?;
 
-        Ok(categories.into_iter().next().expect("Uh"))
+        let Some(record) = categories.into_iter().next() else {
+            return Err(sqlx::Error::RowNotFound.into());
+        };
+
+        Ok(record)
     }
 
     pub async fn fetch_all(mut self, pool: &DbPool) -> Result<Vec<CategoryDto>> {

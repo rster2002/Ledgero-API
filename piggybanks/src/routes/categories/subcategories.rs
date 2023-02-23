@@ -2,10 +2,14 @@ use rocket::serde::json::Json;
 use uuid::Uuid;
 use crate::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
+use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::category::Category;
 use crate::models::entities::subcategory::Subcategory;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
+use crate::queries::transactions_query::TransactionQuery;
 use crate::routes::categories::get_category_by_id;
 use crate::shared_types::SharedPool;
 
@@ -167,4 +171,25 @@ pub async fn update_subcategory(
 
     subcategory_by_id(pool, user, category_id, subcategory_id)
         .await
+}
+
+#[get("/<category_id>/subcategories/<subcategory_id>/transactions?<pagination..>")]
+pub async fn get_subcategory_transactions(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    category_id: String,
+    subcategory_id: String,
+    pagination: PaginationQueryDto,
+) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
+    let inner_pool = pool.inner();
+
+    let transactions = TransactionQuery::new(&user.uuid)
+        .where_category(category_id)
+        .where_subcategory(subcategory_id)
+        .order()
+        .paginate(&pagination)
+        .fetch_all(inner_pool)
+        .await?;
+
+    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
 }
