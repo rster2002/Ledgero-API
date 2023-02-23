@@ -11,6 +11,10 @@ use crate::shared_types::SharedPool;
 use rocket::serde::json::Json;
 use rocket::Route;
 use uuid::Uuid;
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
+use crate::models::dto::transactions::transaction_dto::TransactionDto;
+use crate::queries::transactions_query::TransactionQuery;
 
 pub fn create_external_account_routes() -> Vec<Route> {
     routes![
@@ -22,6 +26,7 @@ pub fn create_external_account_routes() -> Vec<Route> {
         get_external_account_names,
         new_external_account_name,
         delete_external_account_name,
+        get_transactions_for_external_account,
     ]
 }
 
@@ -264,4 +269,23 @@ pub async fn delete_external_account_name(
     .await?;
 
     Ok(())
+}
+
+#[get("/<id>/transactions?<pagination..>")]
+pub async fn get_transactions_for_external_account(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: String,
+    pagination: PaginationQueryDto,
+) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
+    let inner_pool = pool.inner();
+
+    let transactions = TransactionQuery::new(&user.uuid)
+        .where_external_account(id)
+        .order()
+        .paginate(&pagination)
+        .fetch_all(inner_pool)
+        .await?;
+
+    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
 }

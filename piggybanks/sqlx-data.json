@@ -38,56 +38,6 @@
     },
     "query": "\n            SELECT *\n            FROM Users\n            WHERE Id = $1;\n        "
   },
-  "03b7874517d8919f482f0b93edcbd018fb8f70c7fa213919e105d134f9ad2363": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "userid",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "name",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "hexcolor",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "amount",
-          "ordinal": 5,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT *, (\n                SELECT SUM(Amount)::bigint\n                FROM Transactions\n                WHERE Categories.Id = Transactions.CategoryId\n            ) AS Amount\n            FROM Categories\n            WHERE UserId = $1;\n        "
-  },
   "05df81694fa9810f61ad52bd29e245e1b52de13ce693bebf1ccc185f04e01cfc": {
     "describe": {
       "columns": [
@@ -191,57 +141,6 @@
     },
     "query": "\n            SELECT *, (\n                SELECT COUNT(Id)\n                FROM Transactions\n                WHERE ParentImport = Imports.Id\n            )::int AS Imported,\n            (\n                SELECT COUNT(FollowNumber)\n                FROM SkippedTransactions\n                WHERE ImportId = Imports.Id\n            )::int AS Skipped\n            FROM Imports\n            WHERE UserId = $1\n            ORDER BY ImportedAt DESC;\n        "
   },
-  "12fa3b8af40884c5df842466afaf1a8d9fa6b974e2d7af44de7d61fd2e1158a8": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "userid",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "name",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "hexcolor",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "amount",
-          "ordinal": 5,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT *, (\n                SELECT SUM(Amount)::bigint\n                FROM Transactions\n                WHERE Categories.Id = Transactions.CategoryId\n            ) AS Amount\n            FROM Categories\n            WHERE Id = $1 AND UserId = $2;\n        "
-  },
   "20c1868d3f25b019265f3f820ffa53c7c22e0f04e7d9bb1cabd54e14faf927f1": {
     "describe": {
       "columns": [
@@ -269,6 +168,11 @@
           "name": "defaultcategoryid",
           "ordinal": 4,
           "type_info": "Varchar"
+        },
+        {
+          "name": "defaultsubcategoryid",
+          "ordinal": 5,
+          "type_info": "Varchar"
         }
       ],
       "nullable": [
@@ -276,6 +180,7 @@
         false,
         false,
         false,
+        true,
         true
       ],
       "parameters": {
@@ -299,6 +204,21 @@
     },
     "query": "\n            DELETE FROM ExternalAccounts\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
+  "2b0ee5df21696aaeb6da7c7d99921aa32cb61d54169123491955d11a24c05942": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Transactions\n            SET CategoryId = $3, SubcategoryId = $4\n            WHERE Id = $1 AND UserId = $2\n        "
+  },
   "2d199cb11775c35e3f4763203ecc643de2f5cc647c711c70c6569b70526ee081": {
     "describe": {
       "columns": [
@@ -319,6 +239,63 @@
       }
     },
     "query": "\n            SELECT Amount\n            FROM Transactions\n            WHERE TransactionType = 'transaction' AND Id = $1 AND UserId = $2;\n        "
+  },
+  "2e0ed4875f97a8fd36ca6008277d3c87dda9298eb50203313c5797049a5e3b13": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "userid",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "parentcategory",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "description",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "hexcolor",
+          "ordinal": 5,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "amount",
+          "ordinal": 6,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT *, (\n                SELECT SUM(Amount)::bigint\n                FROM Transactions\n                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId\n            )::bigint AS Amount\n            FROM Subcategories\n            WHERE ParentCategory = $1 AND UserId = $2;\n        "
   },
   "2ecf72ea06f3f034efc25046e5b1ae2b1c6d3a3ccd646d873eef1680bd181d71": {
     "describe": {
@@ -551,6 +528,11 @@
           "name": "defaultcategoryid",
           "ordinal": 4,
           "type_info": "Varchar"
+        },
+        {
+          "name": "defaultsubcategoryid",
+          "ordinal": 5,
+          "type_info": "Varchar"
         }
       ],
       "nullable": [
@@ -558,6 +540,7 @@
         false,
         false,
         false,
+        true,
         true
       ],
       "parameters": {
@@ -673,154 +656,7 @@
     },
     "query": "\n            SELECT Id, Username, Role\n            FROM Users;\n        "
   },
-  "55bd033c9ff037a1956614c8cc7bc7be05b1f48f03ab2c2b54ba64ce63eeb187": {
-    "describe": {
-      "columns": [
-        {
-          "name": "transactionid",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "transactiontype",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "follownumber",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "originaldescription",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "completeamount",
-          "ordinal": 5,
-          "type_info": "Int8"
-        },
-        {
-          "name": "amount",
-          "ordinal": 6,
-          "type_info": "Int8"
-        },
-        {
-          "name": "date",
-          "ordinal": 7,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "externalaccountname",
-          "ordinal": 8,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryId?",
-          "ordinal": 9,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryName?",
-          "ordinal": 10,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryDescription?",
-          "ordinal": 11,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryHexColor?",
-          "ordinal": 12,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountid",
-          "ordinal": 13,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountiban",
-          "ordinal": 14,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountname",
-          "ordinal": 15,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountdescription",
-          "ordinal": 16,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccounthexcolor",
-          "ordinal": 17,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountId?",
-          "ordinal": 18,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountEntityName?",
-          "ordinal": 19,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountDescription?",
-          "ordinal": 20,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccounDefaultCategoryId?",
-          "ordinal": 21,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, Date, ExternalAccountName,\n                c.Id as \"CategoryId?\", c.Name as \"CategoryName?\", c.Description as \"CategoryDescription?\", c.HexColor as \"CategoryHexColor?\",\n                b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,\n                e.Id as \"ExternalAccountId?\", e.Name as \"ExternalAccountEntityName?\", e.Description as \"ExternalAccountDescription?\", e.DefaultCategoryId as \"ExternalAccounDefaultCategoryId?\"\n            FROM Transactions\n            LEFT JOIN categories c on transactions.categoryid = c.id\n            LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id\n            LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid\n            WHERE TransactionType = 'transaction' AND Transactions.UserId = $1 AND Transactions.Id = $2;\n        "
-  },
-  "56fe0858e4bc2f6d39eccff4c382daa76944594ef537b1d00fa0c573387af905": {
+  "5ad50a9cb5892c282505cfa5506b5776a4632107ec843eccc947db159e1445de": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -828,11 +664,11 @@
         "Left": [
           "Text",
           "Text",
-          "Varchar"
+          "Text"
         ]
       }
     },
-    "query": "\n            UPDATE Transactions\n            SET CategoryId = $3\n            WHERE Id = $1 AND UserId = $2\n        "
+    "query": "\n            DELETE FROM Subcategories\n            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;\n        "
   },
   "5b1651adc0170c67f8f6fc567707b429f6e67f18c456117d7c585717936f5757": {
     "describe": {
@@ -898,6 +734,64 @@
       }
     },
     "query": "\n                INSERT INTO ExternalAccountNames\n                VALUES ($1, $2, $3, $4);\n            "
+  },
+  "717c37a8851ce85f05e2e223cdc0f8a058904a4f8bea92335a5f49361afded42": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "userid",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "parentcategory",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "description",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "hexcolor",
+          "ordinal": 5,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "amount",
+          "ordinal": 6,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT *, (\n                SELECT SUM(Amount)::bigint\n                FROM Transactions\n                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId\n            )::bigint AS Amount\n            FROM Subcategories\n            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;\n        "
   },
   "78faca5bdced63d1962b1338bab3e91c2156e04d3ba89dbc16042c533a47ba4c": {
     "describe": {
@@ -1056,153 +950,6 @@
     },
     "query": "\n                DELETE FROM Grants\n                WHERE Id = $1;\n            "
   },
-  "96537f104343ce4147a7a0d7d680d2f5f9a10150f741a9b4afbd405d53093787": {
-    "describe": {
-      "columns": [
-        {
-          "name": "transactionid",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "transactiontype",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "follownumber",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "originaldescription",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "completeamount",
-          "ordinal": 5,
-          "type_info": "Int8"
-        },
-        {
-          "name": "amount",
-          "ordinal": 6,
-          "type_info": "Int8"
-        },
-        {
-          "name": "date",
-          "ordinal": 7,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "externalaccountname",
-          "ordinal": 8,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryId?",
-          "ordinal": 9,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryName?",
-          "ordinal": 10,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryDescription?",
-          "ordinal": 11,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryHexColor?",
-          "ordinal": 12,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountid",
-          "ordinal": 13,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountiban",
-          "ordinal": 14,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountname",
-          "ordinal": 15,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountdescription",
-          "ordinal": 16,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccounthexcolor",
-          "ordinal": 17,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountId?",
-          "ordinal": 18,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountEntityName?",
-          "ordinal": 19,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountDescription?",
-          "ordinal": 20,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccounDefaultCategoryId?",
-          "ordinal": 21,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, CompleteAmount, Amount, Date, ExternalAccountName,\n                c.Id as \"CategoryId?\", c.Name as \"CategoryName?\", c.Description as \"CategoryDescription?\", c.HexColor as \"CategoryHexColor?\",\n                b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,\n                e.Id as \"ExternalAccountId?\", e.Name as \"ExternalAccountEntityName?\", e.Description as \"ExternalAccountDescription?\", e.DefaultCategoryId as \"ExternalAccounDefaultCategoryId?\"\n            FROM Transactions\n            LEFT JOIN categories c on transactions.categoryid = c.id\n            LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id\n            LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid\n            WHERE CategoryId = $1 AND Transactions.UserId = $2;\n        "
-  },
   "9762943ec0e327a9aa72e3f996409e20eeaa3188853112673dbee1fbba29f1b8": {
     "describe": {
       "columns": [
@@ -1223,154 +970,6 @@
       }
     },
     "query": "\n                SELECT Id\n                FROM ExternalAccountNames\n                WHERE Id = $1 AND UserId = $2;\n            "
-  },
-  "99d723db697f2ef1bba095253a8fce886681527705021fecf56b68ed29b455c0": {
-    "describe": {
-      "columns": [
-        {
-          "name": "transactionid",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "transactiontype",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "follownumber",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "originaldescription",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "date",
-          "ordinal": 5,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "completeamount",
-          "ordinal": 6,
-          "type_info": "Int8"
-        },
-        {
-          "name": "amount",
-          "ordinal": 7,
-          "type_info": "Int8"
-        },
-        {
-          "name": "externalaccountname",
-          "ordinal": 8,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryId?",
-          "ordinal": 9,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryName?",
-          "ordinal": 10,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryDescription?",
-          "ordinal": 11,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "CategoryHexColor?",
-          "ordinal": 12,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountid",
-          "ordinal": 13,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountiban",
-          "ordinal": 14,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountname",
-          "ordinal": 15,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountdescription",
-          "ordinal": 16,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccounthexcolor",
-          "ordinal": 17,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountId?",
-          "ordinal": 18,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountEntityName?",
-          "ordinal": 19,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccountDescription?",
-          "ordinal": 20,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "ExternalAccounDefaultCategoryId?",
-          "ordinal": 21,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Int8",
-          "Int8"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName,\n                c.Id as \"CategoryId?\", c.Name as \"CategoryName?\", c.Description as \"CategoryDescription?\", c.HexColor as \"CategoryHexColor?\",\n                b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,\n                e.Id as \"ExternalAccountId?\", e.Name as \"ExternalAccountEntityName?\", e.Description as \"ExternalAccountDescription?\", e.DefaultCategoryId as \"ExternalAccounDefaultCategoryId?\"\n            FROM Transactions\n            LEFT JOIN categories c on transactions.categoryid = c.id\n            LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id\n            LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid\n            WHERE TransactionType = 'transaction' AND Transactions.UserId = $1\n            ORDER BY Date DESC\n            OFFSET $2\n            LIMIT $3;\n        "
   },
   "9c42cf9749d27009a8daa6b2e42010c929c19d08baeddc763fd2406279c5c576": {
     "describe": {
@@ -1520,6 +1119,27 @@
     },
     "query": "\n            UPDATE Categories\n            SET Name = $3, Description = $4, HexColor = $5\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
+  "d238b38b81ec5b59fd586322421fbe2fea8d033e9998692ef05814b89786237c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                    SELECT Id\n                    FROM Subcategories\n                    WHERE Id = $1 AND ParentCategory = $2;\n                "
+  },
   "d5eb951c5053243458492b5648917095a071ac9f7a65b05672f2e4b221059556": {
     "describe": {
       "columns": [],
@@ -1546,6 +1166,23 @@
       }
     },
     "query": "\n                UPDATE Grants\n                SET UserId = $1, ExpireAt = $2\n            "
+  },
+  "dbdae8dede072340f0c5c5b0a51672af4f46a8ef61d7ac0fd0fe56eeb9acab65": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Subcategories\n            SET Name = $4, Description = $5, HexColor = $6\n            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;\n        "
   },
   "dcaa8305850c758c1bbde1b6a5dc60c16ca915ccd8f9f30b61f48a32f3dc755f": {
     "describe": {
@@ -1602,6 +1239,23 @@
       }
     },
     "query": "\n            SELECT Amount, ParentTransactionId\n            FROM Transactions\n            WHERE TransactionType = 'split' AND Id = $1 AND UserId = $2;\n        "
+  },
+  "e9ed2cafb058251243280a5b6533f15212f7d1c4495415a3a42635bdc876fe23": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n                INSERT INTO Subcategories\n                VALUES ($1, $2, $3, $4, $5, $6);\n            "
   },
   "ec804b6f8aaa73d124fb0556dbce74ea9baab9fa2d572485ad05b3b808349a63": {
     "describe": {
