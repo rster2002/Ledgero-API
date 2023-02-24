@@ -1,3 +1,4 @@
+use rocket::time::format_description::well_known::Rfc3339;
 use sqlx::{FromRow, Postgres, QueryBuilder};
 use sqlx::types::time::OffsetDateTime;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
@@ -170,7 +171,7 @@ impl<'a> TransactionQuery<'a> {
             description: record.description,
             complete_amount: record.completeamount,
             amount: record.amount,
-            date: record.date.to_string(),
+            date: record.date.format(&Rfc3339).expect("Incorrect formatting"),
             bank_account: BankAccountDto {
                 id: record.bankaccountid,
                 iban: record.bankaccountiban,
