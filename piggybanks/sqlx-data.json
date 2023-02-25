@@ -503,6 +503,26 @@
     },
     "query": "\n            SELECT Id, Amount\n            FROM Transactions\n            WHERE\n                TransactionType = 'split' AND\n                UserId = $1 AND\n                ParentTransactionId = $2 AND\n                Id = $3;\n        "
   },
+  "49aed3f672ffad0c51d50e4595bf10885535de006d168fa28d3e2e6c4ee9e67f": {
+    "describe": {
+      "columns": [
+        {
+          "name": "maxindicator",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT MAX(OrderIndicator) AS MaxIndicator\n            FROM Transactions\n            WHERE UserId = $1;\n        "
+  },
   "4aa064b40d461c63920be914be2f4812893f26b9103f131c090eb7067798af4b": {
     "describe": {
       "columns": [
@@ -585,32 +605,6 @@
       }
     },
     "query": "\n            SELECT *\n            FROM ExternalAccounts\n            WHERE Id = $1 AND UserId = $2\n        "
-  },
-  "500882bda0184dc072dbbb70b5f4235c3007e470d02a9e361569cd5401a08323": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Int8",
-          "Int8",
-          "Timestamptz",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "\n                INSERT INTO Transactions\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);\n            "
   },
   "53411523d3f08e5d8813ca4a7084f4420e8b8d8e325e9ee9e78eb03bcf50127b": {
     "describe": {
@@ -1237,6 +1231,34 @@
       }
     },
     "query": "\n            UPDATE ExternalAccounts\n            SET Name = $3, Description = $4, DefaultCategoryId = $5\n            WHERE Id = $1 AND UserId = $2\n        "
+  },
+  "e4c9fe94accfe26af96ba123be182ec106508ed4eb18bd39b987a9fa557bd28a": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int8",
+          "Int8",
+          "Timestamptz",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4"
+        ]
+      }
+    },
+    "query": "\n                INSERT INTO Transactions\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);\n            "
   },
   "e57be234e257f045e245e5b079fcb4906e6b464a31623260dc3b2e222762a6cc": {
     "describe": {

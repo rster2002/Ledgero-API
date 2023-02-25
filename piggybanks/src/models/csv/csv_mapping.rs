@@ -5,13 +5,15 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CsvMapping {
+    pub date_mapping: DateMapping,
+    pub amount_mapping: AmountMapping,
+    pub ordering: CsvImportOrdering,
+
     pub account_iban: u32,
     pub date: u32,
-    pub date_mapping: DateMapping,
     pub follow_number: u32,
     pub description: u32,
     pub amount: u32,
-    pub amount_mapping: AmountMapping,
     pub external_account_name: u32,
 }
 
@@ -40,4 +42,16 @@ pub struct DateMapping {
     /// [chrono documentation](https://docs.rs/chrono/0.4.23/chrono/format/strftime/index.html) for
     /// the possible specifiers that can be used here.
     pub format: String,
+}
+
+/// Used for populating the [Transaction::order_indicator] field which helps with keeping the
+/// correct order of the transactions.
+#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum CsvImportOrdering {
+    /// Indicates that the newest transaction is the first row in the CSV.
+    NewestFirst,
+
+    /// Indicates that the newest transaction is the last row in the CSV.
+    NewestLast,
 }

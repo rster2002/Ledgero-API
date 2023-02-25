@@ -6,6 +6,7 @@ use uuid::Uuid;
 use crate::error::Error::Sqlx;
 use crate::error::import_error::ImportError;
 use crate::models::csv::csv_mapping::{AmountMapping, DateMapping};
+use crate::models::csv::csv_mapping::CsvImportOrdering::NewestFirst;
 use crate::models::dto::importing::import_csv_dto::ImportCsvDto;
 use crate::models::entities::bank_account::BankAccount;
 use crate::models::entities::import::Import;
@@ -27,8 +28,10 @@ pub async fn import_csv(
     // Start a database transaction.
     let db_transaction = pool.begin().await?;
 
+
     let mut bank_account_map = get_bank_accounts_map(pool, &user.uuid).await?;
     let external_account_map = get_external_accounts_map(pool, &user.uuid).await?;
+    let mut order_indicator = get_order_indicator(pool, &user.uuid).await?;
 
     // Create an import record where all the transactions will be added to.
     let import_uuid = Uuid::new_v4();
@@ -43,9 +46,18 @@ pub async fn import_csv(
         .await?;
 
     let mut reader = csv::Reader::from_reader(Cursor::new(body.csv));
+    let mut records = vec![];
 
     for record in reader.records() {
-        let mapped_record = map_csv_record(record?, &body.mappings)?;
+        records.push(record?);
+    }
+
+    if &NewestFirst == &body.mappings.ordering {
+        order_indicator += records.len() as i32;
+    }
+
+    for record in records {
+        let mapped_record = map_csv_record(record, &body.mappings)?;
 
         let bank_account_id: Result<String> = match bank_account_map.get(&*mapped_record.account_iban) {
             Some(id) => Ok(id.to_string()),
@@ -67,6 +79,12 @@ pub async fn import_csv(
             }
         };
 
+        if &NewestFirst == &body.mappings.ordering {
+            order_indicator -= 1;
+        } else {
+            order_indicator += 1;
+        }
+
         let mut transaction = Transaction {
             id: Uuid::new_v4().to_string(),
             user_id: user.uuid.to_string(),
@@ -82,7 +100,9 @@ pub async fn import_csv(
             parent_transaction_id: None,
             external_account_name: mapped_record.external_account_name.to_string(),
             external_account_id: None,
-            parent_import_id: Some(import_uuid.to_string())
+            parent_import_id: Some(import_uuid.to_string()),
+            subcategory_id: None,
+            order_indicator,
         };
 
         let external_account_id = external_account_map
@@ -185,4 +205,22 @@ async fn get_external_accounts_map(
     }
 
     Ok(map)
+}
+
+async fn get_order_indicator(
+    pool: &DbPool,
+    user_id: &String,
+) -> Result<i32> {
+    let record = sqlx::query!(
+        r#"
+            SELECT MAX(OrderIndicator) AS MaxIndicator
+            FROM Transactions
+            WHERE UserId = $1;
+        "#,
+        user_id
+    )
+        .fetch_one(pool)
+        .await?;
+
+    Ok(record.maxindicator.unwrap_or(0))
 }

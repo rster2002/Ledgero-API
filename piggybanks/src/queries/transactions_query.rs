@@ -134,7 +134,7 @@ impl<'a> TransactionQuery<'a> {
     }
 
     pub fn order(mut self) -> Self {
-        self.builder.push(" ORDER BY Date DESC");
+        self.builder.push(" ORDER BY Date DESC, OrderIndicator DESC ");
         self
     }
 

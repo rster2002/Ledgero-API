@@ -99,6 +99,8 @@ pub async fn create_split(
         external_account_name: parent_transaction.externalaccountname,
         external_account_id: parent_transaction.externalaccountid,
         parent_import_id: None,
+        subcategory_id: body.subcategory_id,
+        order_indicator: 0,
     };
 
     split_transaction.create(pool).await?;

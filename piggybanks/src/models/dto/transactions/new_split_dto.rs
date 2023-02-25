@@ -6,4 +6,5 @@ pub struct NewSplitDto {
     pub description: String,
     pub amount: i64,
     pub category_id: Option<String>,
+    pub subcategory_id: Option<String>,
 }

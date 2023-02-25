@@ -61,6 +61,14 @@ pub struct Transaction {
 
     /// The id of the parent [Import]. Used to group transactions that were created in an import.
     pub parent_import_id: Option<String>,
+
+    pub subcategory_id: Option<String>,
+
+    /// Indicator of the transaction order. Transactions should in general be ordered by the date
+    /// of the transactions, but with for example the Rabobank CSV the export doesn't contain a time
+    /// which could cause transaction to switch around when they're on the same date. This is used
+    /// to give an indication of the correct order.
+    pub order_indicator: i32,
 }
 
 impl Transaction {
@@ -70,7 +78,7 @@ impl Transaction {
         sqlx::query!(
             r#"
                 INSERT INTO Transactions
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);
             "#,
             self.id,
             self.user_id,
@@ -86,7 +94,9 @@ impl Transaction {
             self.external_account_name,
             self.external_account_id,
             self.bank_account_id,
-            self.parent_import_id
+            self.parent_import_id,
+            self.subcategory_id,
+            self.order_indicator
         )
         .execute(pool)
         .await?;
