@@ -2,10 +2,11 @@ pub mod transaction_type;
 
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
-use crate::shared_types::DbPool;
+use crate::shared_types::{DbPool};
 use chrono::Utc;
-use sqlx::FromRow;
+use sqlx::{Executor, FromRow, Postgres};
 use sqlx::types::time::OffsetDateTime;
+use crate::db_executor;
 
 /// A single transaction of money.
 #[derive(Debug, FromRow)]
@@ -72,7 +73,10 @@ pub struct Transaction {
 }
 
 impl Transaction {
-    pub async fn create(&self, pool: &DbPool) -> Result<()> {
+    pub async fn create<'d>(
+        &self,
+        executor: db_executor!('d)
+    ) -> Result<()> {
         let transaction_type: &str = self.transaction_type.into();
 
         sqlx::query!(
@@ -98,7 +102,7 @@ impl Transaction {
             self.subcategory_id,
             self.order_indicator
         )
-        .execute(pool)
+        .execute(executor)
         .await?;
 
         Ok(())

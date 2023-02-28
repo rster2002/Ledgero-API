@@ -14,8 +14,11 @@ use sqlx::types::time::OffsetDateTime;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
+use crate::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
 use crate::models::entities::subcategory::Subcategory;
 use crate::queries::transactions_query::{TransactionQuery};
+use crate::routes::transactions::splits::{create_split, get_splits};
+use crate::services::split_service::SplitService;
 
 #[get("/?<pagination..>")]
 pub async fn get_all_transactions(
@@ -99,4 +102,59 @@ pub async fn change_category_for_transaction(
     Ok(())
 }
 
+#[put("/<id>", data="<body>")]
+pub async fn update_transaction(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: String,
+    body: Json<UpdateTransactionDto<'_>>,
+) -> Result<Json<TransactionDto>> {
+    let inner_pool = pool.inner();
+    let body = body.0;
 
+    let current_transaction = get_single_transaction(id.to_string(), pool, user.clone())
+        .await?.0;
+
+    let mut db_transaction = inner_pool.begin().await?;
+
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET Description = $3, CategoryId = $4, SubcategoryId = $5, Amount = CompleteAmount
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        id,
+        user.uuid,
+        body.description,
+        body.category_id,
+        body.subcategory_id
+    )
+        .execute(&mut db_transaction)
+        .await?;
+
+    sqlx::query!(
+        r#"
+            DELETE FROM Transactions
+            WHERE UserId = $1 AND ParentTransactionId = $2 AND TransactionType = 'split';
+        "#,
+        user.uuid,
+        Some(id.to_string())
+    )
+        .execute(&mut db_transaction)
+        .await?;
+
+    for split in body.splits {
+        db_transaction = SplitService::create_split(
+            db_transaction,
+            user.uuid.to_string(),
+            id.to_string(),
+            split
+        )
+            .await?;
+    }
+
+    db_transaction.commit().await?;
+
+    get_single_transaction(id.to_string(), pool, user.clone())
+        .await
+}

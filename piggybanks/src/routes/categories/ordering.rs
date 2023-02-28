@@ -34,7 +34,8 @@ pub async fn category_ordering(
         }
     }
 
-    let db_transaction = pool.begin().await?;
+    let mut db_transaction = pool.begin()
+        .await?;
 
     for (i, id) in body.into_iter().enumerate() {
         sqlx::query!(
@@ -47,7 +48,7 @@ pub async fn category_ordering(
             user.uuid,
             i as i32
         )
-            .execute(inner_pool)
+            .execute(&mut db_transaction)
             .await?;
     }
 

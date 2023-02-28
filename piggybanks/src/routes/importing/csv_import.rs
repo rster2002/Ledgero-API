@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::Cursor;
 use chrono::{DateTime, Utc};
+use csv::StringRecord;
 use rocket::serde::json::Json;
 use uuid::Uuid;
 use crate::error::Error::Sqlx;
@@ -16,6 +17,7 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::shared_types::{DbPool, SharedPool};
 use crate::prelude::*;
 use crate::routes::importing::map_csv_record::map_csv_record;
+use crate::utils::try_collect::try_collect;
 
 #[post("/csv", data = "<body>")]
 pub async fn import_csv(
@@ -26,9 +28,9 @@ pub async fn import_csv(
     let body = body.0;
 
     // Start a database transaction.
-    let db_transaction = pool.begin().await?;
+    let mut db_transaction = pool.begin().await?;
 
-
+    // Get required maps used when importing
     let mut bank_account_map = get_bank_accounts_map(pool, &user.uuid).await?;
     let external_account_map = get_external_accounts_map(pool, &user.uuid).await?;
     let mut order_indicator = get_order_indicator(pool, &user.uuid).await?;
@@ -42,16 +44,17 @@ pub async fn import_csv(
         filename: body.filename,
     };
 
-    import.create(pool)
+    // Create the parent import in the database
+    import.create(&mut db_transaction)
         .await?;
 
-    let mut reader = csv::Reader::from_reader(Cursor::new(body.csv));
-    let mut records = vec![];
+    let mut records: Vec<StringRecord> = try_collect(
+        csv::Reader::from_reader(Cursor::new(body.csv))
+            .records()
+    )?;
 
-    for record in reader.records() {
-        records.push(record?);
-    }
-
+    // If the first record is the newest, the order indicator should count down, so the indicator
+    // is set to the highest value for the import (the number of transactions to import)
     if &NewestFirst == &body.mappings.ordering {
         order_indicator += records.len() as i32;
     }
@@ -71,7 +74,8 @@ pub async fn import_csv(
                     hex_color: "ffffff".to_string(),
                 };
 
-                bank_account.create(pool).await?;
+                bank_account.create(&mut db_transaction)
+                    .await?;
 
                 bank_account_map.insert(mapped_record.account_iban, bank_account.id.to_string());
 
@@ -114,7 +118,8 @@ pub async fn import_csv(
             transaction.category_id = category_id;
         }
 
-        let result = transaction.create(pool).await;
+        let result = transaction.create(&mut db_transaction)
+            .await;
 
         // If the result is Ok the transactions is guaranteed to be a new transaction.
         if let Ok(_) = result {
@@ -149,7 +154,7 @@ pub async fn import_csv(
             user.uuid.to_string(),
             transaction.follow_number
         )
-            .execute(pool.inner())
+            .execute(&mut db_transaction)
             .await?;
     }
 

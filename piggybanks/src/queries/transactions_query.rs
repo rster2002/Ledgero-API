@@ -96,7 +96,7 @@ impl<'a> TransactionQuery<'a> {
     }
 
     pub fn where_id(mut self, transaction_id: impl Into<String>) -> Self {
-        self.builder.push(" AND Id = ");
+        self.builder.push(" AND Transactions.Id = ");
         self.builder.push_bind(transaction_id.into());
         self
     }

@@ -1,8 +1,10 @@
 use chrono::{DateTime, Utc};
 use sqlx::FromRow;
 use sqlx::types::time::OffsetDateTime;
+use crate::db_executor;
 use crate::shared_types::DbPool;
 use crate::prelude::*;
+use sqlx::{Executor, Postgres};
 
 #[derive(Debug, FromRow)]
 #[sqlx(rename_all = "PascalCase")]
@@ -18,7 +20,10 @@ pub struct Import {
 }
 
 impl Import {
-    pub async fn create(&self, pool: &DbPool) -> Result<()> {
+    pub async fn create<'d>(
+        &self,
+        pool: db_executor!('d),
+    ) -> Result<()> {
         sqlx::query!(
             r#"
                 INSERT INTO Imports

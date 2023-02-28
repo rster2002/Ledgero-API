@@ -11,6 +11,7 @@ pub fn create_transaction_routes() -> Vec<Route> {
         get_all_transactions,
         get_single_transaction,
         change_category_for_transaction,
+        update_transaction,
         get_splits,
         create_split,
         update_split,
