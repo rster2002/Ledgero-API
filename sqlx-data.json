@@ -475,34 +475,6 @@
     },
     "query": "\n            DELETE FROM Users\n            WHERE Id = $1;\n        "
   },
-  "47012e917889968729ba3fc15dfc4eb72bfc7f5ad060e3a03b76d322c3e9c00a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "amount",
-          "ordinal": 1,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT Id, Amount\n            FROM Transactions\n            WHERE\n                TransactionType = 'split' AND\n                UserId = $1 AND\n                ParentTransactionId = $2 AND\n                Id = $3;\n        "
-  },
   "49aed3f672ffad0c51d50e4595bf10885535de006d168fa28d3e2e6c4ee9e67f": {
     "describe": {
       "columns": [
@@ -605,22 +577,6 @@
       }
     },
     "query": "\n            SELECT *\n            FROM ExternalAccounts\n            WHERE Id = $1 AND UserId = $2\n        "
-  },
-  "53411523d3f08e5d8813ca4a7084f4420e8b8d8e325e9ee9e78eb03bcf50127b": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Varchar",
-          "Int8",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "\n            UPDATE Transactions\n            SET Description = $3, Amount = $4, CategoryId = $5\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
   "551ec0d9216a790493a3efc8378c3a409da931cc3062dd03d283460e0c4a6354": {
     "describe": {
@@ -746,6 +702,51 @@
       }
     },
     "query": "\n                INSERT INTO ExternalAccountNames\n                VALUES ($1, $2, $3, $4);\n            "
+  },
+  "71439d5a0ce1e0fdfb5fa7777e498dcb0d2be85dc5b55ea3e6be9a5dbd33b94e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "bankaccountid",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "amount",
+          "ordinal": 2,
+          "type_info": "Int8"
+        },
+        {
+          "name": "externalaccountname",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "externalaccountid",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId\n                FROM Transactions\n                WHERE Id = $1 AND UserId = $2;\n            "
   },
   "717c37a8851ce85f05e2e223cdc0f8a058904a4f8bea92335a5f49361afded42": {
     "describe": {
@@ -883,6 +884,19 @@
     },
     "query": "\n            SELECT\n                transactions.Id, transactions.Description, Amount,\n                c.Id as \"CategoryId?\", c.Name as \"CategoryName?\", c.Description as \"CategoryDescription?\", c.HexColor as \"CategoryHexColor?\"\n            FROM Transactions\n            LEFT JOIN categories c on transactions.categoryid = c.id\n            WHERE TransactionType = 'split' AND transactions.UserId = $1 AND ParentTransactionId = $2;\n        "
   },
+  "80d458da08bc745267699b801c3eccba75d69527fc9fd2cfc0881a2e5ebca455": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            DELETE FROM Transactions\n            WHERE UserId = $1 AND ParentTransactionId = $2 AND TransactionType = 'split';\n        "
+  },
   "81b38826b8beba6ee60bccd92de972532386654b781866bda56634f57ae0035d": {
     "describe": {
       "columns": [],
@@ -983,6 +997,22 @@
     },
     "query": "\n                SELECT Id\n                FROM ExternalAccountNames\n                WHERE Id = $1 AND UserId = $2;\n            "
   },
+  "98222700ed2dad18259d7fe35aacb1667e8f995f2c29cab6ed10317fafdbd814": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Transactions\n            SET Description = $3, CategoryId = $4, SubcategoryId = $5, Amount = CompleteAmount\n            WHERE Id = $1 AND UserId = $2;\n        "
+  },
   "9c42cf9749d27009a8daa6b2e42010c929c19d08baeddc763fd2406279c5c576": {
     "describe": {
       "columns": [],
@@ -1075,6 +1105,34 @@
     },
     "query": "\n            DELETE FROM Imports\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
+  "ba75c7d26aa55fae61ec1b9c65fb24fc43016673e5d566835f5c652411cc85a0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "amount",
+          "ordinal": 1,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                SELECT Id, Amount\n                FROM Transactions\n                WHERE\n                    TransactionType = 'split' AND\n                    UserId = $1 AND\n                    ParentTransactionId = $2 AND\n                    Id = $3;\n            "
+  },
   "bd6c1f581f78668f916d16924f894cf6de0012108ff447ef0ed2e15cc8a3a01a": {
     "describe": {
       "columns": [],
@@ -1089,51 +1147,6 @@
       }
     },
     "query": "\n                INSERT INTO Imports\n                VALUES ($1, $2, $3, $4);\n            "
-  },
-  "be190754db2e3e8641b97adfb48cfb3e59a1f9704792a4ab3704eba8e350cd5d": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "bankaccountid",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "amount",
-          "ordinal": 2,
-          "type_info": "Int8"
-        },
-        {
-          "name": "externalaccountname",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "externalaccountid",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId\n            FROM Transactions\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
   "c0ef94e20726a056083b2cd7bcb1df132e2b7289b197c58d8433416d7a05baf6": {
     "describe": {
@@ -1150,6 +1163,20 @@
       }
     },
     "query": "\n            UPDATE Categories\n            SET Name = $3, Description = $4, HexColor = $5\n            WHERE Id = $1 AND UserId = $2;\n        "
+  },
+  "c5c04631d56c49c96d4cfa5f6f240bc2898ad0481fec152d987de5567bb95d2d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Int8"
+        ]
+      }
+    },
+    "query": "\n                UPDATE Transactions\n                SET Amount = $3\n                WHERE Id = $1 AND UserId = $2;\n            "
   },
   "d238b38b81ec5b59fd586322421fbe2fea8d033e9998692ef05814b89786237c": {
     "describe": {
@@ -1316,6 +1343,22 @@
       }
     },
     "query": "\n                INSERT INTO Subcategories\n                VALUES ($1, $2, $3, $4, $5, $6);\n            "
+  },
+  "ec18fb386b019c578e1af4e6f26512545b9e0cb7738ababe74a1ecfc14bf8bd3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Varchar",
+          "Int8",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n                UPDATE Transactions\n                SET Description = $3, Amount = $4, CategoryId = $5\n                WHERE Id = $1 AND UserId = $2;\n            "
   },
   "ec804b6f8aaa73d124fb0556dbce74ea9baab9fa2d572485ad05b3b808349a63": {
     "describe": {

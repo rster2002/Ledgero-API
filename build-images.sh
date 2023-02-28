@@ -1,9 +1,4 @@
 #!/bin/bash
 
-cd piggybanks || exit
-
 cargo sqlx prepare
-
-cd .. || exit
-
-docker build -t piggybanks-rust .
+docker build -t ledgero-api .
