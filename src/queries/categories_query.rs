@@ -1,3 +1,5 @@
+mod category_record;
+
 use std::collections::{BTreeMap, HashMap};
 use rocket::futures::FutureExt;
 use sqlx::{FromRow, Postgres, QueryBuilder};
@@ -6,23 +8,10 @@ use crate::models::dto::categories::subcategories::slim_subcategory_dto::SlimSub
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
 use crate::shared_types::DbPool;
 use crate::prelude::*;
+use crate::queries::categories_query::category_record::CategoryRecord;
 
 pub struct CategoriesQuery<'a> {
     builder: QueryBuilder<'a, Postgres>,
-}
-
-#[derive(Debug, FromRow)]
-struct CategoryRecord {
-    pub amount: Option<i64>,
-    pub subcategoryamount: Option<i64>,
-    pub categoryid: String,
-    pub categoryname: String,
-    pub categorydescription: String,
-    pub categoryhexcolor: String,
-    pub subcategoryid: Option<String>,
-    pub subcategoryname: Option<String>,
-    pub subcategorydescription: Option<String>,
-    pub subcategoryhexcolor: Option<String>,
 }
 
 impl<'a> CategoriesQuery<'a> {
@@ -90,35 +79,35 @@ impl<'a> CategoriesQuery<'a> {
         let mut category_map = BTreeMap::new();
 
         let ordering: Vec<String> = records.iter()
-            .map(|i| i.categoryid.to_string())
+            .map(|i| i.category_id.to_string())
             .collect();
 
         for record in records {
-            if !category_map.contains_key(&record.categoryid) {
-                category_map.insert(record.categoryid.to_string(), CategoryDto {
-                    id: record.categoryid.to_string(),
-                    name: record.categoryname,
-                    description: record.categorydescription,
-                    hex_color: record.categoryhexcolor,
+            if !category_map.contains_key(&record.category_id) {
+                category_map.insert(record.category_id.to_string(), CategoryDto {
+                    id: record.category_id.to_string(),
+                    name: record.category_name,
+                    description: record.category_description,
+                    hex_color: record.category_hex_color,
                     amount: record.amount
                         .unwrap_or(0),
                     subcategories: vec![],
                 });
             }
 
-            if let Some(id) = record.subcategoryid {
-                let base_category = category_map.get_mut(&record.categoryid)
+            if let Some(id) = record.subcategory_id {
+                let base_category = category_map.get_mut(&record.category_id)
                     .expect("Base category should have been created");
 
                 base_category.subcategories.push(SubcategoryDto {
                     id,
-                    name: record.subcategoryname
+                    name: record.subcategory_name
                         .expect("Subcategory id is set, but the name is not"),
-                    description: record.subcategorydescription
+                    description: record.subcategory_description
                         .expect("Subcategory id is set, but the description is not"),
-                    hex_color: record.subcategoryhexcolor
+                    hex_color: record.subcategory_hex_color
                         .expect("Subcategory id is set, but the hex color is not"),
-                    amount: record.subcategoryamount
+                    amount: record.subcategory_amount
                         .unwrap_or(0),
                 });
             }

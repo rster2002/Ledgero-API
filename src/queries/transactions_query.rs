@@ -1,5 +1,7 @@
+mod transaction_record;
+
 use rocket::time::format_description::well_known::Rfc3339;
-use sqlx::{FromRow, Postgres, QueryBuilder};
+use sqlx::{Postgres, QueryBuilder};
 use sqlx::types::time::OffsetDateTime;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
@@ -9,64 +11,11 @@ use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
+use crate::queries::transactions_query::transaction_record::TransactionRecord;
 use crate::shared_types::DbPool;
 
 pub struct TransactionQuery<'a> {
     builder: QueryBuilder<'a, Postgres>,
-}
-
-#[derive(FromRow)]
-struct TransactionRecord {
-    pub transactionid: String,
-    pub transactiontype: String,
-    pub follownumber: String,
-    pub originaldescription: String,
-    pub description: String,
-    pub completeamount: i64,
-    pub amount: i64,
-    pub date: OffsetDateTime,
-    pub bankaccountid: String,
-    pub bankaccountiban: String,
-    pub bankaccountname: String,
-    pub bankaccountdescription: String,
-    pub bankaccounthexcolor: String,
-    pub externalaccountname: String,
-
-    #[sqlx(rename = "CategoryId?")]
-    pub CategoryId: Option<String>,
-
-    #[sqlx(rename = "CategoryName?")]
-    pub CategoryName: Option<String>,
-
-    #[sqlx(rename = "CategoryDescription?")]
-    pub CategoryDescription: Option<String>,
-
-    #[sqlx(rename = "CategoryHexColor?")]
-    pub CategoryHexColor: Option<String>,
-
-    #[sqlx(rename = "SubcategoryId?")]
-    pub SubcategoryId: Option<String>,
-
-    #[sqlx(rename = "SubcategoryName?")]
-    pub SubcategoryName: Option<String>,
-
-    #[sqlx(rename = "SubcategoryDescription?")]
-    pub SubcategoryDescription: Option<String>,
-
-    #[sqlx(rename = "SubcategoryHexColor?")]
-    pub SubcategoryHexColor: Option<String>,
-
-    #[sqlx(rename = "ExternalAccountId?")]
-    pub ExternalAccountId: Option<String>,
-
-    #[sqlx(rename = "ExternalAccountEntityName?")]
-    pub ExternalAccountEntityName: Option<String>,
-
-    #[sqlx(rename = "ExternalAccountDescription?")]
-    pub ExternalAccountDescription: Option<String>,
-
-    #[sqlx(rename = "ExternalAccounDefaultCategoryId?")]
-    pub ExternalAccounDefaultCategoryId: Option<String>,
 }
 
 impl<'a> TransactionQuery<'a> {
@@ -164,67 +113,67 @@ impl<'a> TransactionQuery<'a> {
 
     fn map_record(record: TransactionRecord) -> TransactionDto {
         let mut transaction = TransactionDto {
-            id: record.transactionid,
-            transaction_type: TransactionType::from(&*record.transactiontype),
-            follow_number: record.follownumber,
-            original_description: record.originaldescription,
+            id: record.transaction_id,
+            transaction_type: TransactionType::from(&*record.transaction_type),
+            follow_number: record.follow_number,
+            original_description: record.original_description,
             description: record.description,
-            complete_amount: record.completeamount,
+            complete_amount: record.complete_amount,
             amount: record.amount,
             date: record.date.format(&Rfc3339).expect("Incorrect formatting"),
             bank_account: BankAccountDto {
-                id: record.bankaccountid,
-                iban: record.bankaccountiban,
-                name: record.bankaccountname,
-                description: record.bankaccountdescription,
-                hex_color: record.bankaccounthexcolor,
+                id: record.bank_account_id,
+                iban: record.bank_account_iban,
+                name: record.bank_account_name,
+                description: record.bank_account_description,
+                hex_color: record.bank_account_hex_color,
             },
             category: None,
             subcategory: None,
-            external_account_name: record.externalaccountname,
+            external_account_name: record.external_account_name,
             external_account: None,
         };
 
-        if let Some(id) = record.CategoryId {
+        if let Some(id) = record.category_id {
             transaction.category = Some(SlimCategoryDto {
                 id,
                 name: record
-                    .CategoryName
+                    .category_name
                     .expect("Category id was not null, but the category name was"),
                 description: record
-                    .CategoryDescription
+                    .category_description
                     .expect("Category id was not null, but the category description was"),
                 hex_color: record
-                    .CategoryHexColor
+                    .category_hex_color
                     .expect("Category id was not null, but the category hex color was"),
             });
         }
 
-        if let Some(id) = record.SubcategoryId {
+        if let Some(id) = record.subcategory_id {
             transaction.subcategory = Some(SlimSubcategoryDto {
                 id,
                 name: record
-                    .SubcategoryName
+                    .subcategory_name
                     .expect("Subcategory id was not null, but the subcategory name was"),
                 description: record
-                    .SubcategoryDescription
+                    .subcategory_description
                     .expect("Subcategory id was not null, but the subcategory description was"),
                 hex_color: record
-                    .SubcategoryHexColor
+                    .subcategory_hex_color
                     .expect("Subcategory id was not null, but the subcategory hex color was"),
             });
         }
 
-        if let Some(id) = record.ExternalAccountId {
+        if let Some(id) = record.external_account_associated_name {
             transaction.external_account = Some(ExternalAccountDto {
                 id,
                 name: record
-                    .ExternalAccountEntityName
+                    .external_account_entity_name
                     .expect("External account id was not null, the the external account name was"),
-                description: record.ExternalAccountDescription.expect(
+                description: record.external_account_description.expect(
                     "External account id was not null, the the external account description was",
                 ),
-                default_category_id: record.ExternalAccounDefaultCategoryId,
+                default_category_id: record.external_account_default_category_id,
             })
         }
 
