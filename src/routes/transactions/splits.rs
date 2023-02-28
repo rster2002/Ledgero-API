@@ -17,10 +17,10 @@ struct SplitRecord {
     pub id: String,
     pub description: String,
     pub amount: i64,
-    pub CategoryId: Option<String>,
-    pub CategoryName: Option<String>,
-    pub CategoryDescription: Option<String>,
-    pub CategoryHexColor: Option<String>,
+    pub category_id: Option<String>,
+    pub category_name: Option<String>,
+    pub category_description: Option<String>,
+    pub category_hex_color: Option<String>,
 }
 
 #[get("/<transaction_id>/splits")]
@@ -38,7 +38,7 @@ pub async fn get_splits(
         r#"
             SELECT
                 transactions.Id, transactions.Description, Amount,
-                c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?"
+                c.Id as "category_id?", c.Name as "category_name?", c.Description as "category_description?", c.HexColor as "category_hex_color?"
             FROM Transactions
             LEFT JOIN categories c on transactions.categoryid = c.id
             WHERE TransactionType = 'split' AND transactions.UserId = $1 AND ParentTransactionId = $2;
@@ -178,17 +178,17 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
         category: None,
     };
 
-    if let Some(id) = record.CategoryId {
+    if let Some(id) = record.category_id {
         split_dto.category = Some(SlimCategoryDto {
             id,
             name: record
-                .CategoryName
+                .category_name
                 .expect("Category id was not null, but the category name was"),
             description: record
-                .CategoryDescription
+                .category_description
                 .expect("Category id was not null, but the category description was"),
             hex_color: record
-                .CategoryHexColor
+                .category_hex_color
                 .expect("Category id was not null, but the category hex color was"),
         });
     }
