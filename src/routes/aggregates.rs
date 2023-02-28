@@ -1,4 +1,3 @@
-use crate::error::http_error::HttpError;
 use crate::models::dto::aggregates::user_total_dto::UserTotalDto;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
@@ -29,7 +28,6 @@ pub async fn get_user_total_amount(
     .await?;
 
     Ok(Json(UserTotalDto {
-        total: record.total
-            .unwrap_or(0),
+        total: record.total.unwrap_or(0),
     }))
 }

@@ -1,6 +1,6 @@
-use rocket::State;
-use sqlx::{Executor, Pool, Postgres};
 use crate::services::jwt_service::JwtService;
+use rocket::State;
+use sqlx::{Pool, Postgres};
 
 pub type DbPool = Pool<Postgres>;
 

@@ -1,7 +1,7 @@
-use sqlx::FromRow;
 use crate::db_executor;
 use crate::prelude::*;
-use crate::shared_types::DbPool;
+use sqlx::FromRow;
+
 use sqlx::{Executor, Postgres};
 
 /// A bank account something like a single IBAN. Used to differentiate between for example a savings
@@ -17,10 +17,7 @@ pub struct BankAccount {
 }
 
 impl BankAccount {
-    pub async fn create<'d>(
-        &self,
-        executor: db_executor!('d)
-    ) -> Result<()> {
+    pub async fn create<'d>(&self, executor: db_executor!('d)) -> Result<()> {
         sqlx::query!(
             r#"
                 INSERT INTO BankAccounts
@@ -33,8 +30,8 @@ impl BankAccount {
             self.description,
             self.hex_color
         )
-            .execute(executor)
-            .await?;
+        .execute(executor)
+        .await?;
 
         Ok(())
     }

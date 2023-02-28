@@ -1,8 +1,6 @@
-use rand::thread_rng;
 use crate::prelude::*;
 use crate::shared_types::DbPool;
 use sqlx::FromRow;
-use rand::Rng;
 
 #[derive(Debug, FromRow)]
 pub struct Category {
@@ -28,8 +26,8 @@ impl Category {
             self.hex_color,
             self.ordering_index
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(())
     }

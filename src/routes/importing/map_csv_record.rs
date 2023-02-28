@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use csv::StringRecord;
-use serde::Serialize;
+
 use crate::error::import_error::ImportError;
 use crate::models::csv::csv_mapping::{AmountMapping, CsvMapping, DateMapping};
 use crate::prelude::*;

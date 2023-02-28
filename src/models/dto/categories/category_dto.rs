@@ -1,5 +1,5 @@
-use serde::Serialize;
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

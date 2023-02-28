@@ -1,22 +1,21 @@
-use std::collections::HashMap;
-use std::io::Cursor;
-use chrono::{DateTime, Utc};
+use crate::error::Error::Sqlx;
+use chrono::Utc;
 use csv::StringRecord;
 use rocket::serde::json::Json;
+use std::collections::HashMap;
+use std::io::Cursor;
 use uuid::Uuid;
-use crate::error::Error::Sqlx;
-use crate::error::import_error::ImportError;
-use crate::models::csv::csv_mapping::{AmountMapping, DateMapping};
+
 use crate::models::csv::csv_mapping::CsvImportOrdering::NewestFirst;
 use crate::models::dto::importing::import_csv_dto::ImportCsvDto;
 use crate::models::entities::bank_account::BankAccount;
 use crate::models::entities::import::Import;
-use crate::models::entities::transaction::Transaction;
 use crate::models::entities::transaction::transaction_type::TransactionType;
+use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::shared_types::{DbPool, SharedPool};
 use crate::prelude::*;
 use crate::routes::importing::map_csv_record::map_csv_record;
+use crate::shared_types::{DbPool, SharedPool};
 use crate::utils::try_collect::try_collect;
 
 #[post("/csv", data = "<body>")]
@@ -45,13 +44,10 @@ pub async fn import_csv(
     };
 
     // Create the parent import in the database
-    import.create(&mut db_transaction)
-        .await?;
+    import.create(&mut db_transaction).await?;
 
-    let mut records: Vec<StringRecord> = try_collect(
-        csv::Reader::from_reader(Cursor::new(body.csv))
-            .records()
-    )?;
+    let records: Vec<StringRecord> =
+        try_collect(csv::Reader::from_reader(Cursor::new(body.csv)).records())?;
 
     // If the first record is the newest, the order indicator should count down, so the indicator
     // is set to the highest value for the import (the number of transactions to import)
@@ -62,7 +58,9 @@ pub async fn import_csv(
     for record in records {
         let mapped_record = map_csv_record(record, &body.mappings)?;
 
-        let bank_account_id: Result<String> = match bank_account_map.get(&*mapped_record.account_iban) {
+        let bank_account_id: Result<String> = match bank_account_map
+            .get(&*mapped_record.account_iban)
+        {
             Some(id) => Ok(id.to_string()),
             None => {
                 let bank_account = BankAccount {
@@ -74,8 +72,7 @@ pub async fn import_csv(
                     hex_color: "ffffff".to_string(),
                 };
 
-                bank_account.create(&mut db_transaction)
-                    .await?;
+                bank_account.create(&mut db_transaction).await?;
 
                 bank_account_map.insert(mapped_record.account_iban, bank_account.id.to_string());
 
@@ -118,19 +115,17 @@ pub async fn import_csv(
             transaction.category_id = category_id;
         }
 
-        let result = transaction.create(&mut db_transaction)
-            .await;
+        let result = transaction.create(&mut db_transaction).await;
 
         // If the result is Ok the transactions is guaranteed to be a new transaction.
-        if let Ok(_) = result {
+        if result.is_ok() {
             continue;
         }
 
         // If the database returned an Err, the transaction may be a duplicate, so that is checked
         // here and if it is a duplicate, a link is created between the duplicate transaction and
         // the import record.
-        let error = result
-            .expect_err("Was Ok but also an error?");
+        let error = result.expect_err("Was Ok but also an error?");
 
         let Sqlx(wrapped_error) = &error else {
             return Err(error);
@@ -154,8 +149,8 @@ pub async fn import_csv(
             user.uuid.to_string(),
             transaction.follow_number
         )
-            .execute(&mut db_transaction)
-            .await?;
+        .execute(&mut db_transaction)
+        .await?;
     }
 
     db_transaction.commit().await?;
@@ -172,8 +167,8 @@ async fn get_bank_accounts_map(pool: &DbPool, user_id: &String) -> Result<HashMa
         "#,
         user_id
     )
-        .fetch_all(pool)
-        .await?;
+    .fetch_all(pool)
+    .await?;
 
     let mut map = HashMap::new();
 
@@ -197,8 +192,8 @@ async fn get_external_accounts_map(
         "#,
         user_id
     )
-        .fetch_all(pool)
-        .await?;
+    .fetch_all(pool)
+    .await?;
 
     let mut map = HashMap::new();
 
@@ -212,10 +207,7 @@ async fn get_external_accounts_map(
     Ok(map)
 }
 
-async fn get_order_indicator(
-    pool: &DbPool,
-    user_id: &String,
-) -> Result<i32> {
+async fn get_order_indicator(pool: &DbPool, user_id: &String) -> Result<i32> {
     let record = sqlx::query!(
         r#"
             SELECT MAX(OrderIndicator) AS MaxIndicator
@@ -224,8 +216,8 @@ async fn get_order_indicator(
         "#,
         user_id
     )
-        .fetch_one(pool)
-        .await?;
+    .fetch_one(pool)
+    .await?;
 
     Ok(record.maxindicator.unwrap_or(0))
 }

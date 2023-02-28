@@ -12,13 +12,13 @@ use crate::prelude::*;
 use crate::shared_types::{SharedJwtService, SharedPool};
 
 use crate::models::entities::user::user_role::UserRole;
+use crate::services::password_hash_service::PasswordHashService;
 use chrono::{Months, Utc};
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
-use crate::services::password_hash_service::PasswordHashService;
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]

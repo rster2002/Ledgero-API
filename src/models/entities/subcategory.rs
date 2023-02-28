@@ -1,5 +1,5 @@
-use crate::shared_types::DbPool;
 use crate::prelude::*;
+use crate::shared_types::DbPool;
 
 pub struct Subcategory {
     pub id: String,
@@ -24,8 +24,8 @@ impl Subcategory {
             self.description,
             self.hex_color
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(())
     }

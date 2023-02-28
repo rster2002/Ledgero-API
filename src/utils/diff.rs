@@ -9,7 +9,8 @@ pub struct Diff<'a, T> {
 }
 
 pub fn diff<'a, T>(old_vec: &'a Vec<T>, new_vec: &'a Vec<T>) -> Diff<'a, T>
-    where T : Eq + Hash
+where
+    T: Eq + Hash,
 {
     let old_set: HashSet<&T, RandomState> = HashSet::from_iter(old_vec.iter());
     let new_set: HashSet<&T, RandomState> = HashSet::from_iter(new_vec.iter());
@@ -32,7 +33,7 @@ pub fn diff<'a, T>(old_vec: &'a Vec<T>, new_vec: &'a Vec<T>) -> Diff<'a, T>
         }
     }
 
-    return Diff {
+    Diff {
         added,
         removed,
         unchanged,
@@ -77,7 +78,8 @@ mod tests {
     }
 
     fn contain_all<T>(vec1: &Vec<T>, vec2: &Vec<T>) -> bool
-        where T : Eq
+    where
+        T: Eq,
     {
         vec2.iter().all(|item| vec1.contains(item))
     }

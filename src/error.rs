@@ -17,12 +17,12 @@ use crate::error::wrapped_sqlx_error::WrappedSqlxError;
 use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 use base64_url::base64::DecodeError;
 use chrono::ParseError;
+use rocket::time::error::ComponentRange;
 use rocket::{Request, Response};
 use std::io;
 use std::io::Cursor;
 use std::num::{ParseFloatError, ParseIntError};
 use std::string::FromUtf8Error;
-use rocket::time::error::ComponentRange;
 
 #[derive(Debug)]
 pub enum Error {
@@ -59,10 +59,7 @@ impl From<sqlx::Error> for Error {
 
 impl From<Status> for Error {
     fn from(value: Status) -> Self {
-        Error::HttpError(
-            HttpError::new(value.code)
-                .message(value.to_string())
-        )
+        Error::HttpError(HttpError::new(value.code).message(value.to_string()))
     }
 }
 

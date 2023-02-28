@@ -32,19 +32,19 @@ pub mod queries;
 
 use crate::routes::auth::create_auth_routes;
 
+use crate::cors::CORS;
 use crate::routes::aggregates::create_aggregate_routes;
 use crate::routes::categories::create_category_routes;
 use crate::routes::external_accounts::create_external_account_routes;
 use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
 use crate::routes::users::create_user_routes;
+use crate::services::jwt_service::JwtService;
+use rocket::http::Status;
 use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
-use rocket::http::Status;
-use crate::cors::CORS;
-use crate::services::jwt_service::JwtService;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {

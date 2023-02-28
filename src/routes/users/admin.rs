@@ -1,21 +1,26 @@
+use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
+use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
+use crate::models::dto::users::new_user_dto::NewUserDto;
+use crate::models::dto::users::user_dto::UserDto;
+use crate::models::entities::user::user_role::UserRole;
+use crate::models::entities::user::User;
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::prelude::*;
+use crate::routes::users::shared_resolvers::{
+    resolve_delete_user, resolve_update_user_info, resolve_update_user_password, resolve_user_by_id,
+};
+use crate::services::password_hash_service::PasswordHashService;
+use crate::shared_types::SharedPool;
+use crate::utils::guard_role::guard_role;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use uuid::Uuid;
-use crate::models::dto::users::new_user_dto::NewUserDto;
-use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
-use crate::models::dto::users::user_dto::UserDto;
-use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
-use crate::models::entities::user::User;
-use crate::models::entities::user::user_role::UserRole;
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::shared_types::SharedPool;
-use crate::utils::guard_role::guard_role;
-use crate::prelude::*;
-use crate::routes::users::shared_resolvers::{resolve_delete_user, resolve_update_user_info, resolve_update_user_password, resolve_user_by_id};
-use crate::services::password_hash_service::PasswordHashService;
 
 #[get("/")]
-pub async fn admin_get_users(pool: &SharedPool, user: JwtUserPayload) -> Result<Json<Vec<UserDto>>> {
+pub async fn admin_get_users(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+) -> Result<Json<Vec<UserDto>>> {
     guard_role(&user.role, UserRole::System)?;
 
     let inner_pool = pool.inner();
@@ -26,8 +31,8 @@ pub async fn admin_get_users(pool: &SharedPool, user: JwtUserPayload) -> Result<
             FROM Users;
         "#
     )
-        .fetch_all(inner_pool)
-        .await?;
+    .fetch_all(inner_pool)
+    .await?;
 
     let users = records
         .into_iter()
@@ -75,8 +80,7 @@ pub async fn admin_get_user_by_id(
     id: String,
 ) -> Result<Json<UserDto>> {
     guard_role(&user.role, UserRole::System)?;
-    resolve_user_by_id(pool, &id)
-        .await
+    resolve_user_by_id(pool, &id).await
 }
 
 #[patch("/<id>", data = "<body>")]
@@ -90,41 +94,34 @@ pub async fn admin_update_user_information(
 
     resolve_user_by_id(pool, &id).await?;
 
-    resolve_update_user_info(pool, &id, &body)
-        .await?;
+    resolve_update_user_info(pool, &id, &body).await?;
 
     admin_get_user_by_id(pool, user, id).await
 }
 
-#[patch("/<id>/password", data="<body>")]
+#[patch("/<id>/password", data = "<body>")]
 pub async fn admin_update_user_password(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
-    body: Json<AdminUpdateUserPasswordDto<'_>>
+    body: Json<AdminUpdateUserPasswordDto<'_>>,
 ) -> Result<Status> {
     guard_role(&user.role, UserRole::System)?;
 
     resolve_user_by_id(pool, &id).await?;
 
-    resolve_update_user_password(pool, &id, &body)
-        .await?;
+    resolve_update_user_password(pool, &id, &body).await?;
 
     Ok(Status::Accepted)
 }
 
 #[delete("/<id>")]
-pub async fn admin_delete_user(
-    pool: &SharedPool,
-    user: JwtUserPayload,
-    id: String
-) -> Result<()> {
+pub async fn admin_delete_user(pool: &SharedPool, user: JwtUserPayload, id: String) -> Result<()> {
     guard_role(&user.role, UserRole::System)?;
 
     resolve_user_by_id(pool, &id).await?;
 
-    resolve_delete_user(pool, &id)
-        .await?;
+    resolve_delete_user(pool, &id).await?;
 
     Ok(())
 }

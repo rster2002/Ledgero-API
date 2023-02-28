@@ -1,10 +1,10 @@
-pub mod transaction_management;
 pub mod splits;
+pub mod transaction_management;
 
 use rocket::Route;
 
-use crate::routes::transactions::transaction_management::*;
 use crate::routes::transactions::splits::*;
+use crate::routes::transactions::transaction_management::*;
 
 pub fn create_transaction_routes() -> Vec<Route> {
     routes![

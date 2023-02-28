@@ -1,6 +1,5 @@
-use crate::models::dto::categories::category_dto::CategoryDto;
-use serde::Serialize;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -1,9 +1,9 @@
-use chrono::{DateTime, Utc};
-use sqlx::FromRow;
-use sqlx::types::time::OffsetDateTime;
 use crate::db_executor;
-use crate::shared_types::DbPool;
 use crate::prelude::*;
+use crate::shared_types::DbPool;
+use chrono::{DateTime, Utc};
+use sqlx::types::time::OffsetDateTime;
+use sqlx::FromRow;
 use sqlx::{Executor, Postgres};
 
 #[derive(Debug, FromRow)]
@@ -20,10 +20,7 @@ pub struct Import {
 }
 
 impl Import {
-    pub async fn create<'d>(
-        &self,
-        pool: db_executor!('d),
-    ) -> Result<()> {
+    pub async fn create<'d>(&self, pool: db_executor!('d)) -> Result<()> {
         sqlx::query!(
             r#"
                 INSERT INTO Imports
@@ -34,8 +31,8 @@ impl Import {
             OffsetDateTime::from_unix_timestamp(self.imported_at.timestamp())?,
             self.filename
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(())
     }
@@ -50,8 +47,8 @@ impl Import {
             id,
             user_id
         )
-            .fetch_one(pool)
-            .await?;
+        .fetch_one(pool)
+        .await?;
 
         Ok(())
     }

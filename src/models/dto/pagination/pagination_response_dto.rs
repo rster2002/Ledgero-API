@@ -1,5 +1,5 @@
-use serde::Serialize;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,7 +14,8 @@ impl<T> PaginationResponseDto<T> {
     pub fn from_query(query: PaginationQueryDto, items: Vec<T>) -> Self {
         let items_length = items.len();
 
-        let items = items.into_iter()
+        let items = items
+            .into_iter()
             .take(query.get_limit_input() as usize)
             .collect();
 

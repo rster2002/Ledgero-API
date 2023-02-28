@@ -57,8 +57,8 @@ impl Grant {
             self.user_id,
             self.expire_at
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(())
     }

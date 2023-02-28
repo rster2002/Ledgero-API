@@ -1,13 +1,12 @@
 use crate::error::http_error::HttpError;
-use crate::models::dto::categories::category_dto::CategoryDto;
+
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
 use crate::models::dto::transactions::split_dto::SplitDto;
-use chrono::Utc;
+
 use rocket::serde::json::Json;
-use uuid::Uuid;
+
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 
-use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
@@ -50,12 +49,7 @@ pub async fn get_splits(
         .fetch_all(pool)
         .await?;
 
-    Ok(Json(
-        records
-            .into_iter()
-            .map(|record| map_split_record(record))
-            .collect(),
-    ))
+    Ok(Json(records.into_iter().map(map_split_record).collect()))
 }
 
 #[post("/<transaction_id>/splits", data = "<body>")]
@@ -69,13 +63,8 @@ pub async fn create_split(
 
     let mut db_transaction = inner_pool.begin().await?;
 
-    db_transaction = SplitService::create_split(
-        db_transaction,
-        user.uuid,
-        transaction_id,
-        body.0
-    )
-        .await?;
+    db_transaction =
+        SplitService::create_split(db_transaction, user.uuid, transaction_id, body.0).await?;
 
     db_transaction.commit().await?;
 
@@ -92,14 +81,9 @@ pub async fn update_split(
 ) -> Result<()> {
     let mut db_transaction = pool.inner().begin().await?;
 
-    db_transaction = SplitService::update_split(
-        db_transaction,
-        user.uuid,
-        transaction_id,
-        split_id,
-        body.0
-    )
-        .await?;
+    db_transaction =
+        SplitService::update_split(db_transaction, user.uuid, transaction_id, split_id, body.0)
+            .await?;
 
     db_transaction.commit().await?;
 
@@ -155,8 +139,7 @@ pub async fn delete_split(
 
     let new_transaction_amount = transaction_record.amount + split_record.amount;
 
-    let mut db_transaction = pool.begin()
-        .await?;
+    let mut db_transaction = pool.begin().await?;
 
     sqlx::query!(
         r#"
@@ -212,5 +195,3 @@ fn map_split_record(record: SplitRecord) -> SplitDto {
 
     split_dto
 }
-
-

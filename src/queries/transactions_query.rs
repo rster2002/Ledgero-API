@@ -2,7 +2,7 @@ mod transaction_record;
 
 use rocket::time::format_description::well_known::Rfc3339;
 use sqlx::{Postgres, QueryBuilder};
-use sqlx::types::time::OffsetDateTime;
+
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::categories::subcategories::slim_subcategory_dto::SlimSubcategoryDto;
@@ -34,14 +34,12 @@ impl<'a> TransactionQuery<'a> {
                 LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
                 LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
                 WHERE Transactions.UserId =
-            "#
+            "#,
         );
 
         builder.push_bind(user_id.into());
 
-        Self {
-            builder
-        }
+        Self { builder }
     }
 
     pub fn where_id(mut self, transaction_id: impl Into<String>) -> Self {
@@ -83,29 +81,23 @@ impl<'a> TransactionQuery<'a> {
     }
 
     pub fn order(mut self) -> Self {
-        self.builder.push(" ORDER BY Date DESC, OrderIndicator DESC ");
+        self.builder
+            .push(" ORDER BY Date DESC, OrderIndicator DESC ");
         self
     }
 
     pub async fn fetch_one(mut self, pool: &DbPool) -> Result<TransactionDto> {
-        let record = self.builder
-            .build_query_as()
-            .fetch_one(pool)
-            .await?;
+        let record = self.builder.build_query_as().fetch_one(pool).await?;
 
         Ok(TransactionQuery::map_record(record))
     }
 
     pub async fn fetch_all(mut self, pool: &DbPool) -> Result<Vec<TransactionDto>> {
-        let records = self.builder
-            .build_query_as()
-            .fetch_all(pool)
-            .await?;
+        let records = self.builder.build_query_as().fetch_all(pool).await?;
 
-        let transactions = records.into_iter()
-            .map(|record| {
-                TransactionQuery::map_record(record)
-            })
+        let transactions = records
+            .into_iter()
+            .map(|record| TransactionQuery::map_record(record))
             .collect();
 
         Ok(transactions)

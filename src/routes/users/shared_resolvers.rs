@@ -1,18 +1,14 @@
-use rocket::http::Status;
-use rocket::serde::json::Json;
 use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
-use crate::models::dto::users::user_dto::UserDto;
 use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
+use crate::models::dto::users::user_dto::UserDto;
 use crate::models::entities::user::user_role::UserRole;
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::shared_types::SharedPool;
+use rocket::serde::json::Json;
+
 use crate::prelude::*;
 use crate::services::password_hash_service::PasswordHashService;
+use crate::shared_types::SharedPool;
 
-pub async fn resolve_user_by_id(
-    pool: &SharedPool,
-    id: &String,
-) -> Result<Json<UserDto>> {
+pub async fn resolve_user_by_id(pool: &SharedPool, id: &String) -> Result<Json<UserDto>> {
     let inner_pool = pool.inner();
 
     let record = sqlx::query!(
@@ -23,8 +19,8 @@ pub async fn resolve_user_by_id(
         "#,
         id
     )
-        .fetch_one(inner_pool)
-        .await?;
+    .fetch_one(inner_pool)
+    .await?;
 
     Ok(Json(UserDto {
         id: record.id,
@@ -41,7 +37,7 @@ pub async fn resolve_update_user_info(
     let inner_pool = pool.inner();
 
     let role_str: &str = body.role.into();
-    let record = sqlx::query!(
+    let _record = sqlx::query!(
         r#"
             UPDATE Users
             SET Username = $2,
@@ -52,8 +48,8 @@ pub async fn resolve_update_user_info(
         &body.username,
         role_str
     )
-        .execute(inner_pool)
-        .await?;
+    .execute(inner_pool)
+    .await?;
 
     Ok(())
 }
@@ -61,7 +57,7 @@ pub async fn resolve_update_user_info(
 pub async fn resolve_update_user_password(
     pool: &SharedPool,
     id: &String,
-    body: &AdminUpdateUserPasswordDto<'_>
+    body: &AdminUpdateUserPasswordDto<'_>,
 ) -> Result<()> {
     let inner_pool = pool.inner();
 
@@ -76,27 +72,24 @@ pub async fn resolve_update_user_password(
         id,
         new_hash
     )
-        .execute(inner_pool)
-        .await?;
+    .execute(inner_pool)
+    .await?;
 
     Ok(())
 }
 
-pub async fn resolve_delete_user(
-    pool: &SharedPool,
-    id: &String
-) -> Result<()> {
+pub async fn resolve_delete_user(pool: &SharedPool, id: &String) -> Result<()> {
     let inner_pool = pool.inner();
 
-    let record = sqlx::query!(
+    let _record = sqlx::query!(
         r#"
             DELETE FROM Users
             WHERE Id = $1;
         "#,
         id
     )
-        .execute(inner_pool)
-        .await?;
+    .execute(inner_pool)
+    .await?;
 
     Ok(())
 }

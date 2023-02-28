@@ -1,5 +1,3 @@
-use rocket::serde::json::Json;
-use uuid::Uuid;
 use crate::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
@@ -10,7 +8,9 @@ use crate::models::entities::subcategory::Subcategory;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
-use crate::routes::categories::get_category_by_id;
+use rocket::serde::json::Json;
+use uuid::Uuid;
+
 use crate::shared_types::SharedPool;
 
 #[get("/<category_id>/subcategories/<subcategory_id>")]
@@ -44,8 +44,7 @@ pub async fn subcategory_by_id(
         name: record.name,
         description: record.description,
         hex_color: record.hexcolor,
-        amount: record.amount
-            .unwrap_or(0),
+        amount: record.amount.unwrap_or(0),
     }))
 }
 
@@ -67,8 +66,8 @@ pub async fn delete_subcategory(
         category_id,
         user.uuid
     )
-        .execute(inner_pool)
-        .await?;
+    .execute(inner_pool)
+    .await?;
 
     Ok(())
 }
@@ -97,34 +96,31 @@ pub async fn get_subcategories(
         .fetch_all(inner_pool)
         .await?;
 
-    let subcategories = records.into_iter()
-        .map(|record| {
-            SubcategoryDto {
-                id: record.id,
-                name: record.name,
-                description: record.description,
-                hex_color: record.hexcolor,
-                amount: record.amount
-                    .unwrap_or(0),
-            }
+    let subcategories = records
+        .into_iter()
+        .map(|record| SubcategoryDto {
+            id: record.id,
+            name: record.name,
+            description: record.description,
+            hex_color: record.hexcolor,
+            amount: record.amount.unwrap_or(0),
         })
         .collect();
 
     Ok(Json(subcategories))
 }
 
-#[post("/<category_id>/subcategories", data="<body>")]
+#[post("/<category_id>/subcategories", data = "<body>")]
 pub async fn create_subcategory(
     pool: &SharedPool,
     user: JwtUserPayload,
     category_id: String,
     body: Json<NewSubcategoryDto>,
 ) -> Result<Json<SubcategoryDto>> {
-    let inner_pool = pool.inner();
+    let _inner_pool = pool.inner();
     let body = body.0;
 
-    Category::guard_one(pool, &category_id, &user.uuid)
-        .await?;
+    Category::guard_one(pool, &category_id, &user.uuid).await?;
 
     let subcategory = Subcategory {
         id: Uuid::new_v4().to_string(),
@@ -135,14 +131,12 @@ pub async fn create_subcategory(
         hex_color: body.hex_color,
     };
 
-    subcategory.create(pool)
-        .await?;
+    subcategory.create(pool).await?;
 
-    subcategory_by_id(pool, user, subcategory.parent_category, subcategory.id)
-        .await
+    subcategory_by_id(pool, user, subcategory.parent_category, subcategory.id).await
 }
 
-#[put("/<category_id>/subcategories/<subcategory_id>", data="<body>")]
+#[put("/<category_id>/subcategories/<subcategory_id>", data = "<body>")]
 pub async fn update_subcategory(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -166,11 +160,10 @@ pub async fn update_subcategory(
         body.description,
         body.hex_color
     )
-        .execute(inner_pool)
-        .await?;
+    .execute(inner_pool)
+    .await?;
 
-    subcategory_by_id(pool, user, category_id, subcategory_id)
-        .await
+    subcategory_by_id(pool, user, category_id, subcategory_id).await
 }
 
 #[get("/<category_id>/subcategories/<subcategory_id>/transactions?<pagination..>")]
@@ -191,5 +184,8 @@ pub async fn get_subcategory_transactions(
         .fetch_all(inner_pool)
         .await?;
 
-    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
+    Ok(Json(PaginationResponseDto::from_query(
+        pagination,
+        transactions,
+    )))
 }

@@ -1,12 +1,12 @@
+pub mod account;
 pub mod aggregates;
 pub mod auth;
 pub mod bank_accounts;
 pub mod categories;
 pub mod error_dto;
 pub mod external_accounts;
+pub mod import;
 pub mod importing;
+pub mod pagination;
 pub mod transactions;
 pub mod users;
-pub mod account;
-pub mod import;
-pub mod pagination;

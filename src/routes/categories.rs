@@ -1,22 +1,25 @@
-pub mod subcategories;
 pub mod ordering;
+pub mod subcategories;
 
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::new_category_dto::NewCategoryDto;
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::category::Category;
 use rocket::serde::json::Json;
 use rocket::Route;
 use uuid::Uuid;
-use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
-use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::categories_query::CategoriesQuery;
-use crate::queries::transactions_query::{TransactionQuery};
+use crate::queries::transactions_query::TransactionQuery;
 use crate::routes::categories::ordering::category_ordering;
-use crate::routes::categories::subcategories::{create_subcategory, delete_subcategory, get_subcategories, get_subcategory_transactions, subcategory_by_id, update_subcategory};
+use crate::routes::categories::subcategories::{
+    create_subcategory, delete_subcategory, get_subcategories, get_subcategory_transactions,
+    subcategory_by_id, update_subcategory,
+};
 use crate::shared_types::SharedPool;
 
 pub fn create_category_routes() -> Vec<Route> {
@@ -69,8 +72,8 @@ pub async fn create_new_category(
         "#,
         user.uuid
     )
-        .fetch_one(inner_pool)
-        .await?;
+    .fetch_one(inner_pool)
+    .await?;
 
     let uuid = Uuid::new_v4();
     let category = Category {
@@ -171,5 +174,8 @@ pub async fn get_category_transactions(
         .fetch_all(pool)
         .await?;
 
-    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
+    Ok(Json(PaginationResponseDto::from_query(
+        pagination,
+        transactions,
+    )))
 }

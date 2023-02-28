@@ -1,6 +1,6 @@
 use serde::Serialize;
-use sqlx::postgres::PgTypeInfo;
-use sqlx::{Postgres, Type};
+
+use sqlx::Type;
 
 /// Dictates the behaviour of the transaction and how is should be used.
 #[derive(Debug, Type, Serialize, Copy, Clone)]
@@ -38,9 +38,9 @@ impl From<&str> for TransactionType {
     }
 }
 
-impl Into<&str> for TransactionType {
-    fn into(self) -> &'static str {
-        match self {
+impl From<TransactionType> for &str {
+    fn from(val: TransactionType) -> Self {
+        match val {
             TransactionType::Transaction => "transaction",
             TransactionType::Split => "split",
             TransactionType::Correction => "correction",

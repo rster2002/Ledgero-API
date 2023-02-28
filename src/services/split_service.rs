@@ -1,13 +1,13 @@
 use chrono::Utc;
-use sqlx::{Connection, Executor, Pool, Postgres};
+use sqlx::{Executor, Postgres};
 use uuid::Uuid;
-use crate::db_executor;
+
 use crate::error::http_error::HttpError;
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
-use crate::models::entities::transaction::Transaction;
 use crate::models::entities::transaction::transaction_type::TransactionType;
+use crate::models::entities::transaction::Transaction;
 use crate::prelude::*;
-use crate::shared_types::{DbPool, DbTransaction};
+use crate::shared_types::DbTransaction;
 
 pub struct SplitService;
 
@@ -27,8 +27,8 @@ impl SplitService {
             transaction_id,
             user_id
         )
-            .fetch_one(&mut db_transaction)
-            .await?;
+        .fetch_one(&mut db_transaction)
+        .await?;
 
         Self::guard_amount(parent_transaction.amount, body.amount)?;
 
@@ -66,8 +66,8 @@ impl SplitService {
             user_id,
             new_amount
         )
-            .execute(&mut db_transaction)
-            .await?;
+        .execute(&mut db_transaction)
+        .await?;
 
         Ok(db_transaction)
     }
@@ -88,8 +88,8 @@ impl SplitService {
             transaction_id,
             user_id
         )
-            .fetch_one(&mut db_transaction)
-            .await?;
+        .fetch_one(&mut db_transaction)
+        .await?;
 
         let split = sqlx::query!(
             r#"
@@ -105,8 +105,8 @@ impl SplitService {
             transaction_id,
             split_id
         )
-            .fetch_one(&mut db_transaction)
-            .await?;
+        .fetch_one(&mut db_transaction)
+        .await?;
 
         let available_amount = parent_transaction.amount + split.amount;
         SplitService::guard_amount(available_amount, body.amount)?;
@@ -125,8 +125,8 @@ impl SplitService {
             body.amount,
             body.category_id
         )
-            .execute(&mut db_transaction)
-            .await?;
+        .execute(&mut db_transaction)
+        .await?;
 
         sqlx::query!(
             r#"
@@ -138,8 +138,8 @@ impl SplitService {
             user_id,
             new_parent_amount
         )
-            .execute(&mut db_transaction)
-            .await?;
+        .execute(&mut db_transaction)
+        .await?;
 
         Ok(db_transaction)
     }

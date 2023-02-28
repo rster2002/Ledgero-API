@@ -20,8 +20,7 @@ impl ImportError {
 
     pub fn get_status_code(&self) -> u16 {
         let status = match self {
-            ImportError::MissingColumn(_)
-            | ImportError::NoRows => Status::BadRequest,
+            ImportError::MissingColumn(_) | ImportError::NoRows => Status::BadRequest,
         };
 
         status.code
@@ -44,7 +43,7 @@ impl Display for ImportError {
         let string = match self {
             ImportError::MissingColumn(col) => {
                 format!("No column could be found for mapping '{}'", col)
-            },
+            }
             ImportError::NoRows => "The CSV did not contain any rows".to_string(),
         };
 

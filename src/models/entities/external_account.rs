@@ -29,8 +29,8 @@ impl ExternalAccount {
             self.description,
             self.default_category_id
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(())
     }

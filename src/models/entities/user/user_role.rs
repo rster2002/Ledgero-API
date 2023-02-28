@@ -46,9 +46,9 @@ impl From<String> for UserRole {
     }
 }
 
-impl Into<&str> for UserRole {
-    fn into(self) -> &'static str {
-        match self {
+impl From<UserRole> for &str {
+    fn from(val: UserRole) -> Self {
+        match val {
             UserRole::User => "user",
             UserRole::System => "system",
         }

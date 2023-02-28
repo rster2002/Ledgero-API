@@ -8,21 +8,8 @@ pub mod admin;
 /// User endpoints for the current user.
 pub mod me;
 
-use rocket::http::Status;
-use crate::models::dto::users::new_user_dto::NewUserDto;
-use crate::models::dto::users::user_dto::UserDto;
-use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
-use crate::models::entities::user::user_role::UserRole;
-use crate::models::entities::user::User;
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::prelude::*;
-use crate::shared_types::SharedPool;
-use crate::utils::guard_role::guard_role;
-use rocket::serde::json::Json;
 use rocket::Route;
-use uuid::Uuid;
-use crate::error::http_error::HttpError;
-use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
+
 use crate::routes::users::admin::*;
 use crate::routes::users::me::*;
 

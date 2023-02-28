@@ -1,6 +1,3 @@
-use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
-use crate::models::dto::categories::category_dto::CategoryDto;
-use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
 use crate::models::entities::category::Category;
@@ -10,14 +7,13 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::shared_types::SharedPool;
 use rocket::serde::json::Json;
-use sqlx::types::time::OffsetDateTime;
-use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
+
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 use crate::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
-use crate::models::entities::subcategory::Subcategory;
-use crate::queries::transactions_query::{TransactionQuery};
-use crate::routes::transactions::splits::{create_split, get_splits};
+
+use crate::queries::transactions_query::TransactionQuery;
+
 use crate::services::split_service::SplitService;
 
 #[get("/?<pagination..>")]
@@ -35,7 +31,10 @@ pub async fn get_all_transactions(
         .fetch_all(pool)
         .await?;
 
-    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
+    Ok(Json(PaginationResponseDto::from_query(
+        pagination,
+        transactions,
+    )))
 }
 
 #[get("/<id>")]
@@ -80,8 +79,8 @@ pub async fn change_category_for_transaction(
                 subcategory_id,
                 category_id
             )
-                .fetch_one(pool)
-                .await?;
+            .fetch_one(pool)
+            .await?;
         }
     }
 
@@ -102,7 +101,7 @@ pub async fn change_category_for_transaction(
     Ok(())
 }
 
-#[put("/<id>", data="<body>")]
+#[put("/<id>", data = "<body>")]
 pub async fn update_transaction(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -112,8 +111,9 @@ pub async fn update_transaction(
     let inner_pool = pool.inner();
     let body = body.0;
 
-    let current_transaction = get_single_transaction(id.to_string(), pool, user.clone())
-        .await?.0;
+    let _current_transaction = get_single_transaction(id.to_string(), pool, user.clone())
+        .await?
+        .0;
 
     let mut db_transaction = inner_pool.begin().await?;
 
@@ -129,8 +129,8 @@ pub async fn update_transaction(
         body.category_id,
         body.subcategory_id
     )
-        .execute(&mut db_transaction)
-        .await?;
+    .execute(&mut db_transaction)
+    .await?;
 
     sqlx::query!(
         r#"
@@ -140,21 +140,20 @@ pub async fn update_transaction(
         user.uuid,
         Some(id.to_string())
     )
-        .execute(&mut db_transaction)
-        .await?;
+    .execute(&mut db_transaction)
+    .await?;
 
     for split in body.splits {
         db_transaction = SplitService::create_split(
             db_transaction,
             user.uuid.to_string(),
             id.to_string(),
-            split
+            split,
         )
-            .await?;
+        .await?;
     }
 
     db_transaction.commit().await?;
 
-    get_single_transaction(id.to_string(), pool, user.clone())
-        .await
+    get_single_transaction(id.to_string(), pool, user.clone()).await
 }

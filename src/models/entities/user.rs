@@ -3,7 +3,6 @@ pub mod user_role;
 use crate::models::entities::user::user_role::UserRole;
 use crate::prelude::*;
 use crate::shared_types::DbPool;
-use uuid::Uuid;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct User {

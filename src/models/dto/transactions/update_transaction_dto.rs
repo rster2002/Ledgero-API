@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]

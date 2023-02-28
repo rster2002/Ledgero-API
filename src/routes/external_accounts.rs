@@ -2,19 +2,19 @@ use crate::models::dto::external_accounts::external_account_dto::ExternalAccount
 use crate::models::dto::external_accounts::external_account_name_dto::ExternalAccountNameDto;
 use crate::models::dto::external_accounts::new_external_account_dto::NewExternalAccountDto;
 use crate::models::dto::external_accounts::new_external_account_name_dto::NewExternalAccountNameDto;
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
+use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::category::Category;
 use crate::models::entities::external_account::ExternalAccount;
 use crate::models::entities::external_account_names::ExternalAccountName;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
+use crate::queries::transactions_query::TransactionQuery;
 use crate::shared_types::SharedPool;
 use rocket::serde::json::Json;
 use rocket::Route;
 use uuid::Uuid;
-use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
-use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
-use crate::models::dto::transactions::transaction_dto::TransactionDto;
-use crate::queries::transactions_query::TransactionQuery;
 
 pub fn create_external_account_routes() -> Vec<Route> {
     routes![
@@ -287,5 +287,8 @@ pub async fn get_transactions_for_external_account(
         .fetch_all(inner_pool)
         .await?;
 
-    Ok(Json(PaginationResponseDto::from_query(pagination, transactions)))
+    Ok(Json(PaginationResponseDto::from_query(
+        pagination,
+        transactions,
+    )))
 }

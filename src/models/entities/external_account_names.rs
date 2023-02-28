@@ -27,8 +27,8 @@ impl ExternalAccountName {
             self.name,
             self.parent_external_account
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(())
     }

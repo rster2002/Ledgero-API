@@ -1,10 +1,10 @@
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::prelude::*;
+use crate::shared_types::SharedPool;
 use rocket::form::validate::Contains;
 use rocket::serde::json::Json;
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::shared_types::SharedPool;
-use crate::prelude::*;
 
-#[patch("/ordering", data="<body>")]
+#[patch("/ordering", data = "<body>")]
 pub async fn category_ordering(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -21,21 +21,25 @@ pub async fn category_ordering(
         "#,
         user.uuid
     )
-        .fetch_all(inner_pool)
-        .await?;
+    .fetch_all(inner_pool)
+    .await?;
 
     if body.len() > records.len() {
-        return Err(Error::generic("You cannot provide more ids than there are categories"));
+        return Err(Error::generic(
+            "You cannot provide more ids than there are categories",
+        ));
     }
 
     for record in records {
         if !body.contains(&record.id) {
-            return Err(Error::generic(format!("Missing category id '{}'", record.id)));
+            return Err(Error::generic(format!(
+                "Missing category id '{}'",
+                record.id
+            )));
         }
     }
 
-    let mut db_transaction = pool.begin()
-        .await?;
+    let mut db_transaction = pool.begin().await?;
 
     for (i, id) in body.into_iter().enumerate() {
         sqlx::query!(
@@ -48,8 +52,8 @@ pub async fn category_ordering(
             user.uuid,
             i as i32
         )
-            .execute(&mut db_transaction)
-            .await?;
+        .execute(&mut db_transaction)
+        .await?;
     }
 
     Ok(())
