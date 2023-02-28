@@ -97,7 +97,7 @@ impl<'a> TransactionQuery<'a> {
 
         let transactions = records
             .into_iter()
-            .map(|record| TransactionQuery::map_record(record))
+            .map(TransactionQuery::map_record)
             .collect();
 
         Ok(transactions)

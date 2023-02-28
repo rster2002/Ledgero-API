@@ -32,7 +32,7 @@ pub mod queries;
 
 use crate::routes::auth::create_auth_routes;
 
-use crate::cors::CORS;
+use crate::cors::Cors;
 use crate::routes::aggregates::create_aggregate_routes;
 use crate::routes::categories::create_category_routes;
 use crate::routes::external_accounts::create_external_account_routes;
@@ -85,7 +85,7 @@ async fn main() -> Result<(), rocket::Error> {
     let jwt_service = JwtService::new(private_key, expire_seconds, issuer);
 
     let _rocket = rocket::build()
-        .attach(CORS)
+        .attach(Cors)
         .manage(pool)
         .manage(jwt_service)
         .mount("/", routes![all_options])

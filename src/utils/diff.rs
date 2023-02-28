@@ -8,7 +8,7 @@ pub struct Diff<'a, T> {
     unchanged: Vec<&'a T>,
 }
 
-pub fn diff<'a, T>(old_vec: &'a Vec<T>, new_vec: &'a Vec<T>) -> Diff<'a, T>
+pub fn diff<'a, T>(old_vec: &'a [T], new_vec: &'a [T]) -> Diff<'a, T>
 where
     T: Eq + Hash,
 {

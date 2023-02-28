@@ -1,7 +1,6 @@
 mod category_record;
 
 use crate::models::dto::categories::category_dto::CategoryDto;
-use rocket::futures::FutureExt;
 use sqlx::{Postgres, QueryBuilder};
 use std::collections::BTreeMap;
 

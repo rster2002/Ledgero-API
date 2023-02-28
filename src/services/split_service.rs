@@ -1,5 +1,5 @@
 use chrono::Utc;
-use sqlx::{Executor, Postgres};
+use sqlx::{Postgres};
 use uuid::Uuid;
 
 use crate::error::http_error::HttpError;

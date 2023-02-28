@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use crate::shared_types::DbPool;
-use chrono::{DateTime, Months, Utc};
+use chrono::{Months, Utc};
 
 use uuid::Uuid;
 
@@ -60,30 +60,6 @@ impl Grant {
         .execute(pool)
         .await?;
 
-        Ok(())
-    }
-
-    pub fn set_expire_at(&mut self, expire_at: DateTime<Utc>) {
-        self.expire_at = expire_at.to_rfc3339();
-    }
-
-    pub async fn update(&self, pool: &DbPool) -> Result<()> {
-        sqlx::query!(
-            r#"
-                UPDATE Grants
-                SET UserId = $1, ExpireAt = $2
-            "#,
-            self.user_id,
-            self.expire_at
-        )
-        .execute(pool)
-        .await?;
-
-        Ok(())
-    }
-
-    pub async fn delete(&self, pool: &DbPool) -> Result<()> {
-        Self::delete_by_id(pool, &self.id).await?;
         Ok(())
     }
 

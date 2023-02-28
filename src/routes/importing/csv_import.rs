@@ -51,7 +51,7 @@ pub async fn import_csv(
 
     // If the first record is the newest, the order indicator should count down, so the indicator
     // is set to the highest value for the import (the number of transactions to import)
-    if &NewestFirst == &body.mappings.ordering {
+    if NewestFirst == body.mappings.ordering {
         order_indicator += records.len() as i32;
     }
 
@@ -80,7 +80,7 @@ pub async fn import_csv(
             }
         };
 
-        if &NewestFirst == &body.mappings.ordering {
+        if NewestFirst == body.mappings.ordering {
             order_indicator -= 1;
         } else {
             order_indicator += 1;
