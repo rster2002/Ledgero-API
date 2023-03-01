@@ -45,6 +45,7 @@ use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
+use crate::routes::bank_accounts::create_bank_account_routes;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -93,6 +94,7 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/users", create_user_routes())
         .mount("/transactions", create_transaction_routes())
         .mount("/categories", create_category_routes())
+        .mount("/bank-accounts", create_bank_account_routes())
         .mount("/external-accounts", create_external_account_routes())
         .mount("/aggregates", create_aggregate_routes())
         .mount("/import", create_importing_routes())
