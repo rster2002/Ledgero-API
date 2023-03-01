@@ -115,6 +115,9 @@ pub async fn import_csv(
             transaction.category_id = category_id;
         }
 
+        // Because Postgres does an implicit rollback when a statement fails, a savepoint is created
+        // so if the insert fails like we expect, the savepoint is the one that is implicitly
+        // rolled back instead of the actual transaction.
         sqlx::query!("SAVEPOINT T")
             .execute(&mut db_transaction)
             .await?;
