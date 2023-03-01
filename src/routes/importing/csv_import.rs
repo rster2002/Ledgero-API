@@ -115,12 +115,20 @@ pub async fn import_csv(
             transaction.category_id = category_id;
         }
 
+        sqlx::query!("SAVEPOINT T")
+            .execute(&mut db_transaction)
+            .await?;
+
         let result = transaction.create(&mut db_transaction).await;
 
         // If the result is Ok the transactions is guaranteed to be a new transaction.
         if result.is_ok() {
             continue;
         }
+
+        sqlx::query!("ROLLBACK TO T")
+            .execute(&mut db_transaction)
+            .await?;
 
         // If the database returned an Err, the transaction may be a duplicate, so that is checked
         // here and if it is a duplicate, a link is created between the duplicate transaction and
@@ -153,7 +161,9 @@ pub async fn import_csv(
         .await?;
     }
 
+    dbg!("Here");
     db_transaction.commit().await?;
+    dbg!("And here");
 
     Ok(())
 }
