@@ -3,7 +3,7 @@ use serde::Serialize;
 use sqlx::Type;
 
 /// Dictates the behaviour of the transaction and how is should be used.
-#[derive(Debug, Type, Serialize, Copy, Clone)]
+#[derive(Debug, Type, Serialize, PartialEq, Copy, Clone)]
 #[sqlx(rename_all = "lowercase")]
 #[serde(rename_all = "camelCase")]
 pub enum TransactionType {

@@ -61,6 +61,19 @@ pub async fn create_split(
 ) -> Result<()> {
     let inner_pool = pool.inner();
 
+    // Anything other than a 'transaction' type should should not be allowed to create a split
+    sqlx::query!(
+        r#"
+            SELECT TransactionType
+            FROM Transactions
+            WHERE Id = $1 AND UserId = $2 AND TransactionType = 'transaction';
+        "#,
+        transaction_id,
+        user.uuid
+    )
+        .fetch_one(inner_pool)
+        .await?;
+
     let mut db_transaction = inner_pool.begin().await?;
 
     db_transaction =

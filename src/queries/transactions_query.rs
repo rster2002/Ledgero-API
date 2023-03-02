@@ -66,6 +66,12 @@ impl<'a> TransactionQuery<'a> {
         self
     }
 
+    pub fn where_type_not(mut self, transaction_type: TransactionType) -> Self {
+        self.builder.push(" AND TransactionType != ");
+        self.builder.push_bind::<&str>(transaction_type.into());
+        self
+    }
+
     pub fn where_external_account(mut self, external_account_id: impl Into<String>) -> Self {
         self.builder.push(" AND ExternalAccountId = ");
         self.builder.push_bind(external_account_id.into());

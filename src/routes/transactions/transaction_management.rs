@@ -25,7 +25,7 @@ pub async fn get_all_transactions(
     let pool = pool.inner();
 
     let transactions = TransactionQuery::new(&user.uuid)
-        .where_type(TransactionType::Transaction)
+        .where_type_not(TransactionType::Split)
         .order()
         .paginate(&pagination)
         .fetch_all(pool)
@@ -54,6 +54,8 @@ pub async fn get_single_transaction(
     Ok(Json(transaction))
 }
 
+/// Only changes the category and subcategory of the given transaction. This endpoint works for all
+/// types of transactions, like real- or correction transactions.
 #[patch("/<id>/category", data = "<body>")]
 pub async fn change_category_for_transaction(
     pool: &SharedPool,
@@ -66,6 +68,7 @@ pub async fn change_category_for_transaction(
 
     Transaction::guard_one(pool, &id, &user.uuid).await?;
 
+    // Check that the category and subcategory exists when they're not set to null.
     if let Some(category_id) = &body.category_id {
         Category::guard_one(pool, category_id, &user.uuid).await?;
 
@@ -101,7 +104,13 @@ pub async fn change_category_for_transaction(
     Ok(())
 }
 
-#[put("/<id>", data = "<body>")]
+/// There is a bit of a difference between the put and patch endpoints for a transactions:
+///
+/// * The *patch* endpoint is for real transactions and can create split, but cannot alter things like
+///   the amount and back account.
+/// * The *put* endpoint is for correction transactions and cannot create splits, but can alter the
+///   amount and bank account.
+#[patch("/<id>", data = "<body>")]
 pub async fn update_transaction(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -111,9 +120,9 @@ pub async fn update_transaction(
     let inner_pool = pool.inner();
     let body = body.0;
 
-    let _current_transaction = get_single_transaction(id.to_string(), pool, user.clone())
-        .await?
-        .0;
+    // This also checks if the transaction has transactionType = 'transaction'
+    get_single_transaction(id.to_string(), pool, user.clone())
+        .await?;
 
     let mut db_transaction = inner_pool.begin().await?;
 
