@@ -4,6 +4,8 @@ pub mod import_error;
 pub mod jwt_error;
 pub mod wrapped_csv_error;
 pub mod wrapped_sqlx_error;
+pub mod blob_error;
+pub mod wrapped_io_error;
 
 use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
@@ -23,11 +25,13 @@ use std::io;
 use std::io::Cursor;
 use std::num::{ParseFloatError, ParseIntError};
 use std::string::FromUtf8Error;
+use crate::error::blob_error::BlobError;
+use crate::error::wrapped_io_error::WrappedIoError;
 
 #[derive(Debug)]
 pub enum Error {
     Generic(String),
-    IO(io::Error),
+    IO(WrappedIoError),
     DotEnv(dotenv::Error),
     Sqlx(WrappedSqlxError),
     SerdeJson(serde_json::Error),
@@ -37,11 +41,18 @@ pub enum Error {
     HttpError(HttpError),
     Csv(WrappedCsvError),
     ImportError(ImportError),
+    BlobError(BlobError),
 }
 
 impl Error {
     pub fn generic(message: impl Into<String>) -> Error {
         Error::Generic(message.into())
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(value: io::Error) -> Self {
+        Error::IO(WrappedIoError::new(value))
     }
 }
 
@@ -135,6 +146,12 @@ impl From<ComponentRange> for Error {
     }
 }
 
+impl From<BlobError> for Error {
+    fn from(value: BlobError) -> Self {
+        Error::BlobError(value)
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
@@ -143,6 +160,8 @@ impl Error {
             Error::Sqlx(error) => error.get_status_code().code,
             Error::Csv(error) => error.get_status_code().code,
             Error::HttpError(error) => error.get_status_code().code,
+            Error::BlobError(error) => error.get_status_code().code,
+            Error::IO(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
         }
@@ -154,6 +173,8 @@ impl Error {
             Error::Csv(error) => error.to_error_dto(),
             Error::HttpError(error) => error.to_error_dto(),
             Error::JwtError(error) => error.to_error_dto(),
+            Error::BlobError(error) => error.to_error_dto(),
+            Error::IO(error) => error.to_error_dto(),
             _ => ErrorDTO {
                 error: ErrorContent {
                     code: 500,

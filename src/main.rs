@@ -45,8 +45,12 @@ use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
+use directories::ProjectDirs;
 use crate::routes::bank_accounts::create_bank_account_routes;
+use crate::routes::blobs::create_blob_routes;
 use crate::routes::corrections::create_correction_routes;
+use crate::services::blob_service::BlobService;
+use crate::shared::PROJECT_DIRS;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -85,11 +89,19 @@ async fn main() -> Result<(), rocket::Error> {
     let issuer = std::env::var("JWT_ISSUER").expect("JWT_ISSUER not set");
 
     let jwt_service = JwtService::new(private_key, expire_seconds, issuer);
+    let blob_service = BlobService::new();
+
+    // Configure directories
+    let _ = PROJECT_DIRS.get_or_init(|| {
+        ProjectDirs::from("dev", "jumpdrive", "Ledgero-API")
+            .expect("Failed to init directories")
+    });
 
     let _rocket = rocket::build()
         .attach(Cors)
         .manage(pool)
         .manage(jwt_service)
+        .manage(blob_service)
         .mount("/", routes![all_options])
         .mount("/auth", create_auth_routes())
         .mount("/users", create_user_routes())
@@ -100,6 +112,7 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/external-accounts", create_external_account_routes())
         .mount("/aggregates", create_aggregate_routes())
         .mount("/import", create_importing_routes())
+        .mount("/blob", create_blob_routes())
         .launch()
         .await
         .expect("Failed to start rocket");

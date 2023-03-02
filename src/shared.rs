@@ -1,6 +1,9 @@
-use crate::services::jwt_service::JwtService;
+use directories::ProjectDirs;
+use once_cell::sync::OnceCell;
 use rocket::State;
 use sqlx::{Pool, Postgres};
+
+use crate::services::jwt_service::JwtService;
 
 pub type DbPool = Pool<Postgres>;
 
@@ -17,3 +20,5 @@ macro_rules! db_executor {
         impl Executor<$lt, Database = Postgres>
     }
 }
+
+pub static PROJECT_DIRS: OnceCell<ProjectDirs> = OnceCell::new();
