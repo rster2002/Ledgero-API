@@ -7,7 +7,7 @@ use crate::models::dto::transactions::new_split_dto::NewSplitDto;
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::entities::transaction::Transaction;
 use crate::prelude::*;
-use crate::shared_types::DbTransaction;
+use crate::shared::DbTransaction;
 
 pub struct SplitService;
 

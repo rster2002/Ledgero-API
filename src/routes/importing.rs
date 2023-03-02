@@ -7,7 +7,7 @@ use rocket::Route;
 
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 
 use crate::models::dto::import::import_dto::ImportDto;
 use crate::models::dto::import::import_dto_with_numbers::ImportDtoWithNumbers;

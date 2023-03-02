@@ -6,7 +6,7 @@ use rocket::serde::json::Json;
 
 use crate::prelude::*;
 use crate::services::password_hash_service::PasswordHashService;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 
 pub async fn resolve_user_by_id(pool: &SharedPool, id: &String) -> Result<Json<UserDto>> {
     let inner_pool = pool.inner();

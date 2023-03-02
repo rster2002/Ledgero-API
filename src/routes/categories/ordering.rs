@@ -1,6 +1,6 @@
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 use rocket::form::validate::Contains;
 use rocket::serde::json::Json;
 

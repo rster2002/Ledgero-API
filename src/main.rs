@@ -16,7 +16,7 @@ mod prelude;
 mod routes;
 
 /// Contains alias types for large or commonly used types.
-mod shared_types;
+mod shared;
 
 /// Shared utility functions used throughout the application.
 mod utils;

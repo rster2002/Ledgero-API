@@ -15,7 +15,7 @@ use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::routes::importing::map_csv_record::map_csv_record;
-use crate::shared_types::{DbPool, SharedPool};
+use crate::shared::{DbPool, SharedPool};
 use crate::utils::try_collect::try_collect;
 
 #[post("/csv", data = "<body>")]

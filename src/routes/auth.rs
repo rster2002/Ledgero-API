@@ -9,7 +9,7 @@ use crate::models::entities::user::User;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 
 use crate::prelude::*;
-use crate::shared_types::{SharedJwtService, SharedPool};
+use crate::shared::{SharedJwtService, SharedPool};
 
 use crate::models::entities::user::user_role::UserRole;
 use crate::services::password_hash_service::PasswordHashService;

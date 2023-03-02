@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::shared_types::DbPool;
+use crate::shared::DbPool;
 use chrono::{Months, Utc};
 
 use uuid::Uuid;

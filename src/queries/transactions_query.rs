@@ -12,7 +12,7 @@ use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
 use crate::queries::transactions_query::transaction_record::TransactionRecord;
-use crate::shared_types::DbPool;
+use crate::shared::DbPool;
 
 pub struct TransactionQuery<'a> {
     builder: QueryBuilder<'a, Postgres>,

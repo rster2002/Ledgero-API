@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::shared_types::DbPool;
+use crate::shared::DbPool;
 use sqlx::FromRow;
 
 /// Used to link a name in the [Transaction::external_account_name] to an actual [ExternalAccount].

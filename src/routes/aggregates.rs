@@ -1,7 +1,7 @@
 use crate::models::dto::aggregates::user_total_dto::UserTotalDto;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 use rocket::serde::json::Json;
 use rocket::Route;
 

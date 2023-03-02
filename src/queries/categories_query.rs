@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
 use crate::prelude::*;
 use crate::queries::categories_query::category_record::CategoryRecord;
-use crate::shared_types::DbPool;
+use crate::shared::DbPool;
 
 pub struct CategoriesQuery<'a> {
     builder: QueryBuilder<'a, Postgres>,

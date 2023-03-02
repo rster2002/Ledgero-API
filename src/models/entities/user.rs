@@ -2,7 +2,7 @@ pub mod user_role;
 
 use crate::models::entities::user::user_role::UserRole;
 use crate::prelude::*;
-use crate::shared_types::DbPool;
+use crate::shared::DbPool;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct User {

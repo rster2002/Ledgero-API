@@ -5,7 +5,7 @@ use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 use rocket::serde::json::Json;
 
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;

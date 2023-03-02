@@ -11,7 +11,7 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
 use crate::routes::transactions::transaction_management::get_single_transaction;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 
 pub fn create_correction_routes() -> Vec<Route> {
     routes![

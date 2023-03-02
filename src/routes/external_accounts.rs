@@ -11,7 +11,7 @@ use crate::models::entities::external_account_names::ExternalAccountName;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 use rocket::serde::json::Json;
 use rocket::Route;
 use uuid::Uuid;

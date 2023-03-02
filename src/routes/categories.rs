@@ -20,7 +20,7 @@ use crate::routes::categories::subcategories::{
     create_subcategory, delete_subcategory, get_subcategories, get_subcategory_transactions,
     subcategory_by_id, update_subcategory,
 };
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 
 pub fn create_category_routes() -> Vec<Route> {
     routes![

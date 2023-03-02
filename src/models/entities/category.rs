@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::shared_types::DbPool;
+use crate::shared::DbPool;
 use sqlx::FromRow;
 
 #[derive(Debug, FromRow)]

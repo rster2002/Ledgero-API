@@ -1,6 +1,6 @@
 use crate::db_executor;
 use crate::prelude::*;
-use crate::shared_types::DbPool;
+use crate::shared::DbPool;
 use chrono::{DateTime, Utc};
 use sqlx::types::time::OffsetDateTime;
 use sqlx::FromRow;

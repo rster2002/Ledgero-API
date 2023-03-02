@@ -6,7 +6,7 @@ use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::bank_accounts::update_bank_account_dto::UpdateBankAccountDto;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 
 pub fn create_bank_account_routes() -> Vec<Route> {
     routes![

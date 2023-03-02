@@ -9,3 +9,4 @@ pub mod aggregates;
 pub mod users;
 pub mod bank_accounts;
 pub mod corrections;
+pub mod blobs;

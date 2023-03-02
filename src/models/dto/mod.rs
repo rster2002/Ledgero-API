@@ -10,3 +10,4 @@ pub mod importing;
 pub mod pagination;
 pub mod transactions;
 pub mod users;
+pub mod blobs;

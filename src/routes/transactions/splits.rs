@@ -11,7 +11,7 @@ use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::services::split_service::SplitService;
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 
 struct SplitRecord {
     pub id: String,

@@ -11,7 +11,7 @@ use crate::queries::transactions_query::TransactionQuery;
 use rocket::serde::json::Json;
 use uuid::Uuid;
 
-use crate::shared_types::SharedPool;
+use crate::shared::SharedPool;
 
 #[get("/<category_id>/subcategories/<subcategory_id>")]
 pub async fn subcategory_by_id(
