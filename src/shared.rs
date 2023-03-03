@@ -1,4 +1,4 @@
-use directories::ProjectDirs;
+use directories::{ProjectDirs};
 use once_cell::sync::OnceCell;
 use rocket::State;
 use sqlx::{Pool, Postgres};

@@ -45,12 +45,12 @@ use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
-use directories::ProjectDirs;
+use directories::{BaseDirs, ProjectDirs};
 use crate::routes::bank_accounts::create_bank_account_routes;
 use crate::routes::blobs::create_blob_routes;
 use crate::routes::corrections::create_correction_routes;
 use crate::services::blob_service::BlobService;
-use crate::shared::PROJECT_DIRS;
+use crate::shared::{PROJECT_DIRS};
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -92,11 +92,13 @@ async fn main() -> Result<(), rocket::Error> {
     let blob_service = BlobService::new();
 
     // Configure directories
-    let _ = PROJECT_DIRS.get_or_init(|| {
-        ProjectDirs::from("dev", "jumpdrive", "Ledgero-API")
-            .expect("Failed to init directories")
-    });
+    let project_dirs = ProjectDirs::from("dev", "jumpdrive", "Ledgero-API")
+        .expect("Failed to init directories");
 
+    PROJECT_DIRS.set(project_dirs)
+        .expect("Failed to share project dirs");
+
+    // Start rocket
     let _rocket = rocket::build()
         .attach(Cors)
         .manage(pool)

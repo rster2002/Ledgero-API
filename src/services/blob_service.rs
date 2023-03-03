@@ -1,10 +1,12 @@
 use std::fs;
+use base64_url::base64;
 use chrono::Utc;
 use rocket::data::DataStream;
 use crate::error::blob_error::BlobError;
 use crate::prelude::*;
 use crate::shared::{DbPool, PROJECT_DIRS, SharedPool};
 use crate::utils::rand_string::rand_string;
+use sqlx::types::time::OffsetDateTime;
 
 pub struct BlobService;
 
@@ -21,42 +23,48 @@ impl BlobService {
     ) -> Result<String> {
         let id = rand_string(32);
 
-        let blobs_base = PROJECT_DIRS.get()
+        // This is the path the file is initially written to to infer the mime type to the token
+        // can be generated.
+        let temp_base = PROJECT_DIRS.get()
             .expect("Initialized")
-            .data_dir()
-            .join("blobs");
+            .cache_dir();
 
-        fs::create_dir_all(&blobs_base)?;
-
-        let file_path = blobs_base
+        fs::create_dir_all(&temp_base)?;
+        let temp_file = temp_base
             .join(&id);
 
-        stream.into_file(&file_path)
+        stream.into_file(&temp_file)
             .await?;
 
-        let Some(file_meta) = infer::get_from_path(&file_path)? else {
+        let Some(file_meta) = infer::get_from_path(&temp_file)? else {
             return Err(BlobError::NoMimeType.into());
         };
 
-        let result = sqlx::query!(
+        let unconfirmed_root = PROJECT_DIRS.get()
+            .expect("Initialized")
+            .cache_dir()
+            .join("unconfirmed");
+
+        let mimetype = file_meta.mime_type();
+        let token = format!("storage-{}-{}", base64_url::encode(mimetype), id);
+
+        sqlx::query!(
             r#"
                 INSERT INTO Blobs
-                VALUES ($1, $2, $3, $4);
+                VALUES ($1, $2, $3, $4, null);
             "#,
-            id,
+            token,
             user_id.into(),
-            file_meta.mime_type(),
-            false
+            mimetype,
+            OffsetDateTime::from_unix_timestamp(Utc::now().timestamp())?,
         )
             .execute(pool)
-            .await;
+            .await?;
 
-        if result.is_err() {
-            fs::remove_file(&file_path)?;
-            result?;
-        }
+        fs::create_dir_all(&unconfirmed_root)?;
+        fs::rename(temp_file, unconfirmed_root.join(&token))?;
 
-        Ok(format!("storage-{}", id))
+        Ok(token)
     }
 
     pub async fn confirm_token(&self, token: impl Into<String>) -> Result<()> {
