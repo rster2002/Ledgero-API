@@ -92,7 +92,7 @@ async fn main() -> Result<(), rocket::Error> {
     let blob_service = BlobService::new();
 
     // Configure directories
-    let project_dirs = ProjectDirs::from("dev", "jumpdrive", "Ledgero-API")
+    let project_dirs = ProjectDirs::from("dev", "Jumpdrive", "Ledgero-API")
         .expect("Failed to init directories");
 
     PROJECT_DIRS.set(project_dirs)

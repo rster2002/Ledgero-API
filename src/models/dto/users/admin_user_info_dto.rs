@@ -4,5 +4,6 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct AdminUserInfoDto<'a> {
     pub username: &'a str,
+    pub image_token: Option<&'a str>,
     pub role: UserRole,
 }

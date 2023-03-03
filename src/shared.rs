@@ -1,14 +1,16 @@
-use directories::{ProjectDirs};
+use directories::ProjectDirs;
 use once_cell::sync::OnceCell;
 use rocket::State;
 use sqlx::{Pool, Postgres};
 
+use crate::services::blob_service::BlobService;
 use crate::services::jwt_service::JwtService;
 
 pub type DbPool = Pool<Postgres>;
 
 pub type SharedPool = State<DbPool>;
 pub type SharedJwtService = State<JwtService>;
+pub type SharedBlobService = State<BlobService>;
 pub type DbTransaction<'a> = sqlx::Transaction<'a, Postgres>;
 
 /// Used to create the impl argument type for code that needs an executor. A macro is used here as

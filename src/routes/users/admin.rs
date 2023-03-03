@@ -10,7 +10,7 @@ use crate::routes::users::shared_resolvers::{
     resolve_delete_user, resolve_update_user_info, resolve_update_user_password, resolve_user_by_id,
 };
 use crate::services::password_hash_service::PasswordHashService;
-use crate::shared::SharedPool;
+use crate::shared::{SharedBlobService, SharedPool};
 use crate::utils::guard_role::guard_role;
 use rocket::http::Status;
 use rocket::serde::json::Json;
@@ -27,7 +27,7 @@ pub async fn admin_get_users(
 
     let records = sqlx::query!(
         r#"
-            SELECT Id, Username, Role
+            SELECT Id, Username, ProfileImage, Role
             FROM Users;
         "#
     )
@@ -39,6 +39,7 @@ pub async fn admin_get_users(
         .map(|record| UserDto {
             id: record.id,
             username: record.username,
+            profile_picture: record.profileimage,
             role: UserRole::from(record.role),
         })
         .collect();
@@ -86,6 +87,7 @@ pub async fn admin_get_user_by_id(
 #[patch("/<id>", data = "<body>")]
 pub async fn admin_update_user_information(
     pool: &SharedPool,
+    blob_service: &SharedBlobService,
     user: JwtUserPayload,
     id: String,
     body: Json<AdminUserInfoDto<'_>>,
@@ -94,7 +96,7 @@ pub async fn admin_update_user_information(
 
     resolve_user_by_id(pool, &id).await?;
 
-    resolve_update_user_info(pool, &id, &body).await?;
+    resolve_update_user_info(pool, blob_service, &id, &body).await?;
 
     admin_get_user_by_id(pool, user, id).await
 }

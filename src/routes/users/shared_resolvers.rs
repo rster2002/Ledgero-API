@@ -6,14 +6,14 @@ use rocket::serde::json::Json;
 
 use crate::prelude::*;
 use crate::services::password_hash_service::PasswordHashService;
-use crate::shared::SharedPool;
+use crate::shared::{SharedBlobService, SharedPool};
 
 pub async fn resolve_user_by_id(pool: &SharedPool, id: &String) -> Result<Json<UserDto>> {
     let inner_pool = pool.inner();
 
     let record = sqlx::query!(
         r#"
-            SELECT Id, Username, Role
+            SELECT Id, Username, ProfileImage, Role
             FROM Users
             WHERE Id = $1;
         "#,
@@ -25,28 +25,32 @@ pub async fn resolve_user_by_id(pool: &SharedPool, id: &String) -> Result<Json<U
     Ok(Json(UserDto {
         id: record.id,
         username: record.username,
+        profile_picture: record.profileimage,
         role: UserRole::from(record.role),
     }))
 }
 
 pub async fn resolve_update_user_info(
     pool: &SharedPool,
-    id: &String,
+    blob_service: &SharedBlobService,
+    user_id: &String,
     body: &AdminUserInfoDto<'_>,
 ) -> Result<()> {
     let inner_pool = pool.inner();
+
+    let image_token = blob_service.confirm_optional(user_id, pool, body.image_token).await?;
 
     let role_str: &str = body.role.into();
     let _record = sqlx::query!(
         r#"
             UPDATE Users
-            SET Username = $2,
-            Role = $3
+            SET Username = $2, Role = $3, ProfileImage = $4
             WHERE Id = $1;
         "#,
-        id,
+        user_id,
         &body.username,
-        role_str
+        role_str,
+        image_token
     )
     .execute(inner_pool)
     .await?;

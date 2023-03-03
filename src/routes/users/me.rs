@@ -9,7 +9,7 @@ use crate::routes::users::shared_resolvers::{
     resolve_delete_user, resolve_update_user_info, resolve_update_user_password, resolve_user_by_id,
 };
 use crate::services::password_hash_service::PasswordHashService;
-use crate::shared::SharedPool;
+use crate::shared::{SharedBlobService, SharedPool};
 use rocket::http::Status;
 use rocket::serde::json::Json;
 
@@ -21,15 +21,18 @@ pub async fn get_me_info(pool: &SharedPool, user: JwtUserPayload) -> Result<Json
 #[patch("/me", data = "<body>")]
 pub async fn update_me_info(
     pool: &SharedPool,
+    blob_service: &SharedBlobService,
     user: JwtUserPayload,
     body: Json<UserInfoDto<'_>>,
 ) -> Result<()> {
     resolve_update_user_info(
         pool,
+        blob_service,
         &user.uuid,
         &AdminUserInfoDto {
             username: body.username,
             role: user.role,
+            image_token: body.image_token,
         },
     )
     .await
