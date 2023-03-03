@@ -19,6 +19,7 @@ use rocket::serde::json::Json;
 use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
+use crate::db_inner;
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]
@@ -50,7 +51,7 @@ async fn login<'a>(
     body: Json<LoginUserDto<'a>>,
     jwt_service: &'a SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
 
     let user = sqlx::query!(
@@ -100,7 +101,7 @@ async fn refresh(
     body: Json<JwtRefreshDto<'_>>,
     jwt_service: &SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
 
     let (_, access_payload) =

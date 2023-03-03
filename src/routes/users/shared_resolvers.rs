@@ -3,6 +3,7 @@ use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
 use crate::models::dto::users::user_dto::UserDto;
 use crate::models::entities::user::user_role::UserRole;
 use rocket::serde::json::Json;
+use crate::db_inner;
 
 use crate::prelude::*;
 use crate::services::password_hash_service::PasswordHashService;
@@ -36,8 +37,9 @@ pub async fn resolve_update_user_info(
     user_id: &String,
     body: &AdminUserInfoDto<'_>,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
+    let blob_service = blob_service.lock().await;
     let image_token = blob_service.confirm_optional(user_id, pool, body.image_token).await?;
 
     let role_str: &str = body.role.into();

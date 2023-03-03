@@ -45,7 +45,11 @@ use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
 use std::fs;
+use std::sync::Arc;
+use std::time::Duration;
+use async_mutex::Mutex;
 use directories::{BaseDirs, ProjectDirs};
+use rocket::tokio;
 use crate::routes::bank_accounts::create_bank_account_routes;
 use crate::routes::blobs::create_blob_routes;
 use crate::routes::corrections::create_correction_routes;
@@ -59,14 +63,16 @@ async fn main() -> Result<(), rocket::Error> {
     let db_connection_string =
         std::env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
 
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&db_connection_string)
-        .await
-        .expect("Could not create database pool");
+    let pool = Arc::new(
+        Mutex::new(PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&db_connection_string)
+            .await
+            .expect("Could not create database pool"))
+    );
 
     sqlx::migrate!()
-        .run(&pool)
+        .run(&*(pool.lock().await))
         .await
         .expect("Failed to migrate");
 
@@ -89,7 +95,8 @@ async fn main() -> Result<(), rocket::Error> {
     let issuer = std::env::var("JWT_ISSUER").expect("JWT_ISSUER not set");
 
     let jwt_service = JwtService::new(private_key, expire_seconds, issuer);
-    let blob_service = BlobService::new();
+    let blob_service = Arc::new(Mutex::new(BlobService::new()));
+    let scheduler_blob_service = Arc::clone(&blob_service);
 
     // Configure directories
     let project_dirs = ProjectDirs::from("dev", "Jumpdrive", "Ledgero-API")
@@ -99,7 +106,7 @@ async fn main() -> Result<(), rocket::Error> {
         .expect("Failed to share project dirs");
 
     // Start rocket
-    let _rocket = rocket::build()
+    let instance = rocket::build()
         .attach(Cors)
         .manage(pool)
         .manage(jwt_service)
@@ -114,7 +121,23 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/external-accounts", create_external_account_routes())
         .mount("/aggregates", create_aggregate_routes())
         .mount("/import", create_importing_routes())
-        .mount("/blob", create_blob_routes())
+        .mount("/blob", create_blob_routes());
+
+    // let blob_service_state = instance.state::<BlobService>()
+    //     .expect("Failed to retrieve blob service state during startup");
+
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(5));
+
+        loop {
+            interval.tick().await;
+            let locked = scheduler_blob_service.lock().await;
+
+            locked.cleanup();
+        }
+    });
+
+    let _ = instance
         .launch()
         .await
         .expect("Failed to start rocket");
