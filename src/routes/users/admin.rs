@@ -15,6 +15,7 @@ use crate::utils::guard_role::guard_role;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use uuid::Uuid;
+use crate::db_inner;
 
 #[get("/")]
 pub async fn admin_get_users(
@@ -23,7 +24,7 @@ pub async fn admin_get_users(
 ) -> Result<Json<Vec<UserDto>>> {
     guard_role(&user.role, UserRole::System)?;
 
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let records = sqlx::query!(
         r#"
@@ -55,7 +56,7 @@ pub async fn admin_create_user(
 ) -> Result<Json<UserDto>> {
     guard_role(&user.role, UserRole::System)?;
 
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
     let password_hash = PasswordHashService::create_new_hash(body.password);

@@ -10,7 +10,7 @@ use crate::services::password_hash_service::PasswordHashService;
 use crate::shared::{SharedBlobService, SharedPool};
 
 pub async fn resolve_user_by_id(pool: &SharedPool, id: &String) -> Result<Json<UserDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"
@@ -39,8 +39,8 @@ pub async fn resolve_update_user_info(
 ) -> Result<()> {
     let inner_pool = db_inner!(pool);
 
-    let blob_service = blob_service.lock().await;
-    let image_token = blob_service.confirm_optional(user_id, pool, body.image_token).await?;
+    let blob_service = blob_service.read().await;
+    let image_token = blob_service.confirm_optional(user_id, inner_pool, body.image_token).await?;
 
     let role_str: &str = body.role.into();
     let _record = sqlx::query!(
@@ -65,7 +65,7 @@ pub async fn resolve_update_user_password(
     id: &String,
     body: &AdminUpdateUserPasswordDto<'_>,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let new_hash = PasswordHashService::create_new_hash(body.new_password);
 
@@ -85,7 +85,7 @@ pub async fn resolve_update_user_password(
 }
 
 pub async fn resolve_delete_user(pool: &SharedPool, id: &String) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let _record = sqlx::query!(
         r#"

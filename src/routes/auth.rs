@@ -27,9 +27,10 @@ pub fn create_auth_routes() -> Vec<Route> {
 
 #[post("/register", data = "<body>")]
 pub async fn register(
-    pool: &State<Pool<Postgres>>,
+    pool: &SharedPool,
     body: Json<RegisterUserDto<'_>>,
 ) -> Result<Status> {
+    let pool = db_inner!(pool);
     let body = body.0;
 
     let password_hash = PasswordHashService::create_new_hash(body.password);
@@ -175,6 +176,8 @@ async fn revoke(
     body: Json<RevokeDto>,
     jwt_service: &SharedJwtService,
 ) -> Result<()> {
+    let pool = db_inner!(pool);
+
     let body = body.0;
     let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
 

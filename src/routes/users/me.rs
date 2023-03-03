@@ -12,6 +12,7 @@ use crate::services::password_hash_service::PasswordHashService;
 use crate::shared::{SharedBlobService, SharedPool};
 use rocket::http::Status;
 use rocket::serde::json::Json;
+use crate::db_inner;
 
 #[get("/me")]
 pub async fn get_me_info(pool: &SharedPool, user: JwtUserPayload) -> Result<Json<UserDto>> {
@@ -44,7 +45,7 @@ pub async fn update_me_password(
     user: JwtUserPayload,
     body: Json<UpdateUserPasswordDto<'_>>,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"

@@ -3,6 +3,7 @@ use crate::prelude::*;
 use crate::shared::SharedPool;
 use rocket::form::validate::Contains;
 use rocket::serde::json::Json;
+use crate::db_inner;
 
 #[patch("/ordering", data = "<body>")]
 pub async fn category_ordering(
@@ -10,7 +11,7 @@ pub async fn category_ordering(
     user: JwtUserPayload,
     body: Json<Vec<String>>,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
     let records = sqlx::query!(
@@ -39,7 +40,7 @@ pub async fn category_ordering(
         }
     }
 
-    let mut db_transaction = pool.begin().await?;
+    let mut db_transaction = inner_pool.begin().await?;
 
     for (i, id) in body.into_iter().enumerate() {
         sqlx::query!(

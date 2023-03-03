@@ -5,6 +5,7 @@ use rocket::serde::json::Json;
 use std::collections::HashMap;
 use std::io::Cursor;
 use uuid::Uuid;
+use crate::db_inner;
 
 use crate::models::csv::csv_mapping::CsvImportOrdering::NewestFirst;
 use crate::models::dto::importing::import_csv_dto::ImportCsvDto;
@@ -24,6 +25,7 @@ pub async fn import_csv(
     user: JwtUserPayload,
     body: Json<ImportCsvDto>,
 ) -> Result<()> {
+    let pool = db_inner!(pool);
     let body = body.0;
 
     // Start a database transaction.

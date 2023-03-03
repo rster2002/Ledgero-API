@@ -47,7 +47,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::fs;
 use std::sync::Arc;
 use std::time::Duration;
-use async_mutex::Mutex;
+use async_rwlock::RwLock;
 use directories::{BaseDirs, ProjectDirs};
 use rocket::tokio;
 use crate::routes::bank_accounts::create_bank_account_routes;
@@ -64,7 +64,7 @@ async fn main() -> Result<(), rocket::Error> {
         std::env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
 
     let pool = Arc::new(
-        Mutex::new(PgPoolOptions::new()
+        RwLock::new(PgPoolOptions::new()
             .max_connections(5)
             .connect(&db_connection_string)
             .await
@@ -72,7 +72,7 @@ async fn main() -> Result<(), rocket::Error> {
     );
 
     sqlx::migrate!()
-        .run(&*(pool.lock().await))
+        .run(&*(pool.read().await))
         .await
         .expect("Failed to migrate");
 
@@ -95,7 +95,7 @@ async fn main() -> Result<(), rocket::Error> {
     let issuer = std::env::var("JWT_ISSUER").expect("JWT_ISSUER not set");
 
     let jwt_service = JwtService::new(private_key, expire_seconds, issuer);
-    let blob_service = Arc::new(Mutex::new(BlobService::new()));
+    let blob_service = Arc::new(RwLock::new(BlobService::new()));
     let scheduler_blob_service = Arc::clone(&blob_service);
 
     // Configure directories
@@ -123,17 +123,15 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/import", create_importing_routes())
         .mount("/blob", create_blob_routes());
 
-    // let blob_service_state = instance.state::<BlobService>()
-    //     .expect("Failed to retrieve blob service state during startup");
-
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(Duration::from_secs(5));
+        println!("Started schedule");
 
         loop {
             interval.tick().await;
-            let locked = scheduler_blob_service.lock().await;
+            let locked = scheduler_blob_service.read().await;
 
-            locked.cleanup();
+            locked.cleanup().await;
         }
     });
 

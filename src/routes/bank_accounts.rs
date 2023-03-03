@@ -1,6 +1,7 @@
 use rocket::Route;
 use rocket::serde::json::Json;
 use sqlx::Error::Database;
+use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::bank_accounts::update_bank_account_dto::UpdateBankAccountDto;
@@ -22,7 +23,7 @@ pub async fn get_bank_accounts(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<Vec<BankAccountDto>>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let records = sqlx::query!(
         r#"
@@ -56,7 +57,7 @@ pub async fn get_bank_account_by_id(
     user: JwtUserPayload,
     id: String,
 ) -> Result<Json<BankAccountDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"
@@ -86,7 +87,7 @@ pub async fn update_bank_account(
     id: String,
     body: Json<UpdateBankAccountDto>,
 ) -> Result<Json<BankAccountDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
     sqlx::query!(
@@ -114,7 +115,7 @@ pub async fn delete_bank_account(
     user: JwtUserPayload,
     id: String,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let result = sqlx::query!(
         r#"
