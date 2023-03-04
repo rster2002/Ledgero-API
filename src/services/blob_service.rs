@@ -32,6 +32,7 @@ impl BlobService {
         stream: DataStream<'_>
     ) -> Result<String> {
         let id = rand_string(32);
+        debug!("Starting upload for '{}'", id);
 
         // This is the path the file is initially written to to infer the mime type to the token
         // can be generated.
@@ -43,10 +44,12 @@ impl BlobService {
         let temp_file = temp_base
             .join(&id);
 
+        debug!("Streaming into '{:?}'", temp_file);
         stream.into_file(&temp_file)
             .await?;
 
         let Some(file_meta) = infer::get_from_path(&temp_file)? else {
+            info!("Failed to infer mimetype for '{:?}'", temp_file);
             return Err(BlobError::NoMimeType.into());
         };
 
@@ -55,8 +58,13 @@ impl BlobService {
             .cache_dir()
             .join("unconfirmed");
 
+        debug!("'{:?}' is the root for unconfirmed blobs", unconfirmed_root);
+
         let mimetype = file_meta.mime_type();
+        debug!("Stream '{}' has '{}' as it's mimetype", id, mimetype);
+
         let token = format!("storage-{}-{}", base64_url::encode(mimetype), id);
+        debug!("Creating blob with token '{}'", token);
 
         sqlx::query!(
             r#"
@@ -71,8 +79,14 @@ impl BlobService {
             .execute(pool)
             .await?;
 
+        debug!("Creating dirs if they do not exist yet: '{:?}'", unconfirmed_root);
+
         fs::create_dir_all(&unconfirmed_root)?;
-        fs::rename(temp_file, unconfirmed_root.join(&token))?;
+        let target_location = unconfirmed_root.join(&token);
+
+        debug!("Moving streamed file from '{:?}' to '{:?}'", temp_file, target_location);
+
+        fs::rename(temp_file, target_location)?;
 
         Ok(token)
     }
@@ -114,6 +128,7 @@ impl BlobService {
     ) -> Result<String> {
         let user_id = user_id.into();
         let token = token.into();
+        debug!("Confirming blob with token '{}' for '{}'", token, user_id);
 
         let record_option = sqlx::query!(
             r#"
@@ -127,20 +142,21 @@ impl BlobService {
             .fetch_optional(pool)
             .await?;
 
+        if let None = record_option {
+            return Err(BlobError::NoBlobToConfirm.into());
+        }
+
         let confirmed_root = PROJECT_DIRS.get()
             .expect("Initialized")
             .data_dir()
             .join("blobs");
 
+        debug!("Creating all dirs '{:?}'", confirmed_root);
         fs::create_dir_all(&confirmed_root)?;
         let file_path = confirmed_root.join(&token);
 
         if file_path.exists() {
             return Ok(token);
-        }
-
-        if let None = record_option {
-            return Err(BlobError::NoBlobToConfirm.into());
         }
 
         let unconfirmed_file_path = PROJECT_DIRS.get()
@@ -153,6 +169,7 @@ impl BlobService {
             return Err(BlobError::NoBlobToConfirm.into());
         }
 
+        debug!("Move unconfirmed blob from '{:?}' to '{:?}'", unconfirmed_file_path, file_path);
         fs::rename(unconfirmed_file_path, file_path)?;
 
         sqlx::query!(
@@ -183,7 +200,6 @@ impl BlobService {
     }
 
     pub async fn cleanup(&self) -> Result<()> {
-        println!("Cleanup");
         Ok(())
     }
 }

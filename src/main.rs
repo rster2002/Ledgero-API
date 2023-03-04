@@ -59,6 +59,7 @@ use crate::shared::{PROJECT_DIRS};
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     let _ = dotenv::dotenv();
+    env_logger::init();
 
     let db_connection_string =
         std::env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
@@ -111,23 +112,27 @@ async fn main() -> Result<(), rocket::Error> {
         .expect("SCHEDULER_INTERVAL_SECONDS is not a u64");
 
     // Start scheduler
+
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(Duration::from_secs(scheduler_interval));
-        println!("Started schedule");
+        let yak = "abc";
+        info!("Scheduler started");
 
         loop {
             interval.tick().await;
+
             let locked = scheduler_blob_service.read().await;
 
             let cleanup_result = locked.cleanup().await;
 
             if let Err(error) = cleanup_result {
-                println!("Failed to run blob cleanup: {:?}", error);
+                warn!("Failed to run blob cleanup: {:?}", error);
             }
         }
     });
 
     // Start rocket
+
     let _ = rocket::build()
         .attach(Cors)
         .manage(pool)
@@ -146,7 +151,7 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/blob", create_blob_routes())
         .launch()
         .await
-        .expect("Failed to start rocket");;
+        .expect("Failed to start rocket");
 
     Ok(())
 }
