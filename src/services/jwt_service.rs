@@ -1,20 +1,20 @@
 use std::ops::Add;
 
-use crate::error::jwt_error::JwtError;
+use chrono::{Duration, Months, Utc};
+use rsa::pkcs1v15::SigningKey;
+use rsa::RsaPrivateKey;
+use rsa::signature::{SignatureEncoding, Signer};
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
+use sha2::Sha256;
+use uuid::Uuid;
 
+use crate::error::jwt_error::JwtError;
 use crate::models::jwt::jwt_claims::JwtClaims;
 use crate::models::jwt::jwt_headers::JwtHeader;
 use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
 use crate::models::jwt::jwt_token_type::JwtTokenType;
 use crate::prelude::Result;
-use chrono::{Duration, Months, Utc};
-use rsa::pkcs1v15::SigningKey;
-use rsa::signature::{SignatureEncoding, Signer};
-use rsa::RsaPrivateKey;
-use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
-use sha2::Sha256;
-use uuid::Uuid;
 
 /// Service with functions to generate and verify JWT tokens
 #[derive(Debug)]

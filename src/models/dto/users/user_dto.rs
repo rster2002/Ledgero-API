@@ -1,5 +1,6 @@
-use crate::models::entities::user::user_role::UserRole;
 use serde::Serialize;
+
+use crate::models::entities::user::user_role::UserRole;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

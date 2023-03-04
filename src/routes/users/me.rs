@@ -1,3 +1,7 @@
+use rocket::http::Status;
+use rocket::serde::json::Json;
+
+use crate::db_inner;
 use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
 use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
 use crate::models::dto::users::update_user_password_dto::UpdateUserPasswordDto;
@@ -10,9 +14,6 @@ use crate::routes::users::shared_resolvers::{
 };
 use crate::services::password_hash_service::PasswordHashService;
 use crate::shared::{SharedBlobService, SharedPool};
-use rocket::http::Status;
-use rocket::serde::json::Json;
-use crate::db_inner;
 
 #[get("/me")]
 pub async fn get_me_info(pool: &SharedPool, user: JwtUserPayload) -> Result<Json<UserDto>> {

@@ -1,5 +1,4 @@
 use serde::Serialize;
-
 use sqlx::Type;
 
 /// Dictates the behaviour of the transaction and how is should be used.

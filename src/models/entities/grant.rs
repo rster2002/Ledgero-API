@@ -1,8 +1,8 @@
+use chrono::{Months, Utc};
+use uuid::Uuid;
+
 use crate::prelude::*;
 use crate::shared::DbPool;
-use chrono::{Months, Utc};
-
-use uuid::Uuid;
 
 /// A grant is used to verify that the refresh token is still valid and may still be used to
 /// generate a new JWT token. The grant is removed from the database in the following situations:

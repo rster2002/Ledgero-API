@@ -1,3 +1,8 @@
+use rocket::Route;
+use rocket::serde::json::Json;
+use uuid::Uuid;
+
+use crate::db_inner;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::dto::external_accounts::external_account_name_dto::ExternalAccountNameDto;
 use crate::models::dto::external_accounts::new_external_account_dto::NewExternalAccountDto;
@@ -12,10 +17,6 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
 use crate::shared::SharedPool;
-use rocket::serde::json::Json;
-use rocket::Route;
-use uuid::Uuid;
-use crate::db_inner;
 
 pub fn create_external_account_routes() -> Vec<Route> {
     routes![

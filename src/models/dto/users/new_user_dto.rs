@@ -1,5 +1,6 @@
-use crate::models::entities::user::user_role::UserRole;
 use serde::Deserialize;
+
+use crate::models::entities::user::user_role::UserRole;
 
 #[derive(Debug, Deserialize)]
 pub struct NewUserDto<'a> {

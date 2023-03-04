@@ -1,11 +1,11 @@
 use chrono::Utc;
-use sqlx::{Postgres};
+use sqlx::Postgres;
 use uuid::Uuid;
 
 use crate::error::http_error::HttpError;
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
-use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::entities::transaction::Transaction;
+use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
 use crate::shared::DbTransaction;
 

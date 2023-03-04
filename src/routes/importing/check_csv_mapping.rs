@@ -1,10 +1,10 @@
 use std::io::Cursor;
 
+use rocket::serde::json::Json;
+
 use crate::error::import_error::ImportError;
 use crate::models::dto::importing::check_csv_mapping_dto::CheckCsvMappingDto;
 use crate::models::dto::importing::import_csv_dto::ImportCsvDto;
-use rocket::serde::json::Json;
-
 use crate::prelude::*;
 use crate::routes::importing::map_csv_record::map_csv_record;
 

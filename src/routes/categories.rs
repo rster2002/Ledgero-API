@@ -1,17 +1,14 @@
-pub mod ordering;
-pub mod subcategories;
+use rocket::Route;
+use rocket::serde::json::Json;
+use uuid::Uuid;
 
+use crate::db_inner;
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::new_category_dto::NewCategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::category::Category;
-use rocket::serde::json::Json;
-use rocket::Route;
-use uuid::Uuid;
-use crate::db_inner;
-
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::categories_query::CategoriesQuery;
@@ -22,6 +19,9 @@ use crate::routes::categories::subcategories::{
     subcategory_by_id, update_subcategory,
 };
 use crate::shared::SharedPool;
+
+pub mod ordering;
+pub mod subcategories;
 
 pub fn create_category_routes() -> Vec<Route> {
     routes![

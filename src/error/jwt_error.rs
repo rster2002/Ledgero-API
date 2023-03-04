@@ -1,6 +1,8 @@
-use crate::error::error_dto_trait::ToErrorDto;
-use rocket::http::Status;
 use std::fmt::{Debug, Display, Formatter};
+
+use rocket::http::Status;
+
+use crate::error::error_dto_trait::ToErrorDto;
 
 #[derive(Debug)]
 pub enum JwtError {

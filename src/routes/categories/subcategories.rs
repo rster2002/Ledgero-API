@@ -1,3 +1,7 @@
+use rocket::serde::json::Json;
+use uuid::Uuid;
+
+use crate::db_inner;
 use crate::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
@@ -8,10 +12,6 @@ use crate::models::entities::subcategory::Subcategory;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
-use rocket::serde::json::Json;
-use uuid::Uuid;
-use crate::db_inner;
-
 use crate::shared::SharedPool;
 
 #[get("/<category_id>/subcategories/<subcategory_id>")]

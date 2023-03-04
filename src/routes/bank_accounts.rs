@@ -1,6 +1,7 @@
 use rocket::Route;
 use rocket::serde::json::Json;
 use sqlx::Error::Database;
+
 use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;

@@ -1,9 +1,14 @@
+use rocket::http::Status;
+use rocket::serde::json::Json;
+use uuid::Uuid;
+
+use crate::db_inner;
 use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
 use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
 use crate::models::dto::users::new_user_dto::NewUserDto;
 use crate::models::dto::users::user_dto::UserDto;
-use crate::models::entities::user::user_role::UserRole;
 use crate::models::entities::user::User;
+use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::routes::users::shared_resolvers::{
@@ -12,10 +17,6 @@ use crate::routes::users::shared_resolvers::{
 use crate::services::password_hash_service::PasswordHashService;
 use crate::shared::{SharedBlobService, SharedPool};
 use crate::utils::guard_role::guard_role;
-use rocket::http::Status;
-use rocket::serde::json::Json;
-use uuid::Uuid;
-use crate::db_inner;
 
 #[get("/")]
 pub async fn admin_get_users(

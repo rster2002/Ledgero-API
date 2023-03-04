@@ -1,9 +1,10 @@
+use rocket::form::validate::Contains;
+use rocket::serde::json::Json;
+
+use crate::db_inner;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::shared::SharedPool;
-use rocket::form::validate::Contains;
-use rocket::serde::json::Json;
-use crate::db_inner;
 
 #[patch("/ordering", data = "<body>")]
 pub async fn category_ordering(

@@ -1,5 +1,3 @@
-mod transaction_record;
-
 use rocket::time::format_description::well_known::Rfc3339;
 use sqlx::{Postgres, QueryBuilder};
 
@@ -13,6 +11,8 @@ use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
 use crate::queries::transactions_query::transaction_record::TransactionRecord;
 use crate::shared::DbPool;
+
+mod transaction_record;
 
 pub struct TransactionQuery<'a> {
     builder: QueryBuilder<'a, Postgres>,

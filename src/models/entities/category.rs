@@ -1,6 +1,7 @@
+use sqlx::FromRow;
+
 use crate::prelude::*;
 use crate::shared::DbPool;
-use sqlx::FromRow;
 
 #[derive(Debug, FromRow)]
 pub struct Category {

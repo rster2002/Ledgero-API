@@ -1,13 +1,10 @@
-use crate::error::http_error::HttpError;
+use rocket::serde::json::Json;
 
+use crate::db_inner;
+use crate::error::http_error::HttpError;
+use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
 use crate::models::dto::transactions::split_dto::SplitDto;
-
-use rocket::serde::json::Json;
-use crate::db_inner;
-
-use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
-
 use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;

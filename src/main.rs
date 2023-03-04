@@ -1,6 +1,34 @@
 #[macro_use]
 extern crate rocket;
 
+use std::{env, fs};
+use std::sync::Arc;
+use std::time::Duration;
+
+use async_rwlock::RwLock;
+use directories::{BaseDirs, ProjectDirs};
+use rocket::http::Status;
+use rocket::tokio;
+use sqlx::postgres::PgPoolOptions;
+
+use crate::cors::Cors;
+use crate::init::create_blob_service::create_blob_service;
+use crate::init::create_jwt_service::create_jwt_service;
+use crate::init::scheduler::start_scheduler;
+use crate::routes::aggregates::create_aggregate_routes;
+use crate::routes::auth::create_auth_routes;
+use crate::routes::bank_accounts::create_bank_account_routes;
+use crate::routes::blobs::create_blob_routes;
+use crate::routes::categories::create_category_routes;
+use crate::routes::corrections::create_correction_routes;
+use crate::routes::external_accounts::create_external_account_routes;
+use crate::routes::importing::create_importing_routes;
+use crate::routes::transactions::create_transaction_routes;
+use crate::routes::users::create_user_routes;
+use crate::services::blob_service::BlobService;
+use crate::services::jwt_service::JwtService;
+use crate::shared::PROJECT_DIRS;
+
 /// The shared error type where all the different errors are casted too to create one constant
 /// error type.
 mod error;
@@ -30,31 +58,8 @@ pub mod services;
 /// Houses certain big queries that need a lot of mapping and config.
 pub mod queries;
 
-use crate::routes::auth::create_auth_routes;
-
-use crate::cors::Cors;
-use crate::routes::aggregates::create_aggregate_routes;
-use crate::routes::categories::create_category_routes;
-use crate::routes::external_accounts::create_external_account_routes;
-use crate::routes::importing::create_importing_routes;
-use crate::routes::transactions::create_transaction_routes;
-use crate::routes::users::create_user_routes;
-use crate::services::jwt_service::JwtService;
-use rocket::http::Status;
-use rsa::pkcs1::DecodeRsaPrivateKey;
-use rsa::RsaPrivateKey;
-use sqlx::postgres::PgPoolOptions;
-use std::{env, fs};
-use std::sync::Arc;
-use std::time::Duration;
-use async_rwlock::RwLock;
-use directories::{BaseDirs, ProjectDirs};
-use rocket::tokio;
-use crate::routes::bank_accounts::create_bank_account_routes;
-use crate::routes::blobs::create_blob_routes;
-use crate::routes::corrections::create_correction_routes;
-use crate::services::blob_service::BlobService;
-use crate::shared::{PROJECT_DIRS};
+/// Module for splitting off large chunks of code that needs to be run at startup.
+mod init;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -77,28 +82,6 @@ async fn main() -> Result<(), rocket::Error> {
         .await
         .expect("Failed to migrate");
 
-    // Read private key
-    let pem_path = std::env::var("PRIVATE_PEM_PATH").expect("PRIVATE_PEM_PATH not set");
-
-    let pem_content = fs::read(pem_path).expect("Failed to read PEM file");
-
-    let pem_string = String::from_utf8(pem_content).expect("Failed to read PEM file");
-
-    let private_key =
-        RsaPrivateKey::from_pkcs1_pem(pem_string.as_ref()).expect("Failed to read PEM private key");
-
-    // Read JWT config
-    let expire_seconds = std::env::var("JWT_EXPIRE_SECONDS")
-        .expect("JWT_EXPIRE_SECONDS not set")
-        .parse()
-        .expect("JWT_EXPIRE_SECONDS is not an i64");
-
-    let issuer = std::env::var("JWT_ISSUER").expect("JWT_ISSUER not set");
-
-    let jwt_service = JwtService::new(private_key, expire_seconds, issuer);
-    let blob_service = Arc::new(RwLock::new(BlobService::new()));
-    let scheduler_blob_service = Arc::clone(&blob_service);
-
     // Configure directories
     let project_dirs = ProjectDirs::from("dev", "Jumpdrive", "Ledgero-API")
         .expect("Failed to init directories");
@@ -106,32 +89,18 @@ async fn main() -> Result<(), rocket::Error> {
     PROJECT_DIRS.set(project_dirs)
         .expect("Failed to share project dirs");
 
-    let scheduler_interval = env::var("SCHEDULER_INTERVAL_SECONDS")
-        .expect("SCHEDULER_INTERVAL_SECONDS not set")
-        .parse()
-        .expect("SCHEDULER_INTERVAL_SECONDS is not a u64");
+    // Create JWT service
+    let jwt_service = create_jwt_service();
+    let blob_service = create_blob_service();
 
-    // Start scheduler
+    // Wrap components in Arc<RwLock> where needed
+    let blob_service = Arc::new(RwLock::new(blob_service));
 
-    tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(scheduler_interval));
-        let yak = "abc";
-        info!("Scheduler started");
-
-        loop {
-            interval.tick().await;
-
-            let locked = scheduler_blob_service.read().await;
-
-            let cleanup_result = locked.cleanup().await;
-
-            if let Err(error) = cleanup_result {
-                warn!("Failed to run blob cleanup: {:?}", error);
-            }
-        }
-    });
-
-    // Start rocket
+    // Start the scheduler
+    start_scheduler(
+        Arc::clone(&blob_service),
+        Arc::clone(&pool)
+    );
 
     let _ = rocket::build()
         .attach(Cors)

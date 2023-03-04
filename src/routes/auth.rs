@@ -1,3 +1,11 @@
+use chrono::{Months, Utc};
+use rocket::{Route, State};
+use rocket::http::Status;
+use rocket::serde::json::Json;
+use sqlx::{Pool, Postgres};
+use uuid::Uuid;
+
+use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
 use crate::models::dto::auth::jwt_response_dto::JwtResponseDto;
@@ -6,20 +14,11 @@ use crate::models::dto::auth::register_user_dto::RegisterUserDto;
 use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::grant::Grant;
 use crate::models::entities::user::User;
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-
-use crate::prelude::*;
-use crate::shared::{SharedJwtService, SharedPool};
-
 use crate::models::entities::user::user_role::UserRole;
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::prelude::*;
 use crate::services::password_hash_service::PasswordHashService;
-use chrono::{Months, Utc};
-use rocket::http::Status;
-use rocket::serde::json::Json;
-use rocket::{Route, State};
-use sqlx::{Pool, Postgres};
-use uuid::Uuid;
-use crate::db_inner;
+use crate::shared::{SharedJwtService, SharedPool};
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]

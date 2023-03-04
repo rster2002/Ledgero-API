@@ -1,3 +1,25 @@
+use std::io;
+use std::io::Cursor;
+use std::num::{ParseFloatError, ParseIntError};
+use std::string::FromUtf8Error;
+
+use base64_url::base64::DecodeError;
+use chrono::ParseError;
+use rocket::{Request, Response};
+use rocket::http::{ContentType, Status};
+use rocket::response::Responder;
+use rocket::time::error::ComponentRange;
+
+use crate::error::blob_error::BlobError;
+use crate::error::error_dto_trait::ToErrorDto;
+use crate::error::http_error::HttpError;
+use crate::error::import_error::ImportError;
+use crate::error::jwt_error::JwtError;
+use crate::error::wrapped_csv_error::WrappedCsvError;
+use crate::error::wrapped_io_error::WrappedIoError;
+use crate::error::wrapped_sqlx_error::WrappedSqlxError;
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
+
 pub mod error_dto_trait;
 pub mod http_error;
 pub mod import_error;
@@ -6,27 +28,6 @@ pub mod wrapped_csv_error;
 pub mod wrapped_sqlx_error;
 pub mod blob_error;
 pub mod wrapped_io_error;
-
-use rocket::http::{ContentType, Status};
-use rocket::response::Responder;
-
-use crate::error::error_dto_trait::ToErrorDto;
-use crate::error::http_error::HttpError;
-use crate::error::import_error::ImportError;
-use crate::error::jwt_error::JwtError;
-use crate::error::wrapped_csv_error::WrappedCsvError;
-use crate::error::wrapped_sqlx_error::WrappedSqlxError;
-use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
-use base64_url::base64::DecodeError;
-use chrono::ParseError;
-use rocket::time::error::ComponentRange;
-use rocket::{Request, Response};
-use std::io;
-use std::io::Cursor;
-use std::num::{ParseFloatError, ParseIntError};
-use std::string::FromUtf8Error;
-use crate::error::blob_error::BlobError;
-use crate::error::wrapped_io_error::WrappedIoError;
 
 #[derive(Debug)]
 pub enum Error {
