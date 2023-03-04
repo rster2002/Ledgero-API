@@ -20,11 +20,44 @@ use crate::utils::rand_string::rand_string;
 /// 2. Next, the token may be provided in the body of a request, or in some other way. The token
 ///    is used to confirm the blob and makes the blob permanent and from that point the blob can
 ///    be returned using the [get_blob] or [get_blob_with_mimetypes] methods.
-pub struct BlobService;
+pub struct BlobService {
+    max_blob_unconfirmed: u32,
+    stream_to_root: PathBuf,
+    unconfirmed_root: PathBuf,
+    confirmed_root: PathBuf,
+}
 
 impl BlobService {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(max_blob_unconfirmed: u32) -> Result<Self> {
+        // This is the path the file is initially written to to infer the mime type to the token
+        // can be generated.
+        let stream_to_root = PROJECT_DIRS.get()
+            .expect("Initialized")
+            .cache_dir()
+            .to_path_buf();
+
+        let unconfirmed_root = PROJECT_DIRS.get()
+            .expect("Initialized")
+            .cache_dir()
+            .join("unconfirmed");
+
+        let confirmed_root = PROJECT_DIRS.get()
+            .expect("Initialized")
+            .data_dir()
+            .join("blobs");
+
+        fs::create_dir_all(&stream_to_root)?;
+        fs::create_dir_all(&unconfirmed_root)?;
+        fs::create_dir_all(&confirmed_root)?;
+
+        debug!("'{:?}' is the root for unconfirmed blobs", unconfirmed_root);
+
+        Ok(Self {
+            max_blob_unconfirmed,
+            stream_to_root,
+            unconfirmed_root,
+            confirmed_root,
+        })
     }
 
     /// Stores the contents of a stream and returns a token which can later be confirmed.
@@ -37,14 +70,7 @@ impl BlobService {
         let id = rand_string(32);
         debug!("Starting upload for '{}'", id);
 
-        // This is the path the file is initially written to to infer the mime type to the token
-        // can be generated.
-        let temp_base = PROJECT_DIRS.get()
-            .expect("Initialized")
-            .cache_dir();
-
-        fs::create_dir_all(&temp_base)?;
-        let temp_file = temp_base
+        let temp_file = self.stream_to_root
             .join(&id);
 
         debug!("Streaming into '{:?}'", temp_file);
@@ -55,13 +81,6 @@ impl BlobService {
             info!("Failed to infer mimetype for '{:?}'", temp_file);
             return Err(BlobError::NoMimeType.into());
         };
-
-        let unconfirmed_root = PROJECT_DIRS.get()
-            .expect("Initialized")
-            .cache_dir()
-            .join("unconfirmed");
-
-        debug!("'{:?}' is the root for unconfirmed blobs", unconfirmed_root);
 
         let mimetype = file_meta.mime_type();
         debug!("Stream '{}' has '{}' as it's mimetype", id, mimetype);
@@ -82,13 +101,10 @@ impl BlobService {
             .execute(pool)
             .await?;
 
-        debug!("Creating dirs if they do not exist yet: '{:?}'", unconfirmed_root);
-
-        fs::create_dir_all(&unconfirmed_root)?;
-        let target_location = unconfirmed_root.join(&token);
+        let target_location = self.unconfirmed_root
+            .join(&token);
 
         debug!("Moving streamed file from '{:?}' to '{:?}'", temp_file, target_location);
-
         fs::rename(temp_file, target_location)?;
 
         Ok(token)
@@ -149,23 +165,14 @@ impl BlobService {
             return Err(BlobError::NoBlobToConfirm.into());
         }
 
-        let confirmed_root = PROJECT_DIRS.get()
-            .expect("Initialized")
-            .data_dir()
-            .join("blobs");
-
-        debug!("Creating all dirs '{:?}'", confirmed_root);
-        fs::create_dir_all(&confirmed_root)?;
-        let file_path = confirmed_root.join(&token);
+        let file_path = self.confirmed_root
+            .join(&token);
 
         if file_path.exists() {
             return Ok(token);
         }
 
-        let unconfirmed_file_path = PROJECT_DIRS.get()
-            .expect("Initialized")
-            .cache_dir()
-            .join("unconfirmed")
+        let unconfirmed_file_path = self.unconfirmed_root
             .join(&token);
 
         if !unconfirmed_file_path.exists() {
