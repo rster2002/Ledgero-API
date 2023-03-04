@@ -44,7 +44,7 @@ use rocket::http::Status;
 use rsa::pkcs1::DecodeRsaPrivateKey;
 use rsa::RsaPrivateKey;
 use sqlx::postgres::PgPoolOptions;
-use std::fs;
+use std::{env, fs};
 use std::sync::Arc;
 use std::time::Duration;
 use async_rwlock::RwLock;
@@ -105,8 +105,30 @@ async fn main() -> Result<(), rocket::Error> {
     PROJECT_DIRS.set(project_dirs)
         .expect("Failed to share project dirs");
 
+    let scheduler_interval = env::var("SCHEDULER_INTERVAL_SECONDS")
+        .expect("SCHEDULER_INTERVAL_SECONDS not set")
+        .parse()
+        .expect("SCHEDULER_INTERVAL_SECONDS is not a u64");
+
+    // Start scheduler
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(scheduler_interval));
+        println!("Started schedule");
+
+        loop {
+            interval.tick().await;
+            let locked = scheduler_blob_service.read().await;
+
+            let cleanup_result = locked.cleanup().await;
+
+            if let Err(error) = cleanup_result {
+                println!("Failed to run blob cleanup: {:?}", error);
+            }
+        }
+    });
+
     // Start rocket
-    let instance = rocket::build()
+    let _ = rocket::build()
         .attach(Cors)
         .manage(pool)
         .manage(jwt_service)
@@ -121,24 +143,10 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/external-accounts", create_external_account_routes())
         .mount("/aggregates", create_aggregate_routes())
         .mount("/import", create_importing_routes())
-        .mount("/blob", create_blob_routes());
-
-    tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(5));
-        println!("Started schedule");
-
-        loop {
-            interval.tick().await;
-            let locked = scheduler_blob_service.read().await;
-
-            locked.cleanup().await;
-        }
-    });
-
-    let _ = instance
+        .mount("/blob", create_blob_routes())
         .launch()
         .await
-        .expect("Failed to start rocket");
+        .expect("Failed to start rocket");;
 
     Ok(())
 }
