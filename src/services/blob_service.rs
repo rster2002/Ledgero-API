@@ -209,7 +209,38 @@ impl BlobService {
         todo!()
     }
 
-    pub async fn cleanup(&self) -> Result<()> {
+    pub async fn cleanup(
+        &self,
+        pool: &DbPool,
+    ) -> Result<()> {
+        info!("Starting blob cleanup");
+
+        let result = sqlx::query!(
+            r#"
+                DELETE FROM blobs
+                WHERE confirmedat IS null AND EXTRACT(EPOCH FROM (now() - uploadedat)) > $1::bigint;
+            "#,
+            self.max_blob_unconfirmed as i64
+        )
+            .execute(pool)
+            .await?;
+
+        info!("Deleted {} blob records from the database", result.rows_affected());
+
+        let records = sqlx::query!(
+            r#"
+                SELECT token,
+                       COUNT(e.*) +
+                       COUNT(u.*) AS "references"
+                FROM blobs
+                LEFT JOIN externalaccounts e on blobs.token = e.image
+                LEFT JOIN users u on blobs.token = u.profileimage
+                GROUP BY blobs.token;
+            "#
+        )
+            .fetch_all(pool)
+            .await?;
+
         Ok(())
     }
 }
