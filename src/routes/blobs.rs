@@ -11,7 +11,7 @@ pub fn create_blob_routes() -> Vec<Route> {
 
 #[post("/", data="<stream>")]
 pub async fn upload_blob(
-    data: Data<'_>
+    stream: Data<'_>
 ) -> Result<Json<BlobTokenDto>> {
     todo!()
 }
