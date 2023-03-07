@@ -1,9 +1,11 @@
+use rocket::Route;
+use rocket::serde::json::Json;
+
+use crate::db_inner;
 use crate::models::dto::aggregates::user_total_dto::UserTotalDto;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::shared::SharedPool;
-use rocket::serde::json::Json;
-use rocket::Route;
 
 pub fn create_aggregate_routes() -> Vec<Route> {
     routes![get_user_total_amount,]
@@ -14,7 +16,7 @@ pub async fn get_user_total_amount(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<UserTotalDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"

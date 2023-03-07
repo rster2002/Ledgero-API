@@ -1,16 +1,14 @@
-pub mod ordering;
-pub mod subcategories;
+use rocket::Route;
+use rocket::serde::json::Json;
+use uuid::Uuid;
 
+use crate::db_inner;
 use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::new_category_dto::NewCategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::entities::category::Category;
-use rocket::serde::json::Json;
-use rocket::Route;
-use uuid::Uuid;
-
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::categories_query::CategoriesQuery;
@@ -21,6 +19,9 @@ use crate::routes::categories::subcategories::{
     subcategory_by_id, update_subcategory,
 };
 use crate::shared::SharedPool;
+
+pub mod ordering;
+pub mod subcategories;
 
 pub fn create_category_routes() -> Vec<Route> {
     routes![
@@ -45,7 +46,7 @@ pub async fn get_all_categories(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<Vec<CategoryDto>>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let categories = CategoriesQuery::new(&user.uuid)
         .order()
@@ -62,7 +63,7 @@ pub async fn create_new_category(
     body: Json<NewCategoryDto>,
 ) -> Result<Json<CategoryDto>> {
     let body = body.0;
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let ordering_index = sqlx::query!(
         r#"
@@ -96,7 +97,7 @@ pub async fn get_category_by_id(
     user: JwtUserPayload,
     id: String,
 ) -> Result<Json<CategoryDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let category = CategoriesQuery::new(&user.uuid)
         .where_id(id)
@@ -114,7 +115,7 @@ pub async fn update_category(
     body: Json<NewCategoryDto>,
 ) -> Result<Json<CategoryDto>> {
     let body = body.0;
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     Category::guard_one(inner_pool, &id, &user.uuid).await?;
 
@@ -138,7 +139,7 @@ pub async fn update_category(
 
 #[delete("/<id>")]
 pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: String) -> Result<()> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     Category::guard_one(pool, &id, &user.uuid).await?;
 
@@ -163,7 +164,7 @@ pub async fn get_category_transactions(
     id: String,
     pagination: PaginationQueryDto,
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     Category::guard_one(pool, &id, &user.uuid).await?;
 

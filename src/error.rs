@@ -1,33 +1,38 @@
+use std::io;
+use std::io::Cursor;
+use std::num::{ParseFloatError, ParseIntError};
+use std::string::FromUtf8Error;
+
+use base64_url::base64::DecodeError;
+use chrono::ParseError;
+use rocket::{Request, Response};
+use rocket::http::{ContentType, Status};
+use rocket::response::Responder;
+use rocket::time::error::ComponentRange;
+
+use crate::error::blob_error::BlobError;
+use crate::error::error_dto_trait::ToErrorDto;
+use crate::error::http_error::HttpError;
+use crate::error::import_error::ImportError;
+use crate::error::jwt_error::JwtError;
+use crate::error::wrapped_csv_error::WrappedCsvError;
+use crate::error::wrapped_io_error::WrappedIoError;
+use crate::error::wrapped_sqlx_error::WrappedSqlxError;
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
+
 pub mod error_dto_trait;
 pub mod http_error;
 pub mod import_error;
 pub mod jwt_error;
 pub mod wrapped_csv_error;
 pub mod wrapped_sqlx_error;
-
-use rocket::http::{ContentType, Status};
-use rocket::response::Responder;
-
-use crate::error::error_dto_trait::ToErrorDto;
-use crate::error::http_error::HttpError;
-use crate::error::import_error::ImportError;
-use crate::error::jwt_error::JwtError;
-use crate::error::wrapped_csv_error::WrappedCsvError;
-use crate::error::wrapped_sqlx_error::WrappedSqlxError;
-use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
-use base64_url::base64::DecodeError;
-use chrono::ParseError;
-use rocket::time::error::ComponentRange;
-use rocket::{Request, Response};
-use std::io;
-use std::io::Cursor;
-use std::num::{ParseFloatError, ParseIntError};
-use std::string::FromUtf8Error;
+pub mod blob_error;
+pub mod wrapped_io_error;
 
 #[derive(Debug)]
 pub enum Error {
     Generic(String),
-    IO(io::Error),
+    IO(WrappedIoError),
     DotEnv(dotenv::Error),
     Sqlx(WrappedSqlxError),
     SerdeJson(serde_json::Error),
@@ -37,11 +42,18 @@ pub enum Error {
     HttpError(HttpError),
     Csv(WrappedCsvError),
     ImportError(ImportError),
+    BlobError(BlobError),
 }
 
 impl Error {
     pub fn generic(message: impl Into<String>) -> Error {
         Error::Generic(message.into())
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(value: io::Error) -> Self {
+        Error::IO(WrappedIoError::new(value))
     }
 }
 
@@ -135,6 +147,12 @@ impl From<ComponentRange> for Error {
     }
 }
 
+impl From<BlobError> for Error {
+    fn from(value: BlobError) -> Self {
+        Error::BlobError(value)
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
@@ -143,6 +161,8 @@ impl Error {
             Error::Sqlx(error) => error.get_status_code().code,
             Error::Csv(error) => error.get_status_code().code,
             Error::HttpError(error) => error.get_status_code().code,
+            Error::BlobError(error) => error.get_status_code().code,
+            Error::IO(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
         }
@@ -154,6 +174,8 @@ impl Error {
             Error::Csv(error) => error.to_error_dto(),
             Error::HttpError(error) => error.to_error_dto(),
             Error::JwtError(error) => error.to_error_dto(),
+            Error::BlobError(error) => error.to_error_dto(),
+            Error::IO(error) => error.to_error_dto(),
             _ => ErrorDTO {
                 error: ErrorContent {
                     code: 500,

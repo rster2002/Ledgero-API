@@ -1,3 +1,7 @@
+use rocket::serde::json::Json;
+use uuid::Uuid;
+
+use crate::db_inner;
 use crate::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
@@ -8,9 +12,6 @@ use crate::models::entities::subcategory::Subcategory;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
-use rocket::serde::json::Json;
-use uuid::Uuid;
-
 use crate::shared::SharedPool;
 
 #[get("/<category_id>/subcategories/<subcategory_id>")]
@@ -20,7 +21,7 @@ pub async fn subcategory_by_id(
     category_id: String,
     subcategory_id: String,
 ) -> Result<Json<SubcategoryDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"
@@ -55,7 +56,7 @@ pub async fn delete_subcategory(
     category_id: String,
     subcategory_id: String,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     sqlx::query!(
         r#"
@@ -78,7 +79,7 @@ pub async fn get_subcategories(
     user: JwtUserPayload,
     category_id: String,
 ) -> Result<Json<Vec<SubcategoryDto>>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let records = sqlx::query!(
         r#"
@@ -117,10 +118,10 @@ pub async fn create_subcategory(
     category_id: String,
     body: Json<NewSubcategoryDto>,
 ) -> Result<Json<SubcategoryDto>> {
-    let _inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
-    Category::guard_one(pool, &category_id, &user.uuid).await?;
+    Category::guard_one(inner_pool, &category_id, &user.uuid).await?;
 
     let subcategory = Subcategory {
         id: Uuid::new_v4().to_string(),
@@ -131,7 +132,7 @@ pub async fn create_subcategory(
         hex_color: body.hex_color,
     };
 
-    subcategory.create(pool).await?;
+    subcategory.create(inner_pool).await?;
 
     subcategory_by_id(pool, user, subcategory.parent_category, subcategory.id).await
 }
@@ -144,7 +145,7 @@ pub async fn update_subcategory(
     subcategory_id: String,
     body: Json<NewSubcategoryDto>,
 ) -> Result<Json<SubcategoryDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
     sqlx::query!(
@@ -174,7 +175,7 @@ pub async fn get_subcategory_transactions(
     subcategory_id: String,
     pagination: PaginationQueryDto,
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let transactions = TransactionQuery::new(&user.uuid)
         .where_category(category_id)

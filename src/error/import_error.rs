@@ -1,6 +1,8 @@
-use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
-use rocket::http::Status;
 use std::fmt::{Display, Formatter};
+
+use rocket::http::Status;
+
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 
 #[derive(Debug)]
 pub enum ImportError {

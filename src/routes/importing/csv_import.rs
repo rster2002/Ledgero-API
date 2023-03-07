@@ -1,17 +1,19 @@
-use crate::error::Error::Sqlx;
+use std::collections::HashMap;
+use std::io::Cursor;
+
 use chrono::Utc;
 use csv::StringRecord;
 use rocket::serde::json::Json;
-use std::collections::HashMap;
-use std::io::Cursor;
 use uuid::Uuid;
 
+use crate::db_inner;
+use crate::error::Error::Sqlx;
 use crate::models::csv::csv_mapping::CsvImportOrdering::NewestFirst;
 use crate::models::dto::importing::import_csv_dto::ImportCsvDto;
 use crate::models::entities::bank_account::BankAccount;
 use crate::models::entities::import::Import;
-use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::entities::transaction::Transaction;
+use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::routes::importing::map_csv_record::map_csv_record;
@@ -24,6 +26,7 @@ pub async fn import_csv(
     user: JwtUserPayload,
     body: Json<ImportCsvDto>,
 ) -> Result<()> {
+    let pool = db_inner!(pool);
     let body = body.0;
 
     // Start a database transaction.

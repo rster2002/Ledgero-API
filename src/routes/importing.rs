@@ -1,19 +1,19 @@
-pub mod check_csv_mapping;
-pub mod csv_import;
-pub mod map_csv_record;
-
-use rocket::serde::json::Json;
 use rocket::Route;
+use rocket::serde::json::Json;
 
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::prelude::*;
-use crate::shared::SharedPool;
-
+use crate::db_inner;
 use crate::models::dto::import::import_dto::ImportDto;
 use crate::models::dto::import::import_dto_with_numbers::ImportDtoWithNumbers;
 use crate::models::entities::import::Import;
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::prelude::*;
 use crate::routes::importing::check_csv_mapping::check_csv_mapping as check_csv_mapping_route;
 use crate::routes::importing::csv_import::import_csv;
+use crate::shared::SharedPool;
+
+pub mod check_csv_mapping;
+pub mod csv_import;
+pub mod map_csv_record;
 
 pub fn create_importing_routes() -> Vec<Route> {
     routes![
@@ -30,7 +30,7 @@ pub async fn get_all_imports(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<Vec<ImportDtoWithNumbers>>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let records = sqlx::query!(
         r#"
@@ -73,7 +73,7 @@ pub async fn get_import_by_id(
     user: JwtUserPayload,
     id: String,
 ) -> Result<Json<ImportDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"
@@ -96,7 +96,7 @@ pub async fn get_import_by_id(
 
 #[delete("/<id>")]
 pub async fn delete_import(pool: &SharedPool, user: JwtUserPayload, id: String) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     Import::guard_one(inner_pool, &id, &user.uuid).await?;
 

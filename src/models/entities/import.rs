@@ -1,10 +1,11 @@
+use chrono::{DateTime, Utc};
+use sqlx::{Executor, Postgres};
+use sqlx::FromRow;
+use sqlx::types::time::OffsetDateTime;
+
 use crate::db_executor;
 use crate::prelude::*;
 use crate::shared::DbPool;
-use chrono::{DateTime, Utc};
-use sqlx::types::time::OffsetDateTime;
-use sqlx::FromRow;
-use sqlx::{Executor, Postgres};
 
 #[derive(Debug, FromRow)]
 #[sqlx(rename_all = "PascalCase")]

@@ -1,12 +1,13 @@
-pub mod transaction_type;
+use chrono::Utc;
+use sqlx::{Executor, FromRow, Postgres};
+use sqlx::types::time::OffsetDateTime;
 
 use crate::db_executor;
 use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::prelude::*;
 use crate::shared::DbPool;
-use chrono::Utc;
-use sqlx::types::time::OffsetDateTime;
-use sqlx::{Executor, FromRow, Postgres};
+
+pub mod transaction_type;
 
 /// A single transaction of money.
 #[derive(Debug, FromRow)]

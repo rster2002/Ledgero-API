@@ -1,5 +1,6 @@
-use crate::models::jwt::jwt_token_type::JwtTokenType;
 use serde::{Deserialize, Serialize};
+
+use crate::models::jwt::jwt_token_type::JwtTokenType;
 
 /// The header of a JWT token. Used to identify what signing algorithm is used and what type of
 /// token it is.

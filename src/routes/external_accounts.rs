@@ -1,3 +1,8 @@
+use rocket::Route;
+use rocket::serde::json::Json;
+use uuid::Uuid;
+
+use crate::db_inner;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
 use crate::models::dto::external_accounts::external_account_name_dto::ExternalAccountNameDto;
 use crate::models::dto::external_accounts::new_external_account_dto::NewExternalAccountDto;
@@ -12,9 +17,6 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
 use crate::shared::SharedPool;
-use rocket::serde::json::Json;
-use rocket::Route;
-use uuid::Uuid;
 
 pub fn create_external_account_routes() -> Vec<Route> {
     routes![
@@ -35,7 +37,7 @@ pub async fn get_all_external_accounts(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<Vec<ExternalAccountDto>>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let records = sqlx::query!(
         r#"
@@ -67,7 +69,7 @@ pub async fn create_new_external_account(
     user: JwtUserPayload,
     body: Json<NewExternalAccountDto>,
 ) -> Result<Json<ExternalAccountDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
 
     if let Some(category_id) = &body.default_category_id {
@@ -98,7 +100,7 @@ pub async fn get_external_account_by_id(
     user: JwtUserPayload,
     id: String,
 ) -> Result<Json<ExternalAccountDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"
@@ -127,7 +129,7 @@ pub async fn update_external_account(
     id: String,
     body: Json<NewExternalAccountDto>,
 ) -> Result<Json<ExternalAccountDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
 
     ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
@@ -165,7 +167,7 @@ pub async fn delete_external_account(
     user: JwtUserPayload,
     id: String,
 ) -> Result<()> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
@@ -189,7 +191,7 @@ pub async fn get_external_account_names(
     user: JwtUserPayload,
     id: String,
 ) -> Result<Json<Vec<ExternalAccountNameDto>>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
@@ -223,7 +225,7 @@ pub async fn new_external_account_name(
     id: String,
     body: Json<NewExternalAccountNameDto>,
 ) -> Result<Json<ExternalAccountNameDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
 
     ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
@@ -251,7 +253,7 @@ pub async fn delete_external_account_name(
     id: String,
     name_id: String,
 ) -> Result<()> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
@@ -278,7 +280,7 @@ pub async fn get_transactions_for_external_account(
     id: String,
     pagination: PaginationQueryDto,
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let transactions = TransactionQuery::new(&user.uuid)
         .where_external_account(id)

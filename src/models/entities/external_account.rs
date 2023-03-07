@@ -1,6 +1,7 @@
+use sqlx::FromRow;
+
 use crate::prelude::*;
 use crate::shared::DbPool;
-use sqlx::FromRow;
 
 /// An external account is used to group transactions to another party of the transaction, like for
 /// example a super market.

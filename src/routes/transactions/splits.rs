@@ -1,12 +1,10 @@
-use crate::error::http_error::HttpError;
-
-use crate::models::dto::transactions::new_split_dto::NewSplitDto;
-use crate::models::dto::transactions::split_dto::SplitDto;
-
 use rocket::serde::json::Json;
 
+use crate::db_inner;
+use crate::error::http_error::HttpError;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
-
+use crate::models::dto::transactions::new_split_dto::NewSplitDto;
+use crate::models::dto::transactions::split_dto::SplitDto;
 use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
@@ -29,7 +27,7 @@ pub async fn get_splits(
     user: JwtUserPayload,
     transaction_id: String,
 ) -> Result<Json<Vec<SplitDto>>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     Transaction::guard_one(pool, &transaction_id, &user.uuid).await?;
 
@@ -59,7 +57,7 @@ pub async fn create_split(
     transaction_id: String,
     body: Json<NewSplitDto>,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     // Anything other than a 'transaction' type should should not be allowed to create a split
     sqlx::query!(
@@ -92,7 +90,7 @@ pub async fn update_split(
     split_id: String,
     body: Json<NewSplitDto>,
 ) -> Result<()> {
-    let mut db_transaction = pool.inner().begin().await?;
+    let mut db_transaction = db_inner!(pool).begin().await?;
 
     db_transaction =
         SplitService::update_split(db_transaction, user.uuid, transaction_id, split_id, body.0)
@@ -110,7 +108,7 @@ pub async fn delete_split(
     transaction_id: String,
     split_id: String,
 ) -> Result<()> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let split_record = sqlx::query!(
         r#"

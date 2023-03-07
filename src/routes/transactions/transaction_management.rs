@@ -1,20 +1,19 @@
-use crate::models::dto::transactions::transaction_dto::TransactionDto;
-use crate::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
-use crate::models::entities::category::Category;
-use crate::models::entities::transaction::transaction_type::TransactionType;
-use crate::models::entities::transaction::Transaction;
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::prelude::*;
-use crate::shared::SharedPool;
 use rocket::serde::json::Json;
 
+use crate::db_inner;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
+use crate::models::dto::transactions::transaction_dto::TransactionDto;
+use crate::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
 use crate::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
-
+use crate::models::entities::category::Category;
+use crate::models::entities::transaction::Transaction;
+use crate::models::entities::transaction::transaction_type::TransactionType;
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
-
 use crate::services::split_service::SplitService;
+use crate::shared::SharedPool;
 
 #[get("/?<pagination..>")]
 pub async fn get_all_transactions(
@@ -22,7 +21,7 @@ pub async fn get_all_transactions(
     user: JwtUserPayload,
     pagination: PaginationQueryDto,
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let transactions = TransactionQuery::new(&user.uuid)
         .where_type_not(TransactionType::Split)
@@ -43,7 +42,7 @@ pub async fn get_single_transaction(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<TransactionDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
 
     let transaction = TransactionQuery::new(&user.uuid)
         .where_type(TransactionType::Transaction)
@@ -63,7 +62,7 @@ pub async fn change_category_for_transaction(
     id: String,
     body: Json<TransactionSetCategoryDto>,
 ) -> Result<()> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
 
     Transaction::guard_one(pool, &id, &user.uuid).await?;
@@ -117,7 +116,7 @@ pub async fn update_transaction(
     id: String,
     body: Json<UpdateTransactionDto<'_>>,
 ) -> Result<Json<TransactionDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
     // This also checks if the transaction has transactionType = 'transaction'

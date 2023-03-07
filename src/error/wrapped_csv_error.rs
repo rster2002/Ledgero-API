@@ -1,6 +1,7 @@
-use crate::error::error_dto_trait::ToErrorDto;
 use csv::ErrorKind;
 use rocket::http::Status;
+
+use crate::error::error_dto_trait::ToErrorDto;
 
 #[derive(Debug)]
 pub struct WrappedCsvError {

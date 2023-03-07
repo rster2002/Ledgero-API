@@ -1,12 +1,13 @@
-use crate::error::jwt_error::JwtError;
-use crate::models::entities::user::user_role::UserRole;
-use crate::prelude::*;
-use crate::services::jwt_service::JwtService;
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Failure, Success};
 use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 use serde::{Deserialize, Serialize};
+
+use crate::error::jwt_error::JwtError;
+use crate::models::entities::user::user_role::UserRole;
+use crate::prelude::*;
+use crate::services::jwt_service::JwtService;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JwtUserPayload {

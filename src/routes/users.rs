@@ -1,3 +1,8 @@
+use rocket::Route;
+
+use crate::routes::users::admin::*;
+use crate::routes::users::me::*;
+
 /// Shared resolvers. Contains most of the logic for the admin and me endpoints, but don't contain
 /// things like access control checking etc.
 mod shared_resolvers;
@@ -7,11 +12,6 @@ pub mod admin;
 
 /// User endpoints for the current user.
 pub mod me;
-
-use rocket::Route;
-
-use crate::routes::users::admin::*;
-use crate::routes::users::me::*;
 
 pub fn create_user_routes() -> Vec<Route> {
     routes![

@@ -1,3 +1,11 @@
+use chrono::{Months, Utc};
+use rocket::{Route, State};
+use rocket::http::Status;
+use rocket::serde::json::Json;
+use sqlx::{Pool, Postgres};
+use uuid::Uuid;
+
+use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
 use crate::models::dto::auth::jwt_response_dto::JwtResponseDto;
@@ -6,19 +14,11 @@ use crate::models::dto::auth::register_user_dto::RegisterUserDto;
 use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::grant::Grant;
 use crate::models::entities::user::User;
-use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-
-use crate::prelude::*;
-use crate::shared::{SharedJwtService, SharedPool};
-
 use crate::models::entities::user::user_role::UserRole;
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::prelude::*;
 use crate::services::password_hash_service::PasswordHashService;
-use chrono::{Months, Utc};
-use rocket::http::Status;
-use rocket::serde::json::Json;
-use rocket::{Route, State};
-use sqlx::{Pool, Postgres};
-use uuid::Uuid;
+use crate::shared::{SharedJwtService, SharedPool};
 
 pub fn create_auth_routes() -> Vec<Route> {
     routes![register, login, refresh, revoke,]
@@ -26,9 +26,10 @@ pub fn create_auth_routes() -> Vec<Route> {
 
 #[post("/register", data = "<body>")]
 pub async fn register(
-    pool: &State<Pool<Postgres>>,
+    pool: &SharedPool,
     body: Json<RegisterUserDto<'_>>,
 ) -> Result<Status> {
+    let pool = db_inner!(pool);
     let body = body.0;
 
     let password_hash = PasswordHashService::create_new_hash(body.password);
@@ -50,8 +51,10 @@ async fn login<'a>(
     body: Json<LoginUserDto<'a>>,
     jwt_service: &'a SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
+
+    info!("Login attempt for '{}'", body.username);
 
     let user = sqlx::query!(
         r#"
@@ -64,12 +67,15 @@ async fn login<'a>(
     .fetch_optional(pool)
     .await?;
 
+    debug!("Checking if user with username '{}' exists", body.username);
     let Some(user) = user else {
+        info!("No user exists with username '{}'", body.username);
         return Err(Status::Unauthorized.into());
     };
 
     let valid_password = PasswordHashService::verify(user.passwordhash, body.password);
     if !valid_password {
+        info!("The password for user '{}' was incorrect", body.username);
         return Err(Status::Unauthorized.into());
     }
 
@@ -81,11 +87,15 @@ async fn login<'a>(
         role: UserRole::from(user.role),
     };
 
+    debug!("Generating a new JWT access token for '{}'", body.username);
     let jwt = jwt_service.create_access_token(&user_payload)?;
+
+    debug!("Generating a new JWT refresh token for '{}'", body.username);
     let refresh = jwt_service.create_refresh_token(&grant.id)?;
 
     grant.create(pool).await?;
 
+    info!("Successfully logged in '{}'", body.username);
     Ok(Json(JwtResponseDto {
         access_token: jwt,
         refresh_token: refresh,
@@ -100,12 +110,15 @@ async fn refresh(
     body: Json<JwtRefreshDto<'_>>,
     jwt_service: &SharedJwtService,
 ) -> Result<Json<JwtResponseDto>> {
-    let pool = pool.inner();
+    let pool = db_inner!(pool);
     let body = body.0;
 
     let (_, access_payload) =
         jwt_service.decode_access_token_unchecked::<JwtUserPayload>(body.access_token)?;
+    info!("Token refresh attempt for '{}'", access_payload.username);
+
     let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
+    debug!("Attempting to refresh using grant id '{}'", refresh_payload.grant_id);
 
     let user = sqlx::query!(
         r#"
@@ -145,6 +158,9 @@ async fn refresh(
         );
     };
 
+    let new_expire_at = (Utc::now() + Months::new(3)).to_rfc3339();
+
+    debug!("Updating grant '{}' with new expire time '{}'", grant.id, new_expire_at);
     sqlx::query!(
         r#"
             UPDATE Grants
@@ -152,7 +168,7 @@ async fn refresh(
             WHERE Id = $1;
         "#,
         grant.id,
-        (Utc::now() + Months::new(3)).to_rfc3339()
+        new_expire_at
     )
     .execute(pool)
     .await?;
@@ -160,6 +176,7 @@ async fn refresh(
     let access_token = jwt_service.create_access_token(&access_payload)?;
     let refresh_token = jwt_service.create_refresh_token(&grant.id)?;
 
+    info!("Successfully refreshed JWT access token for '{}'", access_payload.username);
     Ok(Json(JwtResponseDto {
         access_token,
         refresh_token,
@@ -174,9 +191,12 @@ async fn revoke(
     body: Json<RevokeDto>,
     jwt_service: &SharedJwtService,
 ) -> Result<()> {
+    let pool = db_inner!(pool);
+
     let body = body.0;
     let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
 
+    debug!("Revoking grant with id '{}'", refresh_payload.grant_id);
     Grant::delete_by_id(pool, refresh_payload.grant_id).await?;
 
     Ok(())

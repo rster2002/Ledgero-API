@@ -1,6 +1,34 @@
 #[macro_use]
 extern crate rocket;
 
+use std::{env, fs};
+use std::sync::Arc;
+use std::time::Duration;
+
+use async_rwlock::RwLock;
+use directories::{BaseDirs, ProjectDirs};
+use rocket::http::Status;
+use rocket::tokio;
+use sqlx::postgres::PgPoolOptions;
+
+use crate::cors::Cors;
+use crate::init::create_blob_service::create_blob_service;
+use crate::init::create_jwt_service::create_jwt_service;
+use crate::init::scheduler::start_scheduler;
+use crate::routes::aggregates::create_aggregate_routes;
+use crate::routes::auth::create_auth_routes;
+use crate::routes::bank_accounts::create_bank_account_routes;
+use crate::routes::blobs::create_blob_routes;
+use crate::routes::categories::create_category_routes;
+use crate::routes::corrections::create_correction_routes;
+use crate::routes::external_accounts::create_external_account_routes;
+use crate::routes::importing::create_importing_routes;
+use crate::routes::transactions::create_transaction_routes;
+use crate::routes::users::create_user_routes;
+use crate::services::blob_service::BlobService;
+use crate::services::jwt_service::JwtService;
+use crate::shared::PROJECT_DIRS;
+
 /// The shared error type where all the different errors are casted too to create one constant
 /// error type.
 mod error;
@@ -30,66 +58,55 @@ pub mod services;
 /// Houses certain big queries that need a lot of mapping and config.
 pub mod queries;
 
-use crate::routes::auth::create_auth_routes;
-
-use crate::cors::Cors;
-use crate::routes::aggregates::create_aggregate_routes;
-use crate::routes::categories::create_category_routes;
-use crate::routes::external_accounts::create_external_account_routes;
-use crate::routes::importing::create_importing_routes;
-use crate::routes::transactions::create_transaction_routes;
-use crate::routes::users::create_user_routes;
-use crate::services::jwt_service::JwtService;
-use rocket::http::Status;
-use rsa::pkcs1::DecodeRsaPrivateKey;
-use rsa::RsaPrivateKey;
-use sqlx::postgres::PgPoolOptions;
-use std::fs;
-use crate::routes::bank_accounts::create_bank_account_routes;
-use crate::routes::corrections::create_correction_routes;
+/// Module for splitting off large chunks of code that needs to be run at startup.
+mod init;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     let _ = dotenv::dotenv();
+    env_logger::init();
 
     let db_connection_string =
         std::env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
 
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&db_connection_string)
-        .await
-        .expect("Could not create database pool");
+    let pool = Arc::new(
+        RwLock::new(PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&db_connection_string)
+            .await
+            .expect("Could not create database pool"))
+    );
 
     sqlx::migrate!()
-        .run(&pool)
+        .run(&*(pool.read().await))
         .await
         .expect("Failed to migrate");
 
-    // Read private key
-    let pem_path = std::env::var("PRIVATE_PEM_PATH").expect("PRIVATE_PEM_PATH not set");
+    // Configure directories
+    let project_dirs = ProjectDirs::from("dev", "Jumpdrive", "Ledgero-API")
+        .expect("Failed to init directories");
 
-    let pem_content = fs::read(pem_path).expect("Failed to read PEM file");
+    PROJECT_DIRS.set(project_dirs)
+        .expect("Failed to share project dirs");
 
-    let pem_string = String::from_utf8(pem_content).expect("Failed to read PEM file");
+    // Create JWT service
+    let jwt_service = create_jwt_service();
+    let blob_service = create_blob_service();
 
-    let private_key =
-        RsaPrivateKey::from_pkcs1_pem(pem_string.as_ref()).expect("Failed to read PEM private key");
+    // Wrap components in Arc<RwLock> where needed
+    let blob_service = Arc::new(RwLock::new(blob_service));
 
-    // Read JWT config
-    let expire_seconds = std::env::var("JWT_EXPIRE_SECONDS")
-        .expect("JWT_EXPIRE_SECONDS not set")
-        .parse()
-        .expect("JWT_EXPIRE_SECONDS is not an i64");
+    // Start the scheduler
+    start_scheduler(
+        Arc::clone(&blob_service),
+        Arc::clone(&pool)
+    );
 
-    let issuer = std::env::var("JWT_ISSUER").expect("JWT_ISSUER not set");
-
-    let jwt_service = JwtService::new(private_key, expire_seconds, issuer);
-
-    let _rocket = rocket::build()
+    let _ = rocket::build()
         .attach(Cors)
         .manage(pool)
         .manage(jwt_service)
+        .manage(blob_service)
         .mount("/", routes![all_options])
         .mount("/auth", create_auth_routes())
         .mount("/users", create_user_routes())
@@ -100,6 +117,7 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/external-accounts", create_external_account_routes())
         .mount("/aggregates", create_aggregate_routes())
         .mount("/import", create_importing_routes())
+        .mount("/blob", create_blob_routes())
         .launch()
         .await
         .expect("Failed to start rocket");

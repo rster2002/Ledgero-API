@@ -1,8 +1,8 @@
-use crate::db_executor;
-use crate::prelude::*;
+use sqlx::{Executor, Postgres};
 use sqlx::FromRow;
 
-use sqlx::{Executor, Postgres};
+use crate::db_executor;
+use crate::prelude::*;
 
 /// A bank account something like a single IBAN. Used to differentiate between for example a savings
 /// account and a 'regular' bank account.

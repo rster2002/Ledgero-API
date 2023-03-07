@@ -1,13 +1,14 @@
-mod category_record;
-
-use crate::models::dto::categories::category_dto::CategoryDto;
-use sqlx::{Postgres, QueryBuilder};
 use std::collections::BTreeMap;
 
+use sqlx::{Postgres, QueryBuilder};
+
+use crate::models::dto::categories::category_dto::CategoryDto;
 use crate::models::dto::categories::subcategories::subcategory_dto::SubcategoryDto;
 use crate::prelude::*;
 use crate::queries::categories_query::category_record::CategoryRecord;
 use crate::shared::DbPool;
+
+mod category_record;
 
 pub struct CategoriesQuery<'a> {
     builder: QueryBuilder<'a, Postgres>,

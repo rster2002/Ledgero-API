@@ -1,5 +1,6 @@
-use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use serde::Serialize;
+
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

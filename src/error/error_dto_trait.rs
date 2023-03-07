@@ -1,5 +1,6 @@
-use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 use rocket::http::Status;
+
+use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 
 pub trait ToErrorDto {
     fn get_status_code(&self) -> Status;

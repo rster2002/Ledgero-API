@@ -2,6 +2,8 @@ use chrono::Utc;
 use rocket::Route;
 use rocket::serde::json::Json;
 use uuid::Uuid;
+
+use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::transactions::new_correction_dto::NewCorrectionDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
@@ -27,7 +29,7 @@ pub async fn get_all_corrections(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<Vec<TransactionDto>>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let transactions = TransactionQuery::new(user.uuid)
         .where_type(TransactionType::Correction)
@@ -47,7 +49,7 @@ pub async fn create_correction(
     user: JwtUserPayload,
     body: Json<NewCorrectionDto>,
 ) -> Result<Json<TransactionDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
     let record = sqlx::query!(
@@ -89,7 +91,7 @@ pub async fn create_correction(
 
     let transaction = TransactionQuery::new(user.uuid)
         .where_id(uuid.to_string())
-        .fetch_one(pool)
+        .fetch_one(inner_pool)
         .await?;
 
     Ok(Json(transaction))
@@ -102,7 +104,7 @@ pub async fn update_correction(
     id: String,
     body: Json<NewCorrectionDto>,
 ) -> Result<Json<TransactionDto>> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
     // Checks if the transaction exists and if a correction
@@ -137,7 +139,7 @@ pub async fn update_correction(
 
     let transaction = TransactionQuery::new(user.uuid)
         .where_id(id)
-        .fetch_one(pool)
+        .fetch_one(inner_pool)
         .await?;
 
     Ok(Json(transaction))
@@ -151,7 +153,7 @@ pub async fn delete_correction(
     user: JwtUserPayload,
     id: String,
 ) -> Result<()> {
-    let inner_pool = pool.inner();
+    let inner_pool = db_inner!(pool);
 
     let record = sqlx::query!(
         r#"
