@@ -65,38 +65,6 @@
     },
     "query": "\n                SELECT Id\n                FROM Imports\n                WHERE Id = $1 AND UserId = $2;\n            "
   },
-  "0b5ad32d8b77d7eeb95ca9b87bbeaa536ae1b56bed09ece48c984946cefd2fe0": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "role",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT Id, Username, Role\n            FROM Users\n            WHERE Id = $1;\n        "
-  },
   "0b9f72c7fafbb3f88853d7b3ee79e15daef74d4f1ea09c1c07d18379795778cf": {
     "describe": {
       "columns": [],
@@ -106,6 +74,21 @@
       }
     },
     "query": "ROLLBACK TO T"
+  },
+  "1172527980182322e2d35251de4feacbd2d8f2928d363256eea718444b3c5dad": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n                INSERT INTO Blobs\n                VALUES ($1, $2, $3, $4, null);\n            "
   },
   "11cab86049c3e4da53b2ab085595d4f52a46f885805f5d569c83c00c01c1d62e": {
     "describe": {
@@ -247,6 +230,45 @@
     },
     "query": "\n            SELECT *\n            FROM ExternalAccounts\n            WHERE UserId = $1;\n        "
   },
+  "2225082b51b9e76fcbf6c94587035289ecd858b593ab1e6288570fdc67000c8e": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Users\n            SET Username = $2, Role = $3, ProfileImage = $4\n            WHERE Id = $1;\n        "
+  },
+  "246d74d609b540bdc6cd3aeaf662e76759d5125f0014891289c9138a14632dc5": {
+    "describe": {
+      "columns": [
+        {
+          "name": "token",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "references",
+          "ordinal": 1,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n                SELECT token,\n                       COUNT(e.*) +\n                       COUNT(u.*) AS \"references\"\n                FROM blobs\n                LEFT JOIN externalaccounts e on blobs.token = e.image\n                LEFT JOIN users u on blobs.token = u.profileimage\n                GROUP BY blobs.token;\n            "
+  },
   "259cb5f9e2f1147e2c4d963f49631bb1248f46149a65b651996bf67288706c0a": {
     "describe": {
       "columns": [],
@@ -292,6 +314,27 @@
       }
     },
     "query": "\n            UPDATE Transactions\n            SET CategoryId = $3, SubcategoryId = $4\n            WHERE Id = $1 AND UserId = $2\n        "
+  },
+  "2cf89c2713b233564363d45e543900c32afd825a424d0a3d8183c5330898f7d5": {
+    "describe": {
+      "columns": [
+        {
+          "name": "token",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                SELECT Token\n                FROM Blobs\n                WHERE Token = $1 AND UserId = $2;\n            "
   },
   "2d199cb11775c35e3f4763203ecc643de2f5cc647c711c70c6569b70526ee081": {
     "describe": {
@@ -684,6 +727,56 @@
     },
     "query": "\n            SELECT *\n            FROM ExternalAccounts\n            WHERE Id = $1 AND UserId = $2\n        "
   },
+  "4ff240eac3542cf8da983275abf2643aaf43868a3c24123a12d8bdf59741295c": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "\n                DELETE FROM blobs\n                WHERE confirmedat IS null AND EXTRACT(EPOCH FROM (now() - uploadedat)) > $1::bigint;\n            "
+  },
+  "53f426a44bcdb9ae22867b04fcf30a135a6296c282566a7b2aa8662b735b8d30": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "profileimage",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT Id, Username, ProfileImage, Role\n            FROM Users\n            WHERE Id = $1;\n        "
+  },
   "551ec0d9216a790493a3efc8378c3a409da931cc3062dd03d283460e0c4a6354": {
     "describe": {
       "columns": [
@@ -715,36 +808,6 @@
       }
     },
     "query": "\n            SELECT ExternalAccountNames.Name, ParentExternalAccount, e.DefaultCategoryId\n            FROM ExternalAccountNames\n            INNER JOIN ExternalAccounts e ON e.Id = ExternalAccountNames.ParentExternalAccount\n            WHERE ExternalAccountNames.UserId = $1;\n        "
-  },
-  "5526a43b9e51ae652cde97a8df71c5b1e73d24592499a81c0f158c406ea31db3": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "role",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "\n            SELECT Id, Username, Role\n            FROM Users;\n        "
   },
   "559ed36b89bf0e755d248eba4fc996c1b02e5ee4e0a7593bd77f355ce890cea7": {
     "describe": {
@@ -850,6 +913,20 @@
       }
     },
     "query": "\n            UPDATE Users\n            SET passwordHash = $2\n            WHERE Id = $1\n        "
+  },
+  "6bd436ec1872b37bc1712042855e937acfe4832bb0de9b1bf8ceec5015ba9e02": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n                UPDATE Blobs\n                SET ConfirmedAt = $3\n                WHERE Token = $1 AND UserId = $2;\n            "
   },
   "6d2c6a9975681578b01864e67ba590c8c93bcef40260cf9a5ede21baa934ccd2": {
     "describe": {
@@ -989,6 +1066,42 @@
       }
     },
     "query": "\n                SELECT Id\n                FROM ExternalAccounts\n                WHERE Id = $1 AND UserId = $2;\n            "
+  },
+  "78fe3f12a0438f343c521dff2d1c694aa8f9289ef9fcc715f6b01160d572ce36": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "profileimage",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n            SELECT Id, Username, ProfileImage, Role\n            FROM Users;\n        "
   },
   "80d458da08bc745267699b801c3eccba75d69527fc9fd2cfc0881a2e5ebca455": {
     "describe": {
@@ -1174,20 +1287,6 @@
       }
     },
     "query": "\n            SELECT TransactionType\n            FROM Transactions\n            WHERE Id = $1 AND UserId = $2 AND TransactionType = 'transaction';\n        "
-  },
-  "a70327fc1d34be8cd8392abbfd154f8c9e7108cfcc13f7b59f595ed3798644a9": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Varchar",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "\n            UPDATE Users\n            SET Username = $2,\n            Role = $3\n            WHERE Id = $1;\n        "
   },
   "ad1a74cb5e9964c56042348d7d639a4071d32add3b1976263963ae822ea90388": {
     "describe": {
