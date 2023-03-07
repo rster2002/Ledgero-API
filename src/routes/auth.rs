@@ -46,7 +46,7 @@ pub async fn register(
 }
 
 #[post("/login", data = "<body>")]
-async fn login<'a>(
+pub async fn login<'a>(
     pool: &'a SharedPool,
     body: Json<LoginUserDto<'a>>,
     jwt_service: &'a SharedJwtService,
@@ -105,7 +105,7 @@ async fn login<'a>(
 }
 
 #[post("/refresh", data = "<body>")]
-async fn refresh(
+pub async fn refresh(
     pool: &SharedPool,
     body: Json<JwtRefreshDto<'_>>,
     jwt_service: &SharedJwtService,

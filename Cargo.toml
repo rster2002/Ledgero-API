@@ -3,6 +3,14 @@ name = "ledgero-api"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "ledgero_api"
+path = "src/main.rs"
+
+[lib]
+name = "ledgero_api"
+path = "src/lib.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
