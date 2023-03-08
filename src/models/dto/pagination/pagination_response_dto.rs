@@ -27,4 +27,12 @@ impl<T> PaginationResponseDto<T> {
             done: items_length as i64 <= query.get_limit_input(),
         }
     }
+
+    pub fn is_done(&self) -> bool {
+        self.done
+    }
+
+    pub fn into_items(self) -> Vec<T> {
+        self.items
+    }
 }

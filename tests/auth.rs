@@ -3,10 +3,11 @@ use sqlx::PgPool;
 use ledgero_api::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
 use ledgero_api::models::dto::auth::login_user_dto::LoginUserDto;
 use ledgero_api::models::dto::auth::register_user_dto::RegisterUserDto;
+use ledgero_api::models::dto::auth::revoke_dto::RevokeDto;
 use ledgero_api::models::entities::user::user_role::UserRole;
 use ledgero_api::models::jwt::jwt_user_payload::JwtUserPayload;
 use ledgero_api::prelude::*;
-use ledgero_api::routes::auth::{register, login, refresh};
+use ledgero_api::routes::auth::{register, login, refresh, revoke};
 use crate::common::*;
 
 mod common;
@@ -149,6 +150,63 @@ async fn tokens_can_be_refreshed(pool: PgPool) -> Result<()> {
 
     assert_ne!(body.access_token, login_response.access_token);
     assert_ne!(body.refresh_token, login_response.refresh_token);
+
+    Ok(())
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn tokens_cannot_be_refreshed_multiple_times(pool: PgPool) -> Result<()> {
+    let app = TestApp::new(pool);
+
+    let login_response = login(app.pool_state(), Json(LoginUserDto {
+        username: "alice",
+        password: "alice",
+    }), app.jwt_service())
+        .await
+        .unwrap()
+        .0;
+
+    refresh(app.pool_state(), Json(JwtRefreshDto {
+        access_token: &login_response.access_token,
+        refresh_token: &login_response.refresh_token,
+    }), app.jwt_service())
+        .await?;
+
+    let result = refresh(app.pool_state(), Json(JwtRefreshDto {
+        access_token: &login_response.access_token,
+        refresh_token: &login_response.refresh_token,
+    }), app.jwt_service())
+        .await;
+
+    assert!(result.is_err());
+
+    Ok(())
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn tokens_can_be_revoked(pool: PgPool) -> Result<()> {
+    let app = TestApp::new(pool);
+
+    let login_response = login(app.pool_state(), Json(LoginUserDto {
+        username: "alice",
+        password: "alice",
+    }), app.jwt_service())
+        .await
+        .unwrap()
+        .0;
+
+    revoke(app.pool_state(), Json(RevokeDto {
+        refresh_token: login_response.refresh_token.to_string(),
+    }), app.jwt_service())
+        .await?;
+
+    let result = refresh(app.pool_state(), Json(JwtRefreshDto {
+        access_token: &login_response.access_token,
+        refresh_token: &login_response.refresh_token,
+    }), app.jwt_service())
+        .await;
+
+    assert!(result.is_err());
 
     Ok(())
 }

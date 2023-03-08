@@ -4,6 +4,8 @@ use async_rwlock::RwLock;
 use rocket::State;
 use rsa::{BigUint, RsaPrivateKey};
 use sqlx::{PgPool, Pool, Postgres};
+use ledgero_api::models::entities::user::user_role::UserRole;
+use ledgero_api::models::jwt::jwt_user_payload::JwtUserPayload;
 use ledgero_api::services::jwt_service::JwtService;
 
 pub struct TestApp {
@@ -42,6 +44,14 @@ impl TestApp {
 
     pub fn jwt_service(&self) -> &State<JwtService> {
         State::from(&self.jwt_service)
+    }
+
+    pub fn alice(&self) -> JwtUserPayload {
+        JwtUserPayload {
+            uuid: "abc".to_string(),
+            username: "alice".to_string(),
+            role: UserRole::User,
+        }
     }
 }
 

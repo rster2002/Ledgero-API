@@ -186,7 +186,7 @@ pub async fn refresh(
 }
 
 #[post("/revoke", data = "<body>")]
-async fn revoke(
+pub async fn revoke(
     pool: &SharedPool,
     body: Json<RevokeDto>,
     jwt_service: &SharedJwtService,
