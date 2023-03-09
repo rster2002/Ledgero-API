@@ -9,5 +9,5 @@ pub struct UpdateTransactionDto<'a> {
     pub category_id: Option<&'a str>,
     pub subcategory_id: Option<&'a str>,
     pub external_account_id: Option<&'a str>,
-    pub splits: Vec<NewSplitDto>,
+    pub splits: Vec<NewSplitDto<'a>>,
 }

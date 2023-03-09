@@ -25,7 +25,7 @@ struct SplitRecord {
 pub async fn get_splits(
     pool: &SharedPool,
     user: JwtUserPayload,
-    transaction_id: String,
+    transaction_id: &str,
 ) -> Result<Json<Vec<SplitDto>>> {
     let pool = db_inner!(pool);
 
@@ -54,8 +54,8 @@ pub async fn get_splits(
 pub async fn create_split(
     pool: &SharedPool,
     user: JwtUserPayload,
-    transaction_id: String,
-    body: Json<NewSplitDto>,
+    transaction_id: &str,
+    body: Json<NewSplitDto<'_>>,
 ) -> Result<()> {
     let inner_pool = db_inner!(pool);
 
@@ -75,7 +75,7 @@ pub async fn create_split(
     let mut db_transaction = inner_pool.begin().await?;
 
     db_transaction =
-        SplitService::create_split(db_transaction, user.uuid, transaction_id, body.0).await?;
+        SplitService::create_split(db_transaction, &user.uuid, transaction_id, body.0).await?;
 
     db_transaction.commit().await?;
 
@@ -86,14 +86,14 @@ pub async fn create_split(
 pub async fn update_split(
     pool: &SharedPool,
     user: JwtUserPayload,
-    transaction_id: String,
-    split_id: String,
-    body: Json<NewSplitDto>,
+    transaction_id: &str,
+    split_id: &str,
+    body: Json<NewSplitDto<'_>>,
 ) -> Result<()> {
     let mut db_transaction = db_inner!(pool).begin().await?;
 
     db_transaction =
-        SplitService::update_split(db_transaction, user.uuid, transaction_id, split_id, body.0)
+        SplitService::update_split(db_transaction, &user.uuid, transaction_id, split_id, body.0)
             .await?;
 
     db_transaction.commit().await?;
@@ -105,8 +105,8 @@ pub async fn update_split(
 pub async fn delete_split(
     pool: &SharedPool,
     user: JwtUserPayload,
-    transaction_id: String,
-    split_id: String,
+    transaction_id: &str,
+    split_id: &str,
 ) -> Result<()> {
     let pool = db_inner!(pool);
 

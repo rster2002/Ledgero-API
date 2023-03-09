@@ -48,8 +48,8 @@ pub async fn register(
 #[post("/login", data = "<body>")]
 pub async fn login<'a>(
     pool: &'a SharedPool,
-    body: Json<LoginUserDto<'a>>,
     jwt_service: &'a SharedJwtService,
+    body: Json<LoginUserDto<'a>>,
 ) -> Result<Json<JwtResponseDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
@@ -107,8 +107,8 @@ pub async fn login<'a>(
 #[post("/refresh", data = "<body>")]
 pub async fn refresh(
     pool: &SharedPool,
-    body: Json<JwtRefreshDto<'_>>,
     jwt_service: &SharedJwtService,
+    body: Json<JwtRefreshDto<'_>>,
 ) -> Result<Json<JwtResponseDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
@@ -188,8 +188,8 @@ pub async fn refresh(
 #[post("/revoke", data = "<body>")]
 pub async fn revoke(
     pool: &SharedPool,
-    body: Json<RevokeDto>,
     jwt_service: &SharedJwtService,
+    body: Json<RevokeDto>,
 ) -> Result<()> {
     let pool = db_inner!(pool);
 

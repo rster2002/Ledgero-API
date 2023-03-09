@@ -12,12 +12,12 @@ use crate::shared::DbTransaction;
 pub struct SplitService;
 
 impl SplitService {
-    pub async fn create_split(
-        mut db_transaction: DbTransaction<'_>,
-        user_id: String,
-        transaction_id: String,
-        body: NewSplitDto,
-    ) -> Result<sqlx::Transaction<'_, Postgres>> {
+    pub async fn create_split<'a>(
+        mut db_transaction: DbTransaction<'a>,
+        user_id: &'a str,
+        transaction_id: &'a str,
+        body: NewSplitDto<'a>,
+    ) -> Result<sqlx::Transaction<'a, Postgres>> {
         let parent_transaction = sqlx::query!(
             r#"
                 SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId
@@ -38,17 +38,17 @@ impl SplitService {
             transaction_type: TransactionType::Split,
             follow_number: Uuid::new_v4().to_string(),
             original_description: body.description.to_string(),
-            description: body.description,
+            description: body.description.to_string(),
             complete_amount: body.amount,
             amount: body.amount,
             date: Utc::now(),
             bank_account_id: parent_transaction.bankaccountid,
-            category_id: body.category_id,
+            category_id: body.category_id.map(|v| v.to_string()),
+            subcategory_id: body.subcategory_id.map(|v| v.to_string()),
             parent_transaction_id: Some(parent_transaction.id),
             external_account_name: parent_transaction.externalaccountname,
             external_account_id: parent_transaction.externalaccountid,
             parent_import_id: None,
-            subcategory_id: body.subcategory_id,
             order_indicator: 0,
         };
 
@@ -72,13 +72,13 @@ impl SplitService {
         Ok(db_transaction)
     }
 
-    pub async fn update_split(
-        mut db_transaction: DbTransaction<'_>,
-        user_id: String,
-        transaction_id: String,
-        split_id: String,
-        body: NewSplitDto,
-    ) -> Result<sqlx::Transaction<'_, Postgres>> {
+    pub async fn update_split<'a>(
+        mut db_transaction: DbTransaction<'a>,
+        user_id: &'a str,
+        transaction_id: &'a str,
+        split_id: &'a str,
+        body: NewSplitDto<'a>,
+    ) -> Result<sqlx::Transaction<'a, Postgres>> {
         let parent_transaction = sqlx::query!(
             r#"
                 SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId

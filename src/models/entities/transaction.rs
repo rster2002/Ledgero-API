@@ -106,7 +106,7 @@ impl Transaction {
         Ok(())
     }
 
-    pub async fn guard_one(pool: &DbPool, id: &String, user_id: &String) -> Result<()> {
+    pub async fn guard_one(pool: &DbPool, id: &str, user_id: &str) -> Result<()> {
         sqlx::query!(
             r#"
                 SELECT Id

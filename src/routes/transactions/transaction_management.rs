@@ -38,15 +38,15 @@ pub async fn get_all_transactions(
 
 #[get("/<id>")]
 pub async fn get_single_transaction(
-    id: String,
     pool: &SharedPool,
     user: JwtUserPayload,
+    id: &str,
 ) -> Result<Json<TransactionDto>> {
     let pool = db_inner!(pool);
 
     let transaction = TransactionQuery::new(&user.uuid)
         .where_type(TransactionType::Transaction)
-        .where_id(&id)
+        .where_id(id)
         .fetch_one(pool)
         .await?;
 
@@ -59,17 +59,17 @@ pub async fn get_single_transaction(
 pub async fn change_category_for_transaction(
     pool: &SharedPool,
     user: JwtUserPayload,
-    id: String,
-    body: Json<TransactionSetCategoryDto>,
-) -> Result<()> {
-    let pool = db_inner!(pool);
+    id: &str,
+    body: Json<TransactionSetCategoryDto<'_>>,
+) -> Result<Json<TransactionDto>> {
+    let inner_pool = db_inner!(pool);
     let body = body.0;
 
-    Transaction::guard_one(pool, &id, &user.uuid).await?;
+    Transaction::guard_one(inner_pool, &id, &user.uuid).await?;
 
     // Check that the category and subcategory exists when they're not set to null.
     if let Some(category_id) = &body.category_id {
-        Category::guard_one(pool, category_id, &user.uuid).await?;
+        Category::guard_one(inner_pool, category_id, &user.uuid).await?;
 
         if let Some(subcategory_id) = &body.subcategory_id {
             sqlx::query!(
@@ -81,7 +81,7 @@ pub async fn change_category_for_transaction(
                 subcategory_id,
                 category_id
             )
-            .fetch_one(pool)
+            .fetch_one(inner_pool)
             .await?;
         }
     }
@@ -97,10 +97,11 @@ pub async fn change_category_for_transaction(
         body.category_id,
         body.subcategory_id
     )
-    .execute(pool)
+    .execute(inner_pool)
     .await?;
 
-    Ok(())
+    get_single_transaction(pool, user, id)
+        .await
 }
 
 /// There is a bit of a difference between the put and patch endpoints for a transactions:
@@ -110,17 +111,17 @@ pub async fn change_category_for_transaction(
 /// * The *put* endpoint is for correction transactions and cannot create splits, but can alter the
 ///   amount and bank account.
 #[patch("/<id>", data = "<body>")]
-pub async fn update_transaction(
+pub async fn update_transaction<'a>(
     pool: &SharedPool,
     user: JwtUserPayload,
-    id: String,
-    body: Json<UpdateTransactionDto<'_>>,
+    id: &'a str,
+    body: Json<UpdateTransactionDto<'a>>,
 ) -> Result<Json<TransactionDto>> {
     let inner_pool = db_inner!(pool);
     let body = body.0;
 
     // This also checks if the transaction has transactionType = 'transaction'
-    get_single_transaction(id.to_string(), pool, user.clone())
+    get_single_transaction(pool, user.clone(), id)
         .await?;
 
     let mut db_transaction = inner_pool.begin().await?;
@@ -154,8 +155,8 @@ pub async fn update_transaction(
     for split in body.splits {
         db_transaction = SplitService::create_split(
             db_transaction,
-            user.uuid.to_string(),
-            id.to_string(),
+            &user.uuid,
+            id,
             split,
         )
         .await?;
@@ -163,5 +164,5 @@ pub async fn update_transaction(
 
     db_transaction.commit().await?;
 
-    get_single_transaction(id.to_string(), pool, user.clone()).await
+    get_single_transaction(pool, user.clone(), id).await
 }
