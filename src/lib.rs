@@ -101,6 +101,7 @@ pub async fn run() -> Result<(), rocket::Error> {
         Arc::clone(&pool)
     );
 
+    info!("Starting server ({})",  env!("CARGO_PKG_VERSION"));
     let _ = rocket::build()
         .attach(Cors)
         .manage(pool)

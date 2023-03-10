@@ -230,6 +230,17 @@ async fn cannot_create_a_positive_split_for_a_negative_transaction(pool: PgPool)
         .await;
 
     assert!(result.is_err());
+
+    let splits = get_splits(
+        app.pool_state(),
+        app.alice(),
+        "transaction-2"
+    )
+        .await
+        .unwrap()
+        .0;
+
+    assert_eq!(splits.len(), 0);
 }
 
 #[sqlx::test(fixtures("users", "categories", "transactions"))]

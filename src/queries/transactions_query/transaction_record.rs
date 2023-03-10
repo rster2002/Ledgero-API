@@ -78,6 +78,9 @@ pub struct TransactionRecord {
     #[sqlx(rename = "ExternalAccountDescription?")]
     pub external_account_description: Option<String>,
 
+    #[sqlx(rename = "ExternalAccountHexColor?")]
+    pub external_account_hex_color: Option<String>,
+
     #[sqlx(rename = "ExternalAccounDefaultCategoryId?")]
     pub external_account_default_category_id: Option<String>,
 }

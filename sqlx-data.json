@@ -1046,6 +1046,20 @@
     },
     "query": "\n            SELECT *, (\n                SELECT SUM(Amount)::bigint\n                FROM Transactions\n                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId\n            )::bigint AS Amount\n            FROM Subcategories\n            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;\n        "
   },
+  "7481753d452563dcac5003e823e582cbf14116be9506ca89545d3e929277481c": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Grants\n            SET Id = $2, ExpireAt = $3\n            WHERE Id = $1;\n        "
+  },
   "78faca5bdced63d1962b1338bab3e91c2156e04d3ba89dbc16042c533a47ba4c": {
     "describe": {
       "columns": [
@@ -1647,19 +1661,6 @@
       }
     },
     "query": "\n                INSERT INTO Transactions\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);\n            "
-  },
-  "e57be234e257f045e245e5b079fcb4906e6b464a31623260dc3b2e222762a6cc": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "\n            UPDATE Grants\n            SET ExpireAt = $2\n            WHERE Id = $1;\n        "
   },
   "e65e7e1c0a8774cf1965d4bb8850215b62c16055faa0bb23675dc1a4ca63d92c": {
     "describe": {

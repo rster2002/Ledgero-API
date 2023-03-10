@@ -11,6 +11,7 @@ pub struct ExternalAccount {
     pub user_id: String,
     pub name: String,
     pub description: String,
+    pub hex_color: String,
 
     /// If this is set, when a transaction is matched an external account, the category id is
     /// automatically set to this value.

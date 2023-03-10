@@ -27,7 +27,7 @@ impl<'a> TransactionQuery<'a> {
                     c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
                     s.Id as "SubcategoryId?", s.Name as "SubcategoryName?", s.Description as "SubcategoryDescription?", s.HexColor as "SubcategoryHexColor?",
                     b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
-                    e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
+                    e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.HexColor as "ExternalAccountHexColor?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
                 FROM Transactions
                 LEFT JOIN categories c on transactions.categoryid = c.id
                 LEFT JOIN subcategories s on transactions.subcategoryid = s.id
@@ -167,10 +167,11 @@ impl<'a> TransactionQuery<'a> {
                 id,
                 name: record
                     .external_account_entity_name
-                    .expect("External account id was not null, the the external account name was"),
+                    .expect("External account id was not null, but the external account name was"),
                 description: record.external_account_description.expect(
-                    "External account id was not null, the the external account description was",
+                    "External account id was not null, but the external account description was",
                 ),
+                hex_color: record.external_account_hex_color.expect("External account id was not null, but the external account hex color was"),
                 default_category_id: record.external_account_default_category_id,
             })
         }

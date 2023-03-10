@@ -57,6 +57,7 @@ pub async fn get_all_external_accounts(
                 id: record.id,
                 name: record.name,
                 description: record.description,
+                hex_color: record.hexcolor,
                 default_category_id: record.defaultcategoryid,
             })
             .collect(),
@@ -67,7 +68,7 @@ pub async fn get_all_external_accounts(
 pub async fn create_new_external_account(
     pool: &SharedPool,
     user: JwtUserPayload,
-    body: Json<NewExternalAccountDto>,
+    body: Json<NewExternalAccountDto<'_>>,
 ) -> Result<Json<ExternalAccountDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
@@ -79,9 +80,10 @@ pub async fn create_new_external_account(
     let external_account = ExternalAccount {
         id: Uuid::new_v4().to_string(),
         user_id: user.uuid,
-        name: body.name,
-        description: body.description,
-        default_category_id: body.default_category_id,
+        name: body.name.to_string(),
+        description: body.description.to_string(),
+        hex_color: body.hex_color.to_string(),
+        default_category_id: body.default_category_id.map(|v| v.to_string()),
     };
 
     external_account.create(pool).await?;
@@ -90,6 +92,7 @@ pub async fn create_new_external_account(
         id: external_account.id,
         name: external_account.name,
         description: external_account.description,
+        hex_color: external_account.hex_color,
         default_category_id: external_account.default_category_id,
     }))
 }
@@ -118,6 +121,7 @@ pub async fn get_external_account_by_id(
         id,
         name: record.name,
         description: record.description,
+        hex_color: record.hexcolor,
         default_category_id: record.defaultcategoryid,
     }))
 }
@@ -127,7 +131,7 @@ pub async fn update_external_account(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
-    body: Json<NewExternalAccountDto>,
+    body: Json<NewExternalAccountDto<'_>>,
 ) -> Result<Json<ExternalAccountDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
@@ -155,9 +159,10 @@ pub async fn update_external_account(
 
     Ok(Json(ExternalAccountDto {
         id,
-        name: body.name,
-        description: body.description,
-        default_category_id: body.default_category_id,
+        name: body.name.to_string(),
+        description: body.description.to_string(),
+        hex_color: body.hex_color.to_string(),
+        default_category_id: body.default_category_id.map(|v| v.to_string()),
     }))
 }
 
@@ -223,7 +228,7 @@ pub async fn new_external_account_name(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
-    body: Json<NewExternalAccountNameDto>,
+    body: Json<NewExternalAccountNameDto<'_>>,
 ) -> Result<Json<ExternalAccountNameDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
@@ -233,7 +238,7 @@ pub async fn new_external_account_name(
     let external_account_name = ExternalAccountName {
         id: Uuid::new_v4().to_string(),
         user_id: user.uuid,
-        name: body.name,
+        name: body.name.to_string(),
         parent_external_account: id,
     };
 

@@ -2,8 +2,9 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NewExternalAccountDto {
-    pub name: String,
-    pub description: String,
-    pub default_category_id: Option<String>,
+pub struct NewExternalAccountDto<'a> {
+    pub name: &'a str,
+    pub description: &'a str,
+    pub hex_color: &'a str,
+    pub default_category_id: Option<&'a str>,
 }
