@@ -64,8 +64,90 @@ async fn a_positive_split_can_be_created(pool: PgPool) {
     util_check_transaction_amounts(
         &app,
         "transaction-1",
-        256700 - 10000,
-        256700
+        2567_00 - 100_00,
+        2567_00
+    )
+        .await;
+}
+
+#[sqlx::test(fixtures("users", "transactions"))]
+async fn multiple_positive_splits_can_be_created(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    create_split(
+        app.pool_state(),
+        app.alice(),
+        "transaction-1",
+        Json(NewSplitDto {
+            description: "Split 1",
+            amount: 100_00,
+            category_id: None,
+            subcategory_id: None,
+        })
+    )
+        .await
+        .unwrap();
+
+    create_split(
+        app.pool_state(),
+        app.alice(),
+        "transaction-1",
+        Json(NewSplitDto {
+            description: "Split 2",
+            amount: 50_00,
+            category_id: None,
+            subcategory_id: None,
+        })
+    )
+        .await
+        .unwrap();
+
+    util_check_transaction_amounts(
+        &app,
+        "transaction-1",
+        2567_00 - 150_00,
+        2567_00
+    )
+        .await;
+}
+
+#[sqlx::test(fixtures("users", "transactions"))]
+async fn multiple_negative_splits_can_be_created(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    create_split(
+        app.pool_state(),
+        app.alice(),
+        "transaction-2",
+        Json(NewSplitDto {
+            description: "Split 1",
+            amount: -30_00,
+            category_id: None,
+            subcategory_id: None,
+        })
+    )
+        .await
+        .unwrap();
+
+    create_split(
+        app.pool_state(),
+        app.alice(),
+        "transaction-2",
+        Json(NewSplitDto {
+            description: "Split 2",
+            amount: -15_00,
+            category_id: None,
+            subcategory_id: None,
+        })
+    )
+        .await
+        .unwrap();
+
+    util_check_transaction_amounts(
+        &app,
+        "transaction-2",
+        -93_00 + 45_00,
+        -93_00
     )
         .await;
 }
@@ -80,7 +162,7 @@ async fn cannot_create_a_negative_split_for_a_positive_transaction(pool: PgPool)
         "transaction-1",
         Json(NewSplitDto {
             description: "New split",
-            amount: -3000,
+            amount: -30_00,
             category_id: None,
             subcategory_id: None,
         })
@@ -100,7 +182,7 @@ async fn a_negative_split_can_be_created(pool: PgPool) {
         "transaction-2",
         Json(NewSplitDto {
             description: "New split",
-            amount: -3000,
+            amount: -30_00,
             category_id: Some("category-1"),
             subcategory_id: Some("subcategory-1"),
         })
@@ -124,8 +206,8 @@ async fn a_negative_split_can_be_created(pool: PgPool) {
     util_check_transaction_amounts(
         &app,
         "transaction-2",
-        -9300 + 3000,
-        -9300
+        -93_00 + 30_00,
+        -93_00
     )
         .await;
 }
@@ -140,7 +222,7 @@ async fn cannot_create_a_positive_split_for_a_negative_transaction(pool: PgPool)
         "transaction-2",
         Json(NewSplitDto {
             description: "New split",
-            amount: 3000,
+            amount: 30_00,
             category_id: None,
             subcategory_id: None,
         })
@@ -160,7 +242,7 @@ async fn a_split_with_a_subcategory_cannot_be_created_if_the_category_is_not_set
         "transaction-1",
         Json(NewSplitDto {
             description: "New split",
-            amount: 10000,
+            amount: 100_00,
             category_id: None,
             subcategory_id: Some("subcategory"),
         })
@@ -191,7 +273,7 @@ async fn cannot_create_a_single_split_that_exceeds_the_total_positive(pool: PgPo
         "transaction-1",
         Json(NewSplitDto {
             description: "Way too big",
-            amount: 100000,
+            amount: 10000_00,
             category_id: None,
             subcategory_id: None,
         })
@@ -214,8 +296,8 @@ async fn cannot_create_a_single_split_that_exceeds_the_total_positive(pool: PgPo
     util_check_transaction_amounts(
         &app,
         "transaction-1",
-        256700,
-        2567000
+        2567_00,
+        2567_00
     )
         .await;
 }
@@ -230,7 +312,7 @@ async fn cannot_create_a_single_split_that_exceeds_the_total_negative(pool: PgPo
         "transaction-2",
         Json(NewSplitDto {
             description: "Way too small",
-            amount: -100000,
+            amount: -1000_00,
             category_id: None,
             subcategory_id: None,
         })
@@ -240,9 +322,23 @@ async fn cannot_create_a_single_split_that_exceeds_the_total_negative(pool: PgPo
     assert!(result.is_err());
 }
 
-#[sqlx::test(fixtures("users", "transactions", "splits"))]
-async fn cannot_create_multiple_splits_that_exceeds_the_total(pool: PgPool) {
+#[sqlx::test(fixtures("users", "transactions"))]
+async fn cannot_create_multiple_splits_that_exceeds_the_total_positive(pool: PgPool) {
     let app = TestApp::new(pool);
+
+    create_split(
+        app.pool_state(),
+        app.alice(),
+        "transaction-1",
+        Json(NewSplitDto {
+            description: "Way too big",
+            amount: 1000_00,
+            category_id: None,
+            subcategory_id: None,
+        })
+    )
+        .await
+        .unwrap();
 
     let result = create_split(
         app.pool_state(),
@@ -250,7 +346,7 @@ async fn cannot_create_multiple_splits_that_exceeds_the_total(pool: PgPool) {
         "transaction-1",
         Json(NewSplitDto {
             description: "Way too big",
-            amount: 100000,
+            amount: 10000_00,
             category_id: None,
             subcategory_id: None,
         })
@@ -268,13 +364,66 @@ async fn cannot_create_multiple_splits_that_exceeds_the_total(pool: PgPool) {
         .unwrap()
         .0;
 
-    assert_eq!(splits.len(), 2);
+    assert_eq!(splits.len(), 1);
 
     util_check_transaction_amounts(
         &app,
         "transaction-1",
-        256700 - 10000,
-        2567000
+        2567_00 - 1000_00,
+        2567_00
+    )
+        .await;
+}
+
+#[sqlx::test(fixtures("users", "transactions"))]
+async fn cannot_create_multiple_splits_that_exceeds_the_total_negative(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    create_split(
+        app.pool_state(),
+        app.alice(),
+        "transaction-2",
+        Json(NewSplitDto {
+            description: "Too low",
+            amount: -3000,
+            category_id: None,
+            subcategory_id: None,
+        })
+    )
+        .await
+        .unwrap();
+
+    let result = create_split(
+        app.pool_state(),
+        app.alice(),
+        "transaction-2",
+        Json(NewSplitDto {
+            description: "Too low",
+            amount: -80_00,
+            category_id: None,
+            subcategory_id: None,
+        })
+    )
+        .await;
+
+    assert!(result.is_err());
+
+    let splits = get_splits(
+        app.pool_state(),
+        app.alice(),
+        "transaction-2"
+    )
+        .await
+        .unwrap()
+        .0;
+
+    assert_eq!(splits.len(), 1);
+
+    util_check_transaction_amounts(
+        &app,
+        "transaction-2",
+        -93_00 + 30_00,
+        -93_00
     )
         .await;
 }
@@ -310,7 +459,7 @@ async fn a_split_can_be_updated(pool: PgPool) {
         "split-1",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 100000,
+            amount: 1000_00,
             category_id: None,
             subcategory_id: None,
         }),
@@ -331,7 +480,12 @@ async fn a_split_can_be_updated(pool: PgPool) {
 
     assert_eq!(splits.get(0).unwrap().description, "Updated split");
 
-    util_check_transaction_amounts(&app, "transaction-1", 256700 - 150000, 256700)
+    util_check_transaction_amounts(
+        &app,
+        "transaction-1",
+        2567_00 - 1500_00,
+        2567_00
+    )
         .await;
 }
 
@@ -367,7 +521,7 @@ async fn cannot_update_a_split_that_doesnt_exist(pool: PgPool) {
         "non-existent",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 100000,
+            amount: 1000_00,
             category_id: None,
             subcategory_id: None,
         }),
@@ -388,7 +542,7 @@ async fn updating_a_positive_split_should_not_exceed_transaction_max(pool: PgPoo
         "split-1",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 1000000,
+            amount: 10000_00,
             category_id: None,
             subcategory_id: None,
         }),
@@ -409,7 +563,7 @@ async fn updating_a_negative_split_should_not_exceed_transaction_max(pool: PgPoo
         "split-3",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: -1000000,
+            amount: -10000_00,
             category_id: None,
             subcategory_id: None,
         }),
@@ -430,7 +584,7 @@ async fn cannot_update_positive_split_with_negative_value(pool: PgPool) {
         "split-1",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: -100,
+            amount: -1_00,
             category_id: None,
             subcategory_id: None,
         }),
@@ -451,7 +605,7 @@ async fn cannot_update_negative_split_with_positive_value(pool: PgPool) {
         "split-3",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 100,
+            amount: 1_00,
             category_id: None,
             subcategory_id: None,
         }),
@@ -472,7 +626,7 @@ async fn cannot_update_a_real_transaction_through_updating_a_split(pool: PgPool)
         "transaction-1",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 100,
+            amount: 1_00,
             category_id: None,
             subcategory_id: None,
         }),
@@ -498,8 +652,8 @@ async fn a_split_can_be_deleted(pool: PgPool) {
     util_check_transaction_amounts(
         &app,
         "transaction-1",
-        256700 - 50000,
-        256700
+        2567_00 - 500_00,
+        2567_00
     )
         .await;
 }

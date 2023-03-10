@@ -23,7 +23,7 @@ async fn user_can_register(pool: PgPool) {
         .unwrap();
 
     register(app.pool_state(), Json(RegisterUserDto {
-        username: "bob",
+        username: "bobb",
         password: "password123",
     }))
         .await
