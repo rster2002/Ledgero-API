@@ -5,9 +5,9 @@ COPY Cargo.toml ./Cargo.toml
 COPY src ./src
 COPY migrations ./migrations
 COPY sqlx-data.json ./sqlx-data.json
-RUN cargo build --release
+RUN CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse cargo build --release
 
 FROM ubuntu
-COPY --from=builder ./target/release/ledgero-api ./ledgero-api
+COPY --from=builder ./target/release/ledgero_api ./ledgero_api
 EXPOSE 8000
-CMD ["./ledgero-api"]
+CMD ["./ledgero_api"]
