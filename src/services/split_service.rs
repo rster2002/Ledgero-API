@@ -144,10 +144,8 @@ impl SplitService {
         Ok(db_transaction)
     }
 
-    fn guard_amount(parent_amount: i64, split_amount: i64) -> Result<()> {
-        if (parent_amount > 0 && split_amount > parent_amount)
-            || (parent_amount < 0 && split_amount < parent_amount)
-        {
+    fn guard_amount(available_amount: i64, split_amount: i64) -> Result<()> {
+        if !SplitService::check_amount(available_amount, split_amount) {
             return Err(
                 HttpError::new(400)
                     .message("Cannot create a split with an amount bigger than the remaining about of the parent")
@@ -157,4 +155,22 @@ impl SplitService {
 
         Ok(())
     }
+
+    fn check_amount(available_amount: i64, split_amount: i64) -> bool {
+        return if available_amount >= 0 {
+            split_amount <= available_amount && split_amount > 0
+        } else {
+            split_amount >= available_amount && split_amount < 0
+        }
+    }
+
+    // fn guard_amount(parent_amount: i64, split_amount: i64) -> Result<()> {
+    //     if (parent_amount > 0 && split_amount > parent_amount)
+    //         || (parent_amount < 0 && split_amount < parent_amount)
+    //     {
+
+    //     }
+    //
+    //     Ok(())
+    // }
 }
