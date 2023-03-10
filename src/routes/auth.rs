@@ -32,6 +32,22 @@ pub async fn register(
     let pool = db_inner!(pool);
     let body = body.0;
 
+    if body.username.len() < 4 {
+        return Err(
+            HttpError::new(400)
+                .message("Username has to have at least four characters")
+                .into()
+        );
+    }
+
+    if body.password.len() < 8 {
+        return Err(
+            HttpError::new(400)
+                .message("Password has to have at least four characters")
+                .into()
+        );
+    }
+
     let password_hash = PasswordHashService::create_new_hash(body.password);
     let user = User {
         id: Uuid::new_v4().to_string(),
@@ -120,6 +136,7 @@ pub async fn refresh(
     let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
     debug!("Attempting to refresh using grant id '{}'", refresh_payload.grant_id);
 
+    trace!("Checking if the user for the grant still exists");
     let user = sqlx::query!(
         r#"
             SELECT Id
@@ -132,6 +149,7 @@ pub async fn refresh(
     .await?;
 
     let Some(_) = user else {
+        debug!("No user was found for grant id '{}'", refresh_payload.grant_id);
         return Err(
             HttpError::from_status(Status::NotFound)
                 .message("No user with the give id was found. The user might have been deleted")
@@ -139,6 +157,7 @@ pub async fn refresh(
         );
     };
 
+    trace!("Checking if the grant exists");
     let grant = sqlx::query!(
         r#"
             SELECT *
@@ -151,6 +170,7 @@ pub async fn refresh(
     .await?;
 
     let Some(grant) = grant else {
+        debug!("No grant found with id '{}'", refresh_payload.grant_id);
         return Err(
             HttpError::from_status(Status::Unauthorized)
                 .message("The given refresh token has been revoked")
@@ -158,23 +178,26 @@ pub async fn refresh(
         );
     };
 
+    let new_grant_id = Uuid::new_v4().to_string();
     let new_expire_at = (Utc::now() + Months::new(3)).to_rfc3339();
 
-    debug!("Updating grant '{}' with new expire time '{}'", grant.id, new_expire_at);
+    debug!("Updating grant '{}' with new id '{}' and expire time '{}'", grant.id, new_grant_id, new_expire_at);
     sqlx::query!(
         r#"
             UPDATE Grants
-            SET ExpireAt = $2
+            SET Id = $2, ExpireAt = $3
             WHERE Id = $1;
         "#,
         grant.id,
+        new_grant_id,
         new_expire_at
     )
     .execute(pool)
     .await?;
 
+    trace!("Generating new access- and refresh tokens");
     let access_token = jwt_service.create_access_token(&access_payload)?;
-    let refresh_token = jwt_service.create_refresh_token(&grant.id)?;
+    let refresh_token = jwt_service.create_refresh_token(&new_grant_id)?;
 
     info!("Successfully refreshed JWT access token for '{}'", access_payload.username);
     Ok(Json(JwtResponseDto {
