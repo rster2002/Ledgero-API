@@ -211,6 +211,11 @@
           "name": "image",
           "ordinal": 6,
           "type_info": "Varchar"
+        },
+        {
+          "name": "hexcolor",
+          "ordinal": 7,
+          "type_info": "Varchar"
         }
       ],
       "nullable": [
@@ -220,7 +225,8 @@
         false,
         true,
         true,
-        true
+        true,
+        false
       ],
       "parameters": {
         "Left": [
@@ -707,6 +713,11 @@
           "name": "image",
           "ordinal": 6,
           "type_info": "Varchar"
+        },
+        {
+          "name": "hexcolor",
+          "ordinal": 7,
+          "type_info": "Varchar"
         }
       ],
       "nullable": [
@@ -716,7 +727,8 @@
         false,
         true,
         true,
-        true
+        true,
+        false
       ],
       "parameters": {
         "Left": [

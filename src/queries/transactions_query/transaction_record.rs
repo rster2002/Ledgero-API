@@ -42,7 +42,7 @@ pub struct TransactionRecord {
     #[sqlx(rename = "bankaccounthexcolor")]
     pub bank_account_hex_color: String,
 
-    #[sqlx(rename = "bankaccountname")]
+    #[sqlx(rename = "externalaccountname")]
     pub external_account_name: String,
 
     #[sqlx(rename = "CategoryId?")]
