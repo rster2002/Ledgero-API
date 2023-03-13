@@ -5,6 +5,7 @@ use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
+use crate::models::dto::transactions::update_transaction_details_dto::UpdateTransactionDetailsDto;
 use crate::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
 use crate::models::entities::category::Category;
 use crate::models::entities::transaction::Transaction;
@@ -65,9 +66,11 @@ pub async fn change_category_for_transaction(
     let inner_pool = db_inner!(pool);
     let body = body.0;
 
-    Transaction::guard_one(inner_pool, &id, &user.uuid).await?;
+    get_single_transaction(pool, user.clone(), id)
+        .await?;
 
     // Check that the category and subcategory exists when they're not set to null.
+    trace!("Checking category and subcategory exist");
     if let Some(category_id) = &body.category_id {
         Category::guard_one(inner_pool, category_id, &user.uuid).await?;
 
@@ -86,6 +89,7 @@ pub async fn change_category_for_transaction(
         }
     }
 
+    trace!("Updating transaction");
     sqlx::query!(
         r#"
             UPDATE Transactions
@@ -100,17 +104,48 @@ pub async fn change_category_for_transaction(
     .execute(inner_pool)
     .await?;
 
+    debug!("Updated category for transaction '{}'", id);
     get_single_transaction(pool, user, id)
         .await
 }
 
-/// There is a bit of a difference between the put and patch endpoints for a transactions:
-///
-/// * The *patch* endpoint is for real transactions and can create split, but cannot alter things like
-///   the amount and back account.
-/// * The *put* endpoint is for correction transactions and cannot create splits, but can alter the
-///   amount and bank account.
-#[patch("/<id>", data = "<body>")]
+#[patch("/<id>/details", data = "<body>")]
+pub async fn update_transaction_details<'a>(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: &'a str,
+    body: Json<UpdateTransactionDetailsDto<'a>>,
+) -> Result<Json<TransactionDto>> {
+    let inner_pool = db_inner!(pool);
+    let body = body.0;
+
+    // This also checks if the transaction has transactionType = 'transaction'
+    get_single_transaction(pool, user.clone(), id)
+        .await?;
+
+    trace!("Updating transactions in the database");
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET Description = $3, CategoryId = $4, SubcategoryId = $5, ExternalAccountId = $6
+            WHERE Id = $1 AND UserId = $2;
+        "#,
+        id,
+        user.uuid,
+        body.description,
+        body.category_id,
+        body.subcategory_id,
+        body.external_account_id
+    )
+        .execute(inner_pool)
+        .await?;
+
+    debug!("Updated details for transaction '{}'", id);
+    get_single_transaction(pool, user.clone(), id)
+        .await
+}
+
+#[put("/<id>", data = "<body>")]
 pub async fn update_transaction<'a>(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -124,23 +159,27 @@ pub async fn update_transaction<'a>(
     get_single_transaction(pool, user.clone(), id)
         .await?;
 
+    trace!("Starting database transaction");
     let mut db_transaction = inner_pool.begin().await?;
 
+    trace!("Updating transactions in the database");
     sqlx::query!(
         r#"
             UPDATE Transactions
-            SET Description = $3, CategoryId = $4, SubcategoryId = $5, Amount = CompleteAmount
+            SET Description = $3, CategoryId = $4, SubcategoryId = $5, ExternalAccountId = $6, Amount = CompleteAmount
             WHERE Id = $1 AND UserId = $2;
         "#,
         id,
         user.uuid,
         body.description,
         body.category_id,
-        body.subcategory_id
+        body.subcategory_id,
+        body.external_account_id
     )
     .execute(&mut db_transaction)
     .await?;
 
+    trace!("Deleting original splits");
     sqlx::query!(
         r#"
             DELETE FROM Transactions
@@ -152,6 +191,7 @@ pub async fn update_transaction<'a>(
     .execute(&mut db_transaction)
     .await?;
 
+    trace!("Creating new splits");
     for split in body.splits {
         db_transaction = SplitService::create_split(
             db_transaction,
@@ -162,7 +202,9 @@ pub async fn update_transaction<'a>(
         .await?;
     }
 
+    trace!("Committing database transaction");
     db_transaction.commit().await?;
 
+    debug!("Updated entire transaction '{}'", id);
     get_single_transaction(pool, user.clone(), id).await
 }
