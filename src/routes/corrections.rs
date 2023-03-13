@@ -94,6 +94,7 @@ pub async fn create_correction(
         .fetch_one(inner_pool)
         .await?;
 
+    debug!("Created correction '{}'", transaction.id);
     Ok(Json(transaction))
 }
 

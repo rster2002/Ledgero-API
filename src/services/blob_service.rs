@@ -50,7 +50,9 @@ impl BlobService {
         fs::create_dir_all(&unconfirmed_root)?;
         fs::create_dir_all(&confirmed_root)?;
 
+        debug!("'{:?}' is the root to stream new files to", stream_to_root);
         debug!("'{:?}' is the root for unconfirmed blobs", unconfirmed_root);
+        debug!("'{:?}' is the root for confirmed blobs", confirmed_root);
 
         Ok(Self {
             max_blob_unconfirmed,

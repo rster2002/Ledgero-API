@@ -111,5 +111,6 @@ pub async fn delete_import(pool: &SharedPool, user: JwtUserPayload, id: String) 
     .execute(inner_pool)
     .await?;
 
+    debug!("Deleted import '{}'", id);
     Ok(())
 }

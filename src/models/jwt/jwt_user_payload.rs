@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Failure, Success};
 use rocket::request::{FromRequest, Outcome};
@@ -14,6 +15,12 @@ pub struct JwtUserPayload {
     pub uuid: String,
     pub username: String,
     pub role: UserRole,
+}
+
+impl Display for JwtUserPayload {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} ({}, {})", self.username, self.role, self.uuid)
+    }
 }
 
 #[rocket::async_trait]

@@ -16,14 +16,14 @@ use crate::routes::users::shared_resolvers::{
 };
 use crate::services::password_hash_service::PasswordHashService;
 use crate::shared::{SharedBlobService, SharedPool};
-use crate::utils::guard_role::guard_role;
+use crate::utils::guard_role::{guard_role, guard_user_payload};
 
 #[get("/")]
 pub async fn admin_get_users(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<Json<Vec<UserDto>>> {
-    guard_role(&user.role, UserRole::System)?;
+    guard_user_payload(&user, UserRole::System)?;
 
     let inner_pool = db_inner!(pool);
 
@@ -55,7 +55,7 @@ pub async fn admin_create_user(
     user: JwtUserPayload,
     body: Json<NewUserDto<'_>>,
 ) -> Result<Json<UserDto>> {
-    guard_role(&user.role, UserRole::System)?;
+    guard_user_payload(&user, UserRole::System)?;
 
     let inner_pool = db_inner!(pool);
     let body = body.0;
@@ -73,6 +73,7 @@ pub async fn admin_create_user(
 
     new_user.create(inner_pool).await?;
 
+    info!("{} created a new user '{}' ({}, {})", user, new_user.username, new_user.role, new_user.id);
     admin_get_user_by_id(pool, user, uuid.to_string()).await
 }
 
@@ -82,7 +83,7 @@ pub async fn admin_get_user_by_id(
     user: JwtUserPayload,
     id: String,
 ) -> Result<Json<UserDto>> {
-    guard_role(&user.role, UserRole::System)?;
+    guard_user_payload(&user, UserRole::System)?;
     resolve_user_by_id(pool, &id).await
 }
 
@@ -94,12 +95,13 @@ pub async fn admin_update_user_information(
     id: String,
     body: Json<AdminUserInfoDto<'_>>,
 ) -> Result<Json<UserDto>> {
-    guard_role(&user.role, UserRole::System)?;
+    guard_user_payload(&user, UserRole::System)?;
 
     resolve_user_by_id(pool, &id).await?;
 
     resolve_update_user_info(pool, blob_service, &id, &body).await?;
 
+    info!("{} updated the information of user '{}'", user, id);
     admin_get_user_by_id(pool, user, id).await
 }
 
@@ -110,22 +112,24 @@ pub async fn admin_update_user_password(
     id: String,
     body: Json<AdminUpdateUserPasswordDto<'_>>,
 ) -> Result<Status> {
-    guard_role(&user.role, UserRole::System)?;
+    guard_user_payload(&user, UserRole::System)?;
 
     resolve_user_by_id(pool, &id).await?;
 
     resolve_update_user_password(pool, &id, &body).await?;
 
+    info!("{} updated the password of user '{}'", user, id);
     Ok(Status::Accepted)
 }
 
 #[delete("/<id>")]
 pub async fn admin_delete_user(pool: &SharedPool, user: JwtUserPayload, id: String) -> Result<()> {
-    guard_role(&user.role, UserRole::System)?;
+    guard_user_payload(&user, UserRole::System)?;
 
     resolve_user_by_id(pool, &id).await?;
 
     resolve_delete_user(pool, &id).await?;
 
+    info!("{} deleted user '{}'", user, id);
     Ok(())
 }

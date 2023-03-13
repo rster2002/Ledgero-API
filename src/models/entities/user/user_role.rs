@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
@@ -23,6 +24,17 @@ impl UserRole {
             UserRole::User => 1,
             UserRole::System => 2,
         }
+    }
+}
+
+impl Display for UserRole {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let slice = match self {
+            UserRole::User => "user",
+            UserRole::System => "system",
+        };
+
+        write!(f, "{}", slice)
     }
 }
 

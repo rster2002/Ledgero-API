@@ -154,6 +154,63 @@
     },
     "query": "\n                UPDATE Categories\n                SET OrderIndex = $3\n                WHERE Id = $1 AND UserId = $2;\n            "
   },
+  "188b8a352f9d4542acc486ee4de3c5b2de8637c319329c5f660188dd9abc5576": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "iban",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "userid",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "description",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "hexcolor",
+          "ordinal": 5,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "amount",
+          "ordinal": 6,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT *, (\n                SELECT SUM(Amount)\n                FROM Transactions\n                WHERE Transactions.BankAccountId = BankAccounts.id\n            )::bigint AS Amount\n            FROM BankAccounts\n            WHERE Id = $1 AND UserId = $2;\n        "
+  },
   "191d1075e1bc6ffbd52d8a89f1ecc97a06e4fe1efd66ff7314db0ab2c3c179b3": {
     "describe": {
       "columns": [
@@ -955,6 +1012,62 @@
     },
     "query": "\n                INSERT INTO ExternalAccountNames\n                VALUES ($1, $2, $3, $4);\n            "
   },
+  "7014e4528befb635c657b9f28453d9cb2eb8954faf0664b8b48413acd289bbb6": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "iban",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "userid",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "description",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "hexcolor",
+          "ordinal": 5,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "amount",
+          "ordinal": 6,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            SELECT *, (\n                SELECT SUM(Amount)\n                FROM Transactions\n                WHERE Transactions.BankAccountId = BankAccounts.id\n            )::bigint AS Amount\n            FROM BankAccounts\n            WHERE UserId = $1;\n        "
+  },
   "71439d5a0ce1e0fdfb5fa7777e498dcb0d2be85dc5b55ea3e6be9a5dbd33b94e": {
     "describe": {
       "columns": [
@@ -1329,56 +1442,6 @@
     },
     "query": "\n                INSERT INTO Users\n                VALUES ($1, $2, $3, $4);\n            "
   },
-  "ae917d1c80e476147b5b68f59bff078a084eb7a969b9e11f887b70ab8994880d": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "iban",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "userid",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "name",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "hexcolor",
-          "ordinal": 5,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT *\n            FROM BankAccounts\n            WHERE UserId = $1;\n        "
-  },
   "b390d0649764632522bd59379ea69d4b401f6dbd56464282799506601a58a384": {
     "describe": {
       "columns": [],
@@ -1500,57 +1563,6 @@
       }
     },
     "query": "\n                UPDATE Transactions\n                SET Amount = $3\n                WHERE Id = $1 AND UserId = $2;\n            "
-  },
-  "c61bc2668c7daa13f4a62e85727cf00121e6c5980a19ddb22da65ca80f9ba809": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "iban",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "userid",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "name",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "description",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "hexcolor",
-          "ordinal": 5,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            SELECT *\n            FROM BankAccounts\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
   "c8e31889f0c9fd7a5906a0dd43b9032bc4cb31acf9d690d42ec506c5fe491908": {
     "describe": {

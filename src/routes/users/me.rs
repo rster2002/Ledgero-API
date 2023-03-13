@@ -27,6 +27,7 @@ pub async fn update_me_info(
     user: JwtUserPayload,
     body: Json<UserInfoDto<'_>>,
 ) -> Result<()> {
+    info!("{} updated their account info", user);
     resolve_update_user_info(
         pool,
         blob_service,
@@ -64,6 +65,7 @@ pub async fn update_me_password(
         return Err(Status::Unauthorized.into());
     }
 
+    info!("{} updated their password", user);
     resolve_update_user_password(
         pool,
         &user.uuid,
@@ -76,5 +78,6 @@ pub async fn update_me_password(
 
 #[delete("/me")]
 pub async fn delete_me(pool: &SharedPool, user: JwtUserPayload) -> Result<()> {
+    info!("{} deleted their own account", user);
     resolve_delete_user(pool, &user.uuid).await
 }

@@ -76,9 +76,8 @@ pub async fn create_new_category(
     .fetch_one(inner_pool)
     .await?;
 
-    let uuid = Uuid::new_v4();
     let category = Category {
-        id: uuid.to_string(),
+        id: Uuid::new_v4().to_string(),
         user_id: user.uuid.to_string(),
         name: body.name,
         description: body.description,
@@ -88,7 +87,8 @@ pub async fn create_new_category(
 
     category.create(inner_pool).await?;
 
-    get_category_by_id(pool, user, uuid.to_string()).await
+    debug!("Created category '{}'", category.id);
+    get_category_by_id(pool, user, category.id).await
 }
 
 #[get("/<id>")]
@@ -134,11 +134,16 @@ pub async fn update_category(
     .execute(inner_pool)
     .await?;
 
+    debug!("Updated category '{}'", id);
     get_category_by_id(pool, user, id).await
 }
 
 #[delete("/<id>")]
-pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: String) -> Result<()> {
+pub async fn delete_category(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: &str,
+) -> Result<()> {
     let pool = db_inner!(pool);
 
     Category::guard_one(pool, &id, &user.uuid).await?;
@@ -154,6 +159,7 @@ pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: String
     .execute(pool)
     .await?;
 
+    debug!("Deleted category '{}'", id);
     Ok(())
 }
 

@@ -18,6 +18,9 @@ impl SplitService {
         transaction_id: &'a str,
         body: NewSplitDto<'a>,
     ) -> Result<sqlx::Transaction<'a, Postgres>> {
+        trace!("Creating new split");
+
+        trace!("Fetching parent transaction from database");
         let parent_transaction = sqlx::query!(
             r#"
                 SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId
@@ -52,10 +55,12 @@ impl SplitService {
             order_indicator: 0,
         };
 
+        debug!("Creating new split with id '{}'", split_transaction.id);
         split_transaction.create(&mut db_transaction).await?;
 
         let new_amount = parent_transaction.amount - split_transaction.amount;
 
+        trace!("Updating parent transaction with new remainder");
         sqlx::query!(
             r#"
                 UPDATE Transactions
@@ -146,6 +151,7 @@ impl SplitService {
 
     fn guard_amount(available_amount: i64, split_amount: i64) -> Result<()> {
         if !SplitService::check_amount(available_amount, split_amount) {
+            trace!("Split amount exceeds available amount");
             return Err(
                 HttpError::new(400)
                     .message("Cannot create a split with an amount bigger than the remaining about of the parent")
@@ -163,14 +169,4 @@ impl SplitService {
             split_amount >= available_amount && split_amount < 0
         }
     }
-
-    // fn guard_amount(parent_amount: i64, split_amount: i64) -> Result<()> {
-    //     if (parent_amount > 0 && split_amount > parent_amount)
-    //         || (parent_amount < 0 && split_amount < parent_amount)
-    //     {
-
-    //     }
-    //
-    //     Ok(())
-    // }
 }

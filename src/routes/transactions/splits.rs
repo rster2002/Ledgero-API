@@ -79,6 +79,7 @@ pub async fn create_split(
 
     db_transaction.commit().await?;
 
+    debug!("Created split");
     Ok(())
 }
 
@@ -98,6 +99,7 @@ pub async fn update_split(
 
     db_transaction.commit().await?;
 
+    debug!("Updated split");
     Ok(())
 }
 
@@ -178,6 +180,7 @@ pub async fn delete_split(
 
     db_transaction.commit().await?;
 
+    debug!("Deleted split");
     Ok(())
 }
 

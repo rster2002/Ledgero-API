@@ -124,6 +124,7 @@ pub async fn update_bank_account(
         .execute(inner_pool)
         .await?;
 
+    debug!("Updated bank account '{}'", id);
     get_bank_account_by_id(pool, user, id)
         .await
 }
@@ -167,6 +168,7 @@ pub async fn delete_bank_account(
         );
     }
 
+    debug!("Deleted bank account '{}'", id);
     Ok(())
 }
 
