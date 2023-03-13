@@ -79,7 +79,7 @@ pub async fn create_new_external_account(
 
     let external_account = ExternalAccount {
         id: Uuid::new_v4().to_string(),
-        user_id: user.uuid,
+        user_id: user.uuid.to_string(),
         name: body.name.to_string(),
         description: body.description.to_string(),
         hex_color: body.hex_color.to_string(),
@@ -237,7 +237,7 @@ pub async fn new_external_account_name(
 
     external_account_name.create(inner_pool).await?;
 
-    debug!("Added new external account name '{}' to '{}'", external_account_name.id, id);
+    debug!("Added new external account name '{}' to '{}'", external_account_name.id, external_account_name.parent_external_account);
     Ok(Json(ExternalAccountNameDto {
         id: external_account_name.id,
         name: external_account_name.name,
