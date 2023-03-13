@@ -2,6 +2,7 @@ use rocket::time::format_description::well_known::Rfc3339;
 use sqlx::{Postgres, QueryBuilder};
 
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
+use crate::models::dto::bank_accounts::slim_bank_account_dto::SlimBankAccountDto;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::categories::subcategories::slim_subcategory_dto::SlimSubcategoryDto;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
@@ -78,6 +79,12 @@ impl<'a> TransactionQuery<'a> {
         self
     }
 
+    pub fn where_bank_account(mut self, bank_account_id: impl Into<String>) -> Self {
+        self.builder.push(" AND BankAccountId = ");
+        self.builder.push_bind(bank_account_id.into());
+        self
+    }
+
     pub fn paginate(mut self, pagination: &PaginationQueryDto) -> Self {
         self.builder.push(" OFFSET ");
         self.builder.push_bind(pagination.get_offset());
@@ -119,7 +126,7 @@ impl<'a> TransactionQuery<'a> {
             complete_amount: record.complete_amount,
             amount: record.amount,
             date: record.date.format(&Rfc3339).expect("Incorrect formatting"),
-            bank_account: BankAccountDto {
+            bank_account: SlimBankAccountDto {
                 id: record.bank_account_id,
                 iban: record.bank_account_iban,
                 name: record.bank_account_name,

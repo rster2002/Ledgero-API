@@ -6,8 +6,13 @@ use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::bank_accounts::update_bank_account_dto::UpdateBankAccountDto;
+use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
+use crate::models::dto::transactions::transaction_dto::TransactionDto;
+use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
+use crate::queries::transactions_query::TransactionQuery;
 use crate::shared::SharedPool;
 
 pub fn create_bank_account_routes() -> Vec<Route> {
@@ -16,6 +21,7 @@ pub fn create_bank_account_routes() -> Vec<Route> {
         get_bank_account_by_id,
         update_bank_account,
         delete_bank_account,
+        get_transactions_for_bank_account,
     ]
 }
 
@@ -28,7 +34,11 @@ pub async fn get_bank_accounts(
 
     let records = sqlx::query!(
         r#"
-            SELECT *
+            SELECT *, (
+                SELECT SUM(Amount)
+                FROM Transactions
+                WHERE Transactions.BankAccountId = BankAccounts.id
+            )::bigint AS Amount
             FROM BankAccounts
             WHERE UserId = $1;
         "#,
@@ -45,6 +55,8 @@ pub async fn get_bank_accounts(
                 name: record.name,
                 description: record.description,
                 hex_color: record.hexcolor,
+                amount: record.amount
+                    .unwrap_or(0),
             }
         })
         .collect();
@@ -62,7 +74,11 @@ pub async fn get_bank_account_by_id(
 
     let record = sqlx::query!(
         r#"
-            SELECT *
+            SELECT *, (
+                SELECT SUM(Amount)
+                FROM Transactions
+                WHERE Transactions.BankAccountId = BankAccounts.id
+            )::bigint AS Amount
             FROM BankAccounts
             WHERE Id = $1 AND UserId = $2;
         "#,
@@ -78,6 +94,8 @@ pub async fn get_bank_account_by_id(
         name: record.name,
         description: record.description,
         hex_color: record.hexcolor,
+        amount: record.amount
+            .unwrap_or(0),
     }))
 }
 
@@ -150,4 +168,26 @@ pub async fn delete_bank_account(
     }
 
     Ok(())
+}
+
+#[get("/<id>/transactions?<pagination..>")]
+pub async fn get_transactions_for_bank_account(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: String,
+    pagination: PaginationQueryDto,
+) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
+    let inner_pool = db_inner!(pool);
+
+    let transactions = TransactionQuery::new(user.uuid)
+        .where_type_not(TransactionType::Split)
+        .order()
+        .paginate(&pagination)
+        .fetch_all(inner_pool)
+        .await?;
+
+    Ok(Json(PaginationResponseDto::from_query(
+        pagination,
+        transactions,
+    )))
 }

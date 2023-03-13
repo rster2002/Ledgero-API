@@ -1,6 +1,7 @@
 use serde::Serialize;
 
 use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
+use crate::models::dto::bank_accounts::slim_bank_account_dto::SlimBankAccountDto;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::categories::subcategories::slim_subcategory_dto::SlimSubcategoryDto;
 use crate::models::dto::external_accounts::external_account_dto::ExternalAccountDto;
@@ -17,7 +18,7 @@ pub struct TransactionDto {
     pub complete_amount: i64,
     pub amount: i64,
     pub date: String,
-    pub bank_account: BankAccountDto,
+    pub bank_account: SlimBankAccountDto,
     pub category: Option<SlimCategoryDto>,
     pub subcategory: Option<SlimSubcategoryDto>,
     pub external_account_name: String,
