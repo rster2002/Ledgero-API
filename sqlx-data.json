@@ -1242,6 +1242,23 @@
     },
     "query": "\n            SELECT Id, Username, ProfileImage, Role\n            FROM Users;\n        "
   },
+  "7ea251f18b2662c75c869c625966c78ea8614c8eeb5bb913210732746ebc3dd4": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Transactions\n            SET Description = $3, CategoryId = $4, SubcategoryId = $5, ExternalAccountId = $6, Amount = CompleteAmount\n            WHERE Id = $1 AND UserId = $2;\n        "
+  },
   "80d458da08bc745267699b801c3eccba75d69527fc9fd2cfc0881a2e5ebca455": {
     "describe": {
       "columns": [],
@@ -1375,22 +1392,6 @@
       }
     },
     "query": "\n                SELECT Id\n                FROM ExternalAccountNames\n                WHERE Id = $1 AND UserId = $2;\n            "
-  },
-  "98222700ed2dad18259d7fe35aacb1667e8f995f2c29cab6ed10317fafdbd814": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Varchar",
-          "Varchar",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "\n            UPDATE Transactions\n            SET Description = $3, CategoryId = $4, SubcategoryId = $5, Amount = CompleteAmount\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
   "9c42cf9749d27009a8daa6b2e42010c929c19d08baeddc763fd2406279c5c576": {
     "describe": {
@@ -1779,6 +1780,23 @@
       }
     },
     "query": "\n                SELECT Id\n                FROM Categories\n                WHERE Id = $1 AND UserId = $2;\n            "
+  },
+  "f4214511a99686f6a24ce80a025ea462b5579c332bae8c1baf35f8f241ef4885": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Transactions\n            SET Description = $3, CategoryId = $4, SubcategoryId = $5, ExternalAccountId = $6\n            WHERE Id = $1 AND UserId = $2;\n        "
   },
   "f72497601adc348781dc209d62b9dde0f237f28f4cc6cf0234c0a74c19014d1a": {
     "describe": {
