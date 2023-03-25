@@ -1,2 +1,4 @@
 INSERT INTO externalaccounts
-VALUES ('external-account-1', 'abc', 'Jumbo', 'The price it quite high', null, null);
+VALUES
+    ('external-account-1', 'abc', 'Jumbo', 'The price it quite high', null, null),
+    ('external-account-2', 'def', 'Jumbo', 'The price it quite high', null, null);

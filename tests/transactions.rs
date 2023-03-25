@@ -71,14 +71,36 @@ async fn a_single_transaction_is_returned_correctly(pool: PgPool) {
     let transaction = get_single_transaction(
         app.pool_state(),
         app.alice(),
-        "transaction-1"
+        "transaction-2"
     )
         .await
         .unwrap()
         .0;
 
-    assert_eq!(transaction.id, "transaction-1");
-    assert_eq!(transaction.amount, 256700);
+    assert_eq!(transaction.id, "transaction-2");
+    assert_eq!(transaction.amount, -9300);
+
+    let category = transaction.category.unwrap();
+
+    assert_eq!(category.id, "transaction-category-1");
+    assert_eq!(category.name, "Groceries");
+    assert_eq!(category.description, "For all the food");
+    assert_eq!(category.hex_color, "303030");
+
+    let bank_account = transaction.bank_account;
+
+    assert_eq!(bank_account.id, "bank-account-1");
+    assert_eq!(bank_account.iban, "NL12 RABO 12345678910");
+    assert_eq!(bank_account.name, "Primary bank account");
+    assert_eq!(bank_account.description, "For all of the normal stuff");
+    assert_eq!(bank_account.hex_color, "ff3030");
+
+    let external_account = transaction.external_account.unwrap();
+
+    assert_eq!(external_account.id, "transaction-external-account-1");
+    assert_eq!(external_account.name, "Jumbo");
+    assert_eq!(external_account.description, "The price it quite high");
+    assert_eq!(external_account.hex_color, "303030");
 }
 
 #[sqlx::test(fixtures("users", "transactions", "categories"))]
@@ -104,7 +126,7 @@ async fn the_category_of_a_transaction_can_be_changed(pool: PgPool) {
     assert_eq!(category.name, "Groceries");
 }
 
-#[sqlx::test(fixtures("users", "transactions", "categories"))]
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
 async fn the_subcategory_of_a_transaction_can_be_changed(pool: PgPool) {
     let app = TestApp::new(pool);
 
@@ -132,7 +154,7 @@ async fn the_subcategory_of_a_transaction_can_be_changed(pool: PgPool) {
     assert_eq!(subcategory.name, "Subcategory 1");
 }
 
-#[sqlx::test(fixtures("users", "transactions", "categories"))]
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
 async fn cannot_update_subcategory_without_category(pool: PgPool) {
     let app = TestApp::new(pool);
 
@@ -153,7 +175,7 @@ async fn cannot_update_subcategory_without_category(pool: PgPool) {
     assert!(transaction.subcategory.is_none());
 }
 
-#[sqlx::test(fixtures("users", "transactions", "categories", "external-accounts"))]
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories", "external-accounts"))]
 async fn an_entire_transaction_can_be_updated(pool: PgPool) {
     let app = TestApp::new(pool);
 
@@ -195,7 +217,7 @@ async fn an_entire_transaction_can_be_updated(pool: PgPool) {
     assert_eq!(external_account.name, "Jumbo");
 }
 
-#[sqlx::test(fixtures("users", "transactions", "categories"))]
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
 async fn subcategory_cannot_be_set_without_category_when_updating_entire_transaction(pool: PgPool) {
     let app = TestApp::new(pool);
 

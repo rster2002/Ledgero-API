@@ -169,7 +169,7 @@ impl<'a> TransactionQuery<'a> {
             });
         }
 
-        if let Some(id) = record.external_account_associated_name {
+        if let Some(id) = record.external_account_id {
             transaction.external_account = Some(ExternalAccountDto {
                 id,
                 name: record

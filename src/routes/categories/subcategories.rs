@@ -18,8 +18,8 @@ use crate::shared::SharedPool;
 pub async fn subcategory_by_id(
     pool: &SharedPool,
     user: JwtUserPayload,
-    category_id: String,
-    subcategory_id: String,
+    category_id: &str,
+    subcategory_id: &str,
 ) -> Result<Json<SubcategoryDto>> {
     let inner_pool = db_inner!(pool);
 
@@ -77,7 +77,7 @@ pub async fn delete_subcategory(
 pub async fn get_subcategories(
     pool: &SharedPool,
     user: JwtUserPayload,
-    category_id: String,
+    category_id: &str,
 ) -> Result<Json<Vec<SubcategoryDto>>> {
     let inner_pool = db_inner!(pool);
 
@@ -112,11 +112,11 @@ pub async fn get_subcategories(
 }
 
 #[post("/<category_id>/subcategories", data = "<body>")]
-pub async fn create_subcategory(
+pub async fn create_subcategory<'a>(
     pool: &SharedPool,
     user: JwtUserPayload,
-    category_id: String,
-    body: Json<NewSubcategoryDto>,
+    category_id: &'a str,
+    body: Json<NewSubcategoryDto<'a>>,
 ) -> Result<Json<SubcategoryDto>> {
     let inner_pool = db_inner!(pool);
     let body = body.0;
@@ -126,24 +126,24 @@ pub async fn create_subcategory(
     let subcategory = Subcategory {
         id: Uuid::new_v4().to_string(),
         user_id: user.uuid.to_string(),
-        parent_category: category_id,
-        name: body.name,
-        description: body.description,
-        hex_color: body.hex_color,
+        parent_category: category_id.to_string(),
+        name: body.name.to_string(),
+        description: body.description.to_string(),
+        hex_color: body.hex_color.to_string(),
     };
 
     subcategory.create(inner_pool).await?;
 
-    subcategory_by_id(pool, user, subcategory.parent_category, subcategory.id).await
+    subcategory_by_id(pool, user, &subcategory.parent_category, &subcategory.id).await
 }
 
 #[put("/<category_id>/subcategories/<subcategory_id>", data = "<body>")]
-pub async fn update_subcategory(
+pub async fn update_subcategory<'a>(
     pool: &SharedPool,
     user: JwtUserPayload,
-    category_id: String,
-    subcategory_id: String,
-    body: Json<NewSubcategoryDto>,
+    category_id: &'a str,
+    subcategory_id: &'a str,
+    body: Json<NewSubcategoryDto<'a>>,
 ) -> Result<Json<SubcategoryDto>> {
     let inner_pool = db_inner!(pool);
     let body = body.0;
@@ -171,8 +171,8 @@ pub async fn update_subcategory(
 pub async fn get_subcategory_transactions(
     pool: &SharedPool,
     user: JwtUserPayload,
-    category_id: String,
-    subcategory_id: String,
+    category_id: &str,
+    subcategory_id: &str,
     pagination: PaginationQueryDto,
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
     let inner_pool = db_inner!(pool);

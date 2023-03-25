@@ -70,7 +70,7 @@ pub struct TransactionRecord {
     pub subcategory_hex_color: Option<String>,
 
     #[sqlx(rename = "ExternalAccountId?")]
-    pub external_account_associated_name: Option<String>,
+    pub external_account_id: Option<String>,
 
     #[sqlx(rename = "ExternalAccountEntityName?")]
     pub external_account_entity_name: Option<String>,

@@ -60,7 +60,7 @@ pub async fn get_all_categories(
 pub async fn create_new_category(
     pool: &SharedPool,
     user: JwtUserPayload,
-    body: Json<NewCategoryDto>,
+    body: Json<NewCategoryDto<'_>>,
 ) -> Result<Json<CategoryDto>> {
     let body = body.0;
     let inner_pool = db_inner!(pool);
@@ -79,23 +79,23 @@ pub async fn create_new_category(
     let category = Category {
         id: Uuid::new_v4().to_string(),
         user_id: user.uuid.to_string(),
-        name: body.name,
-        description: body.description,
-        hex_color: body.hex_color,
+        name: body.name.to_string(),
+        description: body.description.to_string(),
+        hex_color: body.hex_color.to_string(),
         ordering_index: ordering_index.maxindex.unwrap_or(0) + 1,
     };
 
     category.create(inner_pool).await?;
 
     debug!("Created category '{}'", category.id);
-    get_category_by_id(pool, user, category.id).await
+    get_category_by_id(pool, user, &category.id).await
 }
 
 #[get("/<id>")]
 pub async fn get_category_by_id(
     pool: &SharedPool,
     user: JwtUserPayload,
-    id: String,
+    id: &str,
 ) -> Result<Json<CategoryDto>> {
     let pool = db_inner!(pool);
 
@@ -111,8 +111,8 @@ pub async fn get_category_by_id(
 pub async fn update_category(
     pool: &SharedPool,
     user: JwtUserPayload,
-    id: String,
-    body: Json<NewCategoryDto>,
+    id: &str,
+    body: Json<NewCategoryDto<'_>>,
 ) -> Result<Json<CategoryDto>> {
     let body = body.0;
     let inner_pool = db_inner!(pool);
@@ -135,7 +135,7 @@ pub async fn update_category(
     .await?;
 
     debug!("Updated category '{}'", id);
-    get_category_by_id(pool, user, id).await
+    get_category_by_id(pool, user, &id).await
 }
 
 #[delete("/<id>")]

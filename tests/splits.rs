@@ -30,7 +30,7 @@ async fn all_splits_are_returned_correctly(pool: PgPool) {
     assert_eq!(splits.get(1).unwrap().description, "Allocated 2");
 }
 
-#[sqlx::test(fixtures("users", "categories", "transactions"))]
+#[sqlx::test(fixtures("users", "categories", "subcategories", "transactions"))]
 async fn a_positive_split_can_be_created(pool: PgPool) {
     let app = TestApp::new(pool);
 
@@ -172,7 +172,7 @@ async fn cannot_create_a_negative_split_for_a_positive_transaction(pool: PgPool)
     assert!(result.is_err());
 }
 
-#[sqlx::test(fixtures("users", "categories", "transactions"))]
+#[sqlx::test(fixtures("users", "categories", "subcategories", "transactions"))]
 async fn a_negative_split_can_be_created(pool: PgPool) {
     let app = TestApp::new(pool);
 
@@ -243,7 +243,7 @@ async fn cannot_create_a_positive_split_for_a_negative_transaction(pool: PgPool)
     assert_eq!(splits.len(), 0);
 }
 
-#[sqlx::test(fixtures("users", "categories", "transactions"))]
+#[sqlx::test(fixtures("users", "categories", "subcategories", "transactions"))]
 async fn a_split_with_a_subcategory_cannot_be_created_if_the_category_is_not_set(pool: PgPool) {
     let app = TestApp::new(pool);
 
