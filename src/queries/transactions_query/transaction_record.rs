@@ -1,7 +1,7 @@
 use sqlx::FromRow;
 use sqlx::types::time::OffsetDateTime;
 
-#[derive(FromRow)]
+#[derive(Debug, FromRow)]
 pub struct TransactionRecord {
     #[sqlx(rename = "transactionid")]
     pub transaction_id: String,

@@ -15,8 +15,8 @@ VALUES
 
 INSERT INTO externalaccounts
 VALUES
-    ('transaction-external-account-1', 'abc', 'Jumbo', 'The price it quite high', null, null),
-    ('transaction-external-account-2', 'def', 'Jumbo', 'The price it quite high', null, null);
+    ('transaction-external-account-1', 'abc', 'Jumbo', 'The price it quite high', null, null, null, '303030'),
+    ('transaction-external-account-2', 'def', 'Jumbo', 'The price it quite high', null, null, null, '303030');
 
 INSERT INTO transactions
 VALUES

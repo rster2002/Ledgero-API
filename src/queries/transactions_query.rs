@@ -33,7 +33,7 @@ impl<'a> TransactionQuery<'a> {
                 LEFT JOIN categories c on transactions.categoryid = c.id
                 LEFT JOIN subcategories s on transactions.subcategoryid = s.id
                 LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
-                LEFT JOIN externalaccounts e on c.id = e.defaultcategoryid
+                LEFT JOIN externalaccounts e on transactions.externalaccountid = e.id
                 WHERE Transactions.UserId =
             "#,
         );
