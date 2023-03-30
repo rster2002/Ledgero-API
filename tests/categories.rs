@@ -183,6 +183,14 @@ async fn categories_ordering_can_be_changed(pool: PgPool) {
         .await
         .unwrap();
 
+    let categories = get_all_categories(
+        app.pool_state(),
+        app.alice(),
+    )
+        .await
+        .unwrap()
+        .0;
+
     assert_eq!(categories.get(0).unwrap().id, "category-2");
     assert_eq!(categories.get(1).unwrap().id, "category-1");
 }

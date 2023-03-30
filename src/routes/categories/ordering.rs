@@ -58,5 +58,7 @@ pub async fn category_ordering(
         .await?;
     }
 
+    db_transaction.commit().await?;
+
     Ok(())
 }
