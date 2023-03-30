@@ -45,5 +45,5 @@ async fn regression_test_issue_17(pool: PgPool) {
         .unwrap()
         .0;
 
-    assert_eq!(categories.len(), 1);
+    assert_eq!(categories.len(), 2);
 }

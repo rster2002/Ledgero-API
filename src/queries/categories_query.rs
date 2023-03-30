@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use sqlx::{Postgres, QueryBuilder};
 
@@ -72,7 +72,9 @@ impl<'a> CategoriesQuery<'a> {
     fn map_records(records: Vec<CategoryRecord>) -> Result<Vec<CategoryDto>> {
         let mut category_map = BTreeMap::new();
 
-        let ordering: Vec<String> = records.iter().map(|i| i.category_id.to_string()).collect();
+        let ordering: BTreeSet<String> = records.iter()
+            .map(|i| i.category_id.to_string())
+            .collect();
 
         for record in records {
             if !category_map.contains_key(&record.category_id) {
