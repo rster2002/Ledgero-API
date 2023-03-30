@@ -1,6 +1,7 @@
 use rocket::serde::json::Json;
 
 use crate::db_inner;
+use crate::error::http_error::HttpError;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
@@ -13,6 +14,8 @@ use crate::models::entities::transaction::transaction_type::TransactionType;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
+use crate::routes::categories::get_category_by_id;
+use crate::routes::categories::subcategories::subcategory_by_id;
 use crate::services::split_service::SplitService;
 use crate::shared::SharedPool;
 
@@ -68,6 +71,12 @@ pub async fn change_category_for_transaction(
 
     get_single_transaction(pool, user.clone(), id)
         .await?;
+
+    if body.category_id.is_none() && body.subcategory_id.is_some() {
+        return HttpError::new(400)
+            .message("Cannot set a subcategory with providing a category id")
+            .into();
+    }
 
     // Check that the category and subcategory exists when they're not set to null.
     trace!("Checking category and subcategory exist");
@@ -161,6 +170,31 @@ pub async fn update_transaction<'a>(
 
     trace!("Starting database transaction");
     let mut db_transaction = inner_pool.begin().await?;
+
+    if body.category_id.is_none() && body.subcategory_id.is_some() {
+        return HttpError::new(400)
+            .message("Cannot set a subcategory without defining a category")
+            .into();
+    }
+
+    if let Some(category_id) = &body.category_id {
+        get_category_by_id(
+            pool,
+            user.clone(),
+            category_id,
+        )
+            .await?;
+
+        if let Some(subcategory_id) = &body.subcategory_id {
+            subcategory_by_id(
+                pool,
+                user.clone(),
+                category_id,
+                subcategory_id,
+            )
+                .await?;
+        }
+    }
 
     trace!("Updating transactions in the database");
     sqlx::query!(

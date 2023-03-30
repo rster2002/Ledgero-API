@@ -1,6 +1,7 @@
 use rocket::serde::json::Json;
 use sqlx::PgPool;
 use ledgero_api::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use ledgero_api::models::dto::transactions::new_split_dto::NewSplitDto;
 use ledgero_api::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
 use ledgero_api::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
 use ledgero_api::prelude::*;
@@ -158,7 +159,7 @@ async fn the_subcategory_of_a_transaction_can_be_changed(pool: PgPool) {
 async fn cannot_update_subcategory_without_category(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let transaction = change_category_for_transaction(
+    let result = change_category_for_transaction(
         app.pool_state(),
         app.alice(),
         "transaction-1",
@@ -167,12 +168,27 @@ async fn cannot_update_subcategory_without_category(pool: PgPool) {
             subcategory_id: Some("subcategory-1"),
         })
     )
-        .await
-        .unwrap()
-        .0;
+        .await;
 
-    assert!(transaction.category.is_none());
-    assert!(transaction.subcategory.is_none());
+    assert!(result.is_err());
+}
+
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
+async fn cannot_update_subcategory_with_a_category_that_is_not_parent(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let result = change_category_for_transaction(
+        app.pool_state(),
+        app.alice(),
+        "transaction-1",
+        Json(TransactionSetCategoryDto {
+            category_id: Some("category-1"),
+            subcategory_id: Some("subcategory-2"),
+        })
+    )
+        .await;
+
+    assert!(result.is_err());
 }
 
 #[sqlx::test(fixtures("users", "transactions", "categories", "subcategories", "external-accounts"))]
@@ -221,7 +237,7 @@ async fn an_entire_transaction_can_be_updated(pool: PgPool) {
 async fn subcategory_cannot_be_set_without_category_when_updating_entire_transaction(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let transaction = update_transaction(
+    let result = update_transaction(
         app.pool_state(),
         app.alice(),
         "transaction-1",
@@ -233,16 +249,8 @@ async fn subcategory_cannot_be_set_without_category_when_updating_entire_transac
             splits: vec![],
         })
     )
-        .await
-        .unwrap()
-        .0;
+        .await;
 
-    assert!(transaction.category.is_none());
-    assert!(transaction.subcategory.is_none());
-}
-
-#[sqlx::test(fixtures("users", "transactions", "categories"))]
-async fn splits_are_correctly_set_when_updating_entire_transaction(pool: PgPool) -> Result<()> {
-    todo!()
+    assert!(result.is_err());
 }
 

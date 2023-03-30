@@ -1,4 +1,6 @@
 use rocket::http::Status;
+use crate::error::Error;
+use crate::prelude::*;
 
 use crate::error::error_dto_trait::ToErrorDto;
 
@@ -37,5 +39,11 @@ impl ToErrorDto for HttpError {
         };
 
         message.to_string()
+    }
+}
+
+impl<T> Into<Result<T>> for HttpError {
+    fn into(self) -> Result<T> {
+        Err(Error::HttpError(self))
     }
 }
