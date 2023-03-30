@@ -60,18 +60,5 @@ pub async fn category_ordering(
 
     db_transaction.commit().await?;
 
-    let i = sqlx::query!(
-        r#"
-            SELECT *
-            FROM Categories
-            ORDER BY OrderIndex;
-        "#
-    )
-        .fetch_all(inner_pool)
-        .await
-        .unwrap();
-
-    dbg!(i);
-
     Ok(())
 }

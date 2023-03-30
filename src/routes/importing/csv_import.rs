@@ -167,9 +167,7 @@ pub async fn import_csv(
         .await?;
     }
 
-    dbg!("Here");
     db_transaction.commit().await?;
-    dbg!("And here");
 
     Ok(())
 }
