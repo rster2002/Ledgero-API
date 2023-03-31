@@ -183,6 +183,7 @@ pub async fn get_transactions_for_bank_account(
 
     let transactions = TransactionQuery::new(user.uuid)
         .where_type_not(TransactionType::Split)
+        .where_bank_account(id)
         .order()
         .paginate(&pagination)
         .fetch_all(inner_pool)
