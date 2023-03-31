@@ -5,6 +5,7 @@ use crate::error::http_error::HttpError;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::transactions::new_split_dto::NewSplitDto;
 use crate::models::dto::transactions::split_dto::SplitDto;
+use crate::models::entities::category::Category;
 use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
@@ -58,6 +59,32 @@ pub async fn create_split(
     body: Json<NewSplitDto<'_>>,
 ) -> Result<()> {
     let inner_pool = db_inner!(pool);
+
+    if body.category_id.is_none() && body.subcategory_id.is_some() {
+        return HttpError::new(400)
+            .message("Cannot set a subcategory with providing a category id")
+            .into();
+    }
+
+    // Check that the category and subcategory exists when they're not set to null.
+    trace!("Checking category and subcategory exist");
+    if let Some(category_id) = &body.category_id {
+        Category::guard_one(inner_pool, category_id, &user.uuid).await?;
+
+        if let Some(subcategory_id) = &body.subcategory_id {
+            sqlx::query!(
+                r#"
+                    SELECT Id
+                    FROM Subcategories
+                    WHERE Id = $1 AND ParentCategory = $2;
+                "#,
+                subcategory_id,
+                category_id
+            )
+                .fetch_one(inner_pool)
+                .await?;
+        }
+    }
 
     // Anything other than a 'transaction' type should should not be allowed to create a split
     sqlx::query!(
