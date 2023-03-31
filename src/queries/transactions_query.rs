@@ -178,7 +178,9 @@ impl<'a> TransactionQuery<'a> {
                 description: record.external_account_description.expect(
                     "External account id was not null, but the external account description was",
                 ),
-                hex_color: record.external_account_hex_color.expect("External account id was not null, but the external account hex color was"),
+                hex_color: record.external_account_hex_color.expect(
+                    "External account id was not null, but the external account hex color was",
+                ),
                 default_category_id: record.external_account_default_category_id,
             })
         }

@@ -1,5 +1,5 @@
-use rocket::Route;
 use rocket::serde::json::Json;
+use rocket::Route;
 use sqlx::Error::Database;
 
 use crate::db_inner;
@@ -44,20 +44,18 @@ pub async fn get_bank_accounts(
         "#,
         user.uuid
     )
-        .fetch_all(inner_pool)
-        .await?;
+    .fetch_all(inner_pool)
+    .await?;
 
-    let bank_accounts = records.into_iter()
-        .map(|record| {
-            BankAccountDto {
-                id: record.id,
-                iban: record.iban,
-                name: record.name,
-                description: record.description,
-                hex_color: record.hexcolor,
-                amount: record.amount
-                    .unwrap_or(0),
-            }
+    let bank_accounts = records
+        .into_iter()
+        .map(|record| BankAccountDto {
+            id: record.id,
+            iban: record.iban,
+            name: record.name,
+            description: record.description,
+            hex_color: record.hexcolor,
+            amount: record.amount.unwrap_or(0),
         })
         .collect();
 
@@ -85,8 +83,8 @@ pub async fn get_bank_account_by_id(
         id,
         user.uuid
     )
-        .fetch_one(inner_pool)
-        .await?;
+    .fetch_one(inner_pool)
+    .await?;
 
     Ok(Json(BankAccountDto {
         id: record.id,
@@ -94,12 +92,11 @@ pub async fn get_bank_account_by_id(
         name: record.name,
         description: record.description,
         hex_color: record.hexcolor,
-        amount: record.amount
-            .unwrap_or(0),
+        amount: record.amount.unwrap_or(0),
     }))
 }
 
-#[put("/<id>", data="<body>")]
+#[put("/<id>", data = "<body>")]
 pub async fn update_bank_account(
     pool: &SharedPool,
     user: JwtUserPayload,
@@ -121,12 +118,11 @@ pub async fn update_bank_account(
         body.description,
         body.hex_color
     )
-        .execute(inner_pool)
-        .await?;
+    .execute(inner_pool)
+    .await?;
 
     debug!("Updated bank account '{}'", id);
-    get_bank_account_by_id(pool, user, id)
-        .await
+    get_bank_account_by_id(pool, user, id).await
 }
 
 #[delete("/<id>")]
@@ -145,8 +141,8 @@ pub async fn delete_bank_account(
         id,
         user.uuid
     )
-        .execute(inner_pool)
-        .await;
+    .execute(inner_pool)
+    .await;
 
     if let Err(error) = result {
         let Database(db_error) = &error else {
@@ -158,13 +154,15 @@ pub async fn delete_bank_account(
         };
 
         if constraint != "transactions_bankaccountid_fkey" {
-            return Err(error.into())
+            return Err(error.into());
         }
 
         return Err(
             HttpError::new(409) // Conflict
-                .message("Cannot delete a bank account that still has transactions associated with it")
-                .into()
+                .message(
+                    "Cannot delete a bank account that still has transactions associated with it",
+                )
+                .into(),
         );
     }
 

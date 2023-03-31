@@ -1,5 +1,5 @@
-use rocket::Route;
 use rocket::serde::json::Json;
+use rocket::Route;
 use uuid::Uuid;
 
 use crate::db_inner;
@@ -89,8 +89,7 @@ pub async fn create_new_external_account(
     external_account.create(inner_pool).await?;
 
     debug!("Created external account '{}'", external_account.id);
-    get_external_account_by_id(pool, user.clone(), external_account.id)
-        .await
+    get_external_account_by_id(pool, user.clone(), external_account.id).await
 }
 
 #[get("/<id>")]
@@ -154,8 +153,7 @@ pub async fn update_external_account(
     .await?;
 
     debug!("Updated external account '{}'", id);
-    get_external_account_by_id(pool, user.clone(), id)
-        .await
+    get_external_account_by_id(pool, user.clone(), id).await
 }
 
 #[delete("/<id>")]
@@ -237,7 +235,10 @@ pub async fn new_external_account_name(
 
     external_account_name.create(inner_pool).await?;
 
-    debug!("Added new external account name '{}' to '{}'", external_account_name.id, external_account_name.parent_external_account);
+    debug!(
+        "Added new external account name '{}' to '{}'",
+        external_account_name.id, external_account_name.parent_external_account
+    );
     Ok(Json(ExternalAccountNameDto {
         id: external_account_name.id,
         name: external_account_name.name,

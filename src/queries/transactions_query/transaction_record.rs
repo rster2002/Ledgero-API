@@ -1,5 +1,5 @@
-use sqlx::FromRow;
 use sqlx::types::time::OffsetDateTime;
+use sqlx::FromRow;
 
 #[derive(Debug, FromRow)]
 pub struct TransactionRecord {

@@ -1,5 +1,5 @@
-use rocket::Route;
 use rocket::serde::json::Json;
+use rocket::Route;
 use uuid::Uuid;
 
 use crate::db_inner;
@@ -139,11 +139,7 @@ pub async fn update_category(
 }
 
 #[delete("/<id>")]
-pub async fn delete_category(
-    pool: &SharedPool,
-    user: JwtUserPayload,
-    id: &str,
-) -> Result<()> {
+pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: &str) -> Result<()> {
     let pool = db_inner!(pool);
 
     Category::guard_one(pool, &id, &user.uuid).await?;

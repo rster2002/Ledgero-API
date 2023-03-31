@@ -1,7 +1,7 @@
 use chrono::{Months, Utc};
-use rocket::{Route, State};
 use rocket::http::Status;
 use rocket::serde::json::Json;
+use rocket::{Route, State};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
@@ -13,8 +13,8 @@ use crate::models::dto::auth::login_user_dto::LoginUserDto;
 use crate::models::dto::auth::register_user_dto::RegisterUserDto;
 use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::grant::Grant;
-use crate::models::entities::user::User;
 use crate::models::entities::user::user_role::UserRole;
+use crate::models::entities::user::User;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::services::password_hash_service::PasswordHashService;
@@ -25,27 +25,20 @@ pub fn create_auth_routes() -> Vec<Route> {
 }
 
 #[post("/register", data = "<body>")]
-pub async fn register(
-    pool: &SharedPool,
-    body: Json<RegisterUserDto<'_>>,
-) -> Result<Status> {
+pub async fn register(pool: &SharedPool, body: Json<RegisterUserDto<'_>>) -> Result<Status> {
     let pool = db_inner!(pool);
     let body = body.0;
 
     if body.username.len() < 4 {
-        return Err(
-            HttpError::new(400)
-                .message("Username has to have at least four characters")
-                .into()
-        );
+        return Err(HttpError::new(400)
+            .message("Username has to have at least four characters")
+            .into());
     }
 
     if body.password.len() < 8 {
-        return Err(
-            HttpError::new(400)
-                .message("Password has to have at least four characters")
-                .into()
-        );
+        return Err(HttpError::new(400)
+            .message("Password has to have at least four characters")
+            .into());
     }
 
     let password_hash = PasswordHashService::create_new_hash(body.password);
@@ -134,7 +127,10 @@ pub async fn refresh(
     info!("Token refresh attempt for '{}'", access_payload.username);
 
     let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
-    debug!("Attempting to refresh using grant id '{}'", refresh_payload.grant_id);
+    debug!(
+        "Attempting to refresh using grant id '{}'",
+        refresh_payload.grant_id
+    );
 
     trace!("Checking if the user for the grant still exists");
     let user = sqlx::query!(
@@ -181,7 +177,10 @@ pub async fn refresh(
     let new_grant_id = Uuid::new_v4().to_string();
     let new_expire_at = (Utc::now() + Months::new(3)).to_rfc3339();
 
-    debug!("Updating grant '{}' with new id '{}' and expire time '{}'", grant.id, new_grant_id, new_expire_at);
+    debug!(
+        "Updating grant '{}' with new id '{}' and expire time '{}'",
+        grant.id, new_grant_id, new_expire_at
+    );
     sqlx::query!(
         r#"
             UPDATE Grants
@@ -199,7 +198,10 @@ pub async fn refresh(
     let access_token = jwt_service.create_access_token(&access_payload)?;
     let refresh_token = jwt_service.create_refresh_token(&new_grant_id)?;
 
-    info!("Successfully refreshed JWT access token for '{}'", access_payload.username);
+    info!(
+        "Successfully refreshed JWT access token for '{}'",
+        access_payload.username
+    );
     Ok(Json(JwtResponseDto {
         access_token,
         refresh_token,

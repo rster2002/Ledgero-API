@@ -8,7 +8,7 @@ use sqlx::types::time::OffsetDateTime;
 
 use crate::error::blob_error::BlobError;
 use crate::prelude::*;
-use crate::shared::{DbPool, PROJECT_DIRS, SharedPool};
+use crate::shared::{DbPool, SharedPool, PROJECT_DIRS};
 use crate::utils::rand_string::rand_string;
 
 /// The blob service handles everything regarding blobs and files. Creating and using a blob
@@ -31,17 +31,20 @@ impl BlobService {
     pub fn new(max_blob_unconfirmed: u32) -> Result<Self> {
         // This is the path the file is initially written to to infer the mime type to the token
         // can be generated.
-        let stream_to_root = PROJECT_DIRS.get()
+        let stream_to_root = PROJECT_DIRS
+            .get()
             .expect("Initialized")
             .cache_dir()
             .to_path_buf();
 
-        let unconfirmed_root = PROJECT_DIRS.get()
+        let unconfirmed_root = PROJECT_DIRS
+            .get()
             .expect("Initialized")
             .cache_dir()
             .join("unconfirmed");
 
-        let confirmed_root = PROJECT_DIRS.get()
+        let confirmed_root = PROJECT_DIRS
+            .get()
             .expect("Initialized")
             .data_dir()
             .join("blobs");
@@ -67,17 +70,15 @@ impl BlobService {
         &self,
         user_id: impl Into<String>,
         pool: &DbPool,
-        stream: DataStream<'_>
+        stream: DataStream<'_>,
     ) -> Result<String> {
         let id = rand_string(32);
         debug!("Starting upload for '{}'", id);
 
-        let temp_file = self.stream_to_root
-            .join(&id);
+        let temp_file = self.stream_to_root.join(&id);
 
         debug!("Streaming into '{:?}'", temp_file);
-        stream.into_file(&temp_file)
-            .await?;
+        stream.into_file(&temp_file).await?;
 
         let Some(file_meta) = infer::get_from_path(&temp_file)? else {
             info!("Failed to infer mimetype for '{:?}'", temp_file);
@@ -100,13 +101,15 @@ impl BlobService {
             mimetype,
             OffsetDateTime::from_unix_timestamp(Utc::now().timestamp())?,
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
-        let target_location = self.unconfirmed_root
-            .join(&token);
+        let target_location = self.unconfirmed_root.join(&token);
 
-        debug!("Moving streamed file from '{:?}' to '{:?}'", temp_file, target_location);
+        debug!(
+            "Moving streamed file from '{:?}' to '{:?}'",
+            temp_file, target_location
+        );
         fs::rename(temp_file, target_location)?;
 
         Ok(token)
@@ -124,11 +127,7 @@ impl BlobService {
             return Ok(None);
         };
 
-        Ok(Some(self.confirm_token(
-            user_id,
-            pool,
-            token
-        ).await?))
+        Ok(Some(self.confirm_token(user_id, pool, token).await?))
     }
 
     /// Confirms that the blob is now used somewhere and should be available. There are a couple of
@@ -160,28 +159,29 @@ impl BlobService {
             token,
             user_id
         )
-            .fetch_optional(pool)
-            .await?;
+        .fetch_optional(pool)
+        .await?;
 
         if let None = record_option {
             return Err(BlobError::NoBlobToConfirm.into());
         }
 
-        let file_path = self.confirmed_root
-            .join(&token);
+        let file_path = self.confirmed_root.join(&token);
 
         if file_path.exists() {
             return Ok(token);
         }
 
-        let unconfirmed_file_path = self.unconfirmed_root
-            .join(&token);
+        let unconfirmed_file_path = self.unconfirmed_root.join(&token);
 
         if !unconfirmed_file_path.exists() {
             return Err(BlobError::NoBlobToConfirm.into());
         }
 
-        debug!("Move unconfirmed blob from '{:?}' to '{:?}'", unconfirmed_file_path, file_path);
+        debug!(
+            "Move unconfirmed blob from '{:?}' to '{:?}'",
+            unconfirmed_file_path, file_path
+        );
         fs::rename(unconfirmed_file_path, file_path)?;
 
         sqlx::query!(
@@ -194,8 +194,8 @@ impl BlobService {
             user_id,
             OffsetDateTime::from_unix_timestamp(Utc::now().timestamp())?,
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
         Ok(token)
     }
@@ -211,10 +211,7 @@ impl BlobService {
         todo!()
     }
 
-    pub async fn cleanup(
-        &self,
-        pool: &DbPool,
-    ) -> Result<()> {
+    pub async fn cleanup(&self, pool: &DbPool) -> Result<()> {
         info!("Starting blob cleanup");
 
         let result = sqlx::query!(
@@ -224,10 +221,13 @@ impl BlobService {
             "#,
             self.max_blob_unconfirmed as i64
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
 
-        info!("Deleted {} blob records from the database", result.rows_affected());
+        info!(
+            "Deleted {} blob records from the database",
+            result.rows_affected()
+        );
 
         let records = sqlx::query!(
             r#"
@@ -240,8 +240,8 @@ impl BlobService {
                 GROUP BY blobs.token;
             "#
         )
-            .fetch_all(pool)
-            .await?;
+        .fetch_all(pool)
+        .await?;
 
         Ok(())
     }

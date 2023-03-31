@@ -72,9 +72,7 @@ impl<'a> CategoriesQuery<'a> {
     fn map_records(records: Vec<CategoryRecord>) -> Result<Vec<CategoryDto>> {
         let mut category_map = BTreeMap::new();
 
-        let ordering: Vec<String> = records.iter()
-            .map(|i| i.category_id.to_string())
-            .collect();
+        let ordering: Vec<String> = records.iter().map(|i| i.category_id.to_string()).collect();
 
         for record in records {
             if !category_map.contains_key(&record.category_id) {
@@ -114,13 +112,13 @@ impl<'a> CategoriesQuery<'a> {
 
         let categories = ordering
             .into_iter()
-            .filter_map(|id|
+            .filter_map(|id| {
                 if category_map.contains_key(&id) {
                     Some(category_map.remove(&*id).expect("Id not in map"))
                 } else {
                     None
                 }
-            )
+            })
             .collect();
 
         Ok(categories)

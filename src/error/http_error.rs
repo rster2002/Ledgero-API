@@ -1,6 +1,6 @@
-use rocket::http::Status;
 use crate::error::Error;
 use crate::prelude::*;
+use rocket::http::Status;
 
 use crate::error::error_dto_trait::ToErrorDto;
 

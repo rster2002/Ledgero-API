@@ -8,10 +8,7 @@ use rocket::tokio;
 use crate::services::blob_service::BlobService;
 use crate::shared::DbPool;
 
-pub fn start_scheduler(
-    blob_service: Arc<RwLock<BlobService>>,
-    pool: Arc<RwLock<DbPool>>,
-) {
+pub fn start_scheduler(blob_service: Arc<RwLock<BlobService>>, pool: Arc<RwLock<DbPool>>) {
     let scheduler_interval = env::var("SCHEDULER_INTERVAL_SECONDS")
         .expect("SCHEDULER_INTERVAL_SECONDS not set")
         .parse()

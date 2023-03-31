@@ -7,7 +7,10 @@ pub fn guard_user_payload(user: &JwtUserPayload, required_role: UserRole) -> Res
     let result = guard_role(&user.role, &required_role);
 
     if result.is_err() {
-        info!("User {} failed to perform an action that required role '{}'", user, required_role);
+        info!(
+            "User {} failed to perform an action that required role '{}'",
+            user, required_role
+        );
     }
 
     result

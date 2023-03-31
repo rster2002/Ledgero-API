@@ -1,9 +1,9 @@
-use std::fmt::{Display, Formatter};
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Failure, Success};
 use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 use crate::error::jwt_error::JwtError;
 use crate::models::entities::user::user_role::UserRole;

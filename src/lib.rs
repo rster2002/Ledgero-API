@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate rocket;
 
-use std::{env, fs};
 use std::sync::Arc;
 use std::time::Duration;
+use std::{env, fs};
 
 use async_rwlock::RwLock;
 use directories::{BaseDirs, ProjectDirs};
@@ -68,13 +68,13 @@ pub async fn run() -> Result<(), rocket::Error> {
     let db_connection_string =
         std::env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
 
-    let pool = Arc::new(
-        RwLock::new(PgPoolOptions::new()
+    let pool = Arc::new(RwLock::new(
+        PgPoolOptions::new()
             .max_connections(5)
             .connect(&db_connection_string)
             .await
-            .expect("Could not create database pool"))
-    );
+            .expect("Could not create database pool"),
+    ));
 
     sqlx::migrate!()
         .run(&*(pool.read().await))
@@ -82,10 +82,11 @@ pub async fn run() -> Result<(), rocket::Error> {
         .expect("Failed to migrate");
 
     // Configure directories
-    let project_dirs = ProjectDirs::from("dev", "Jumpdrive", "Ledgero-API")
-        .expect("Failed to init directories");
+    let project_dirs =
+        ProjectDirs::from("dev", "Jumpdrive", "Ledgero-API").expect("Failed to init directories");
 
-    PROJECT_DIRS.set(project_dirs)
+    PROJECT_DIRS
+        .set(project_dirs)
         .expect("Failed to share project dirs");
 
     // Create JWT service
@@ -96,12 +97,9 @@ pub async fn run() -> Result<(), rocket::Error> {
     let blob_service = Arc::new(RwLock::new(blob_service));
 
     // Start the scheduler
-    start_scheduler(
-        Arc::clone(&blob_service),
-        Arc::clone(&pool)
-    );
+    start_scheduler(Arc::clone(&blob_service), Arc::clone(&pool));
 
-    info!("Starting server ({})",  env!("CARGO_PKG_VERSION"));
+    info!("Starting server ({})", env!("CARGO_PKG_VERSION"));
     let _ = rocket::build()
         .attach(Cors)
         .manage(pool)

@@ -1,12 +1,15 @@
-use rocket::serde::json::Json;
-use sqlx::PgPool;
+use crate::common::TestApp;
 use ledgero_api::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use ledgero_api::models::dto::transactions::new_split_dto::NewSplitDto;
 use ledgero_api::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
 use ledgero_api::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
 use ledgero_api::prelude::*;
-use ledgero_api::routes::transactions::transaction_management::{change_category_for_transaction, get_all_transactions, get_single_transaction, update_transaction};
-use crate::common::TestApp;
+use ledgero_api::routes::transactions::transaction_management::{
+    change_category_for_transaction, get_all_transactions, get_single_transaction,
+    update_transaction,
+};
+use rocket::serde::json::Json;
+use sqlx::PgPool;
 
 mod common;
 
@@ -14,14 +17,15 @@ mod common;
 async fn transactions_are_returned_correctly(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let transactions = get_all_transactions(app.pool_state(), app.alice(), PaginationQueryDto {
-        page: 1,
-        limit: 10,
-    })
-        .await
-        .unwrap()
-        .0
-        .into_items();
+    let transactions = get_all_transactions(
+        app.pool_state(),
+        app.alice(),
+        PaginationQueryDto { page: 1, limit: 10 },
+    )
+    .await
+    .unwrap()
+    .0
+    .into_items();
 
     assert_eq!(transactions.len(), 3);
     assert_eq!(transactions.get(0).unwrap().id, "transaction-1");
@@ -33,13 +37,14 @@ async fn transactions_are_returned_correctly(pool: PgPool) {
 async fn transactions_can_be_paginated(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let page = get_all_transactions(app.pool_state(), app.alice(), PaginationQueryDto {
-        page: 1,
-        limit: 2,
-    })
-        .await
-        .unwrap()
-        .0;
+    let page = get_all_transactions(
+        app.pool_state(),
+        app.alice(),
+        PaginationQueryDto { page: 1, limit: 2 },
+    )
+    .await
+    .unwrap()
+    .0;
 
     assert!(!page.is_done());
 
@@ -49,13 +54,14 @@ async fn transactions_can_be_paginated(pool: PgPool) {
     assert_eq!(transactions.get(0).unwrap().id, "transaction-1");
     assert_eq!(transactions.get(1).unwrap().id, "transaction-2");
 
-    let page = get_all_transactions(app.pool_state(), app.alice(), PaginationQueryDto {
-        page: 2,
-        limit: 2,
-    })
-        .await
-        .unwrap()
-        .0;
+    let page = get_all_transactions(
+        app.pool_state(),
+        app.alice(),
+        PaginationQueryDto { page: 2, limit: 2 },
+    )
+    .await
+    .unwrap()
+    .0;
 
     assert!(page.is_done());
 
@@ -69,11 +75,7 @@ async fn transactions_can_be_paginated(pool: PgPool) {
 async fn a_single_transaction_is_returned_correctly(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let transaction = get_single_transaction(
-        app.pool_state(),
-        app.alice(),
-        "transaction-2"
-    )
+    let transaction = get_single_transaction(app.pool_state(), app.alice(), "transaction-2")
         .await
         .unwrap()
         .0;
@@ -115,11 +117,11 @@ async fn the_category_of_a_transaction_can_be_changed(pool: PgPool) {
         Json(TransactionSetCategoryDto {
             category_id: Some("category-1"),
             subcategory_id: None,
-        })
+        }),
     )
-        .await
-        .unwrap()
-        .0;
+    .await
+    .unwrap()
+    .0;
 
     let category = transaction.category.unwrap();
 
@@ -138,11 +140,11 @@ async fn the_subcategory_of_a_transaction_can_be_changed(pool: PgPool) {
         Json(TransactionSetCategoryDto {
             category_id: Some("category-1"),
             subcategory_id: Some("subcategory-1"),
-        })
+        }),
     )
-        .await
-        .unwrap()
-        .0;
+    .await
+    .unwrap()
+    .0;
 
     let category = transaction.category.unwrap();
 
@@ -166,9 +168,9 @@ async fn cannot_update_subcategory_without_category(pool: PgPool) {
         Json(TransactionSetCategoryDto {
             category_id: None,
             subcategory_id: Some("subcategory-1"),
-        })
+        }),
     )
-        .await;
+    .await;
 
     assert!(result.is_err());
 }
@@ -184,14 +186,20 @@ async fn cannot_update_subcategory_with_a_category_that_is_not_parent(pool: PgPo
         Json(TransactionSetCategoryDto {
             category_id: Some("category-1"),
             subcategory_id: Some("subcategory-2"),
-        })
+        }),
     )
-        .await;
+    .await;
 
     assert!(result.is_err());
 }
 
-#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories", "external-accounts"))]
+#[sqlx::test(fixtures(
+    "users",
+    "transactions",
+    "categories",
+    "subcategories",
+    "external-accounts"
+))]
 async fn an_entire_transaction_can_be_updated(pool: PgPool) {
     let app = TestApp::new(pool);
 
@@ -205,11 +213,11 @@ async fn an_entire_transaction_can_be_updated(pool: PgPool) {
             subcategory_id: Some("subcategory-1"),
             external_account_id: Some("external-account-1"),
             splits: vec![],
-        })
+        }),
     )
-        .await
-        .unwrap()
-        .0;
+    .await
+    .unwrap()
+    .0;
 
     // The description should be updated
     assert_eq!(transaction.description, "A new description");
@@ -247,10 +255,9 @@ async fn subcategory_cannot_be_set_without_category_when_updating_entire_transac
             subcategory_id: Some("subcategory-1"),
             external_account_id: None,
             splits: vec![],
-        })
+        }),
     )
-        .await;
+    .await;
 
     assert!(result.is_err());
 }
-

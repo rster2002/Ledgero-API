@@ -1,5 +1,5 @@
-use sqlx::{Executor, Postgres};
 use sqlx::FromRow;
+use sqlx::{Executor, Postgres};
 
 use crate::db_executor;
 use crate::prelude::*;

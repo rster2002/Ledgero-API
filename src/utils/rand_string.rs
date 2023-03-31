@@ -1,4 +1,4 @@
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 const CHARSET: &[u8] = b"0123456789abcdef";
 

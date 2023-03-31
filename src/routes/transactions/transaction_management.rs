@@ -9,8 +9,8 @@ use crate::models::dto::transactions::transaction_set_category_dto::TransactionS
 use crate::models::dto::transactions::update_transaction_details_dto::UpdateTransactionDetailsDto;
 use crate::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
 use crate::models::entities::category::Category;
-use crate::models::entities::transaction::Transaction;
 use crate::models::entities::transaction::transaction_type::TransactionType;
+use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
@@ -69,8 +69,7 @@ pub async fn change_category_for_transaction(
     let inner_pool = db_inner!(pool);
     let body = body.0;
 
-    get_single_transaction(pool, user.clone(), id)
-        .await?;
+    get_single_transaction(pool, user.clone(), id).await?;
 
     if body.category_id.is_none() && body.subcategory_id.is_some() {
         return HttpError::new(400)
@@ -114,8 +113,7 @@ pub async fn change_category_for_transaction(
     .await?;
 
     debug!("Updated category for transaction '{}'", id);
-    get_single_transaction(pool, user, id)
-        .await
+    get_single_transaction(pool, user, id).await
 }
 
 #[patch("/<id>/details", data = "<body>")]
@@ -129,8 +127,7 @@ pub async fn update_transaction_details<'a>(
     let body = body.0;
 
     // This also checks if the transaction has transactionType = 'transaction'
-    get_single_transaction(pool, user.clone(), id)
-        .await?;
+    get_single_transaction(pool, user.clone(), id).await?;
 
     trace!("Updating transactions in the database");
     sqlx::query!(
@@ -146,12 +143,11 @@ pub async fn update_transaction_details<'a>(
         body.subcategory_id,
         body.external_account_id
     )
-        .execute(inner_pool)
-        .await?;
+    .execute(inner_pool)
+    .await?;
 
     debug!("Updated details for transaction '{}'", id);
-    get_single_transaction(pool, user.clone(), id)
-        .await
+    get_single_transaction(pool, user.clone(), id).await
 }
 
 #[put("/<id>", data = "<body>")]
@@ -165,8 +161,7 @@ pub async fn update_transaction<'a>(
     let body = body.0;
 
     // This also checks if the transaction has transactionType = 'transaction'
-    get_single_transaction(pool, user.clone(), id)
-        .await?;
+    get_single_transaction(pool, user.clone(), id).await?;
 
     trace!("Starting database transaction");
     let mut db_transaction = inner_pool.begin().await?;
@@ -178,21 +173,10 @@ pub async fn update_transaction<'a>(
     }
 
     if let Some(category_id) = &body.category_id {
-        get_category_by_id(
-            pool,
-            user.clone(),
-            category_id,
-        )
-            .await?;
+        get_category_by_id(pool, user.clone(), category_id).await?;
 
         if let Some(subcategory_id) = &body.subcategory_id {
-            subcategory_by_id(
-                pool,
-                user.clone(),
-                category_id,
-                subcategory_id,
-            )
-                .await?;
+            subcategory_by_id(pool, user.clone(), category_id, subcategory_id).await?;
         }
     }
 
@@ -227,13 +211,7 @@ pub async fn update_transaction<'a>(
 
     trace!("Creating new splits");
     for split in body.splits {
-        db_transaction = SplitService::create_split(
-            db_transaction,
-            &user.uuid,
-            id,
-            split,
-        )
-        .await?;
+        db_transaction = SplitService::create_split(db_transaction, &user.uuid, id, split).await?;
     }
 
     trace!("Committing database transaction");

@@ -81,8 +81,8 @@ pub async fn create_split(
                 subcategory_id,
                 category_id
             )
-                .fetch_one(inner_pool)
-                .await?;
+            .fetch_one(inner_pool)
+            .await?;
         }
     }
 
@@ -96,8 +96,8 @@ pub async fn create_split(
         transaction_id,
         user.uuid
     )
-        .fetch_one(inner_pool)
-        .await?;
+    .fetch_one(inner_pool)
+    .await?;
 
     let mut db_transaction = inner_pool.begin().await?;
 

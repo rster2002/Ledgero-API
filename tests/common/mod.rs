@@ -1,12 +1,12 @@
-use std::str::FromStr;
-use std::sync::Arc;
 use async_rwlock::RwLock;
-use rocket::State;
-use rsa::{BigUint, RsaPrivateKey};
-use sqlx::{PgPool, Pool, Postgres};
 use ledgero_api::models::entities::user::user_role::UserRole;
 use ledgero_api::models::jwt::jwt_user_payload::JwtUserPayload;
 use ledgero_api::services::jwt_service::JwtService;
+use rocket::State;
+use rsa::{BigUint, RsaPrivateKey};
+use sqlx::{PgPool, Pool, Postgres};
+use std::str::FromStr;
+use std::sync::Arc;
 
 pub struct TestApp {
     pool: Arc<RwLock<Pool<Postgres>>>,

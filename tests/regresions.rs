@@ -1,9 +1,9 @@
-use rocket::serde::json::Json;
-use sqlx::PgPool;
+use crate::common::TestApp;
 use ledgero_api::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
 use ledgero_api::routes::categories::get_all_categories;
 use ledgero_api::routes::categories::subcategories::create_subcategory;
-use crate::common::TestApp;
+use rocket::serde::json::Json;
+use sqlx::PgPool;
 
 mod common;
 
@@ -19,10 +19,10 @@ async fn regression_test_issue_17(pool: PgPool) {
             name: "",
             description: "",
             hex_color: "",
-        })
+        }),
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     create_subcategory(
         app.pool_state(),
@@ -32,15 +32,12 @@ async fn regression_test_issue_17(pool: PgPool) {
             name: "",
             description: "",
             hex_color: "",
-        })
+        }),
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
-    let categories = get_all_categories(
-        app.pool_state(),
-        app.alice()
-    )
+    let categories = get_all_categories(app.pool_state(), app.alice())
         .await
         .unwrap()
         .0;

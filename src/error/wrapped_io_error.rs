@@ -12,9 +12,7 @@ pub struct WrappedIoError {
 
 impl WrappedIoError {
     pub fn new(error: io::Error) -> Self {
-        Self {
-            inner: error,
-        }
+        Self { inner: error }
     }
 }
 

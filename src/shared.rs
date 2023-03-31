@@ -30,7 +30,7 @@ macro_rules! db_executor {
 macro_rules! db_inner {
     ($name:ident) => {
         &*($name.inner().read().await);
-    }
+    };
 }
 
 pub static PROJECT_DIRS: OnceCell<ProjectDirs> = OnceCell::new();

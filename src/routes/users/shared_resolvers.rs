@@ -40,7 +40,9 @@ pub async fn resolve_update_user_info(
     let inner_pool = db_inner!(pool);
 
     let blob_service = blob_service.read().await;
-    let image_token = blob_service.confirm_optional(user_id, inner_pool, body.image_token).await?;
+    let image_token = blob_service
+        .confirm_optional(user_id, inner_pool, body.image_token)
+        .await?;
 
     let role_str: &str = body.role.into();
     let _record = sqlx::query!(
