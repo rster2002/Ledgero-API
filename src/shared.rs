@@ -29,7 +29,7 @@ macro_rules! db_executor {
 #[macro_export]
 macro_rules! db_inner {
     ($name:ident) => {
-        &*($name.inner().read().await);
+        &*($name.inner().read().await)
     };
 }
 
