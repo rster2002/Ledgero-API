@@ -152,17 +152,15 @@ pub async fn delete_split(
     .await?;
 
     let Some(parent_id) = split_record.parenttransactionid else {
-        return Err(
-            HttpError::new(404)
-                .message("Could not find a split with the given id for this transaction")
-                .into()
-        );
+        return HttpError::new(404)
+            .message("Could not find a split with the given id for this transaction")
+            .into();
     };
 
     if parent_id != transaction_id {
-        return Err(HttpError::new(404)
+        return HttpError::new(404)
             .message("Could not find a split with the given id for this transaction")
-            .into());
+            .into();
     }
 
     let transaction_record = sqlx::query!(
