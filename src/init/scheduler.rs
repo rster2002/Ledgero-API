@@ -23,7 +23,7 @@ pub fn start_scheduler(blob_service: Arc<RwLock<BlobService>>, pool: Arc<RwLock<
 
             let blob_service = blob_service.read().await;
             let pool = pool.read().await;
-            let cleanup_result = blob_service.cleanup(&*pool).await;
+            let cleanup_result = blob_service.cleanup(&pool).await;
 
             if let Err(error) = cleanup_result {
                 warn!("Failed to run blob cleanup: {:?}", error);

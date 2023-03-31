@@ -2,13 +2,13 @@
 extern crate rocket;
 
 use std::sync::Arc;
-use std::time::Duration;
-use std::{env, fs};
+
+use std::env;
 
 use async_rwlock::RwLock;
-use directories::{BaseDirs, ProjectDirs};
+use directories::ProjectDirs;
 use rocket::http::Status;
-use rocket::tokio;
+
 use sqlx::postgres::PgPoolOptions;
 
 use crate::cors::Cors;
@@ -25,8 +25,7 @@ use crate::routes::external_accounts::create_external_account_routes;
 use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
 use crate::routes::users::create_user_routes;
-use crate::services::blob_service::BlobService;
-use crate::services::jwt_service::JwtService;
+
 use crate::shared::PROJECT_DIRS;
 
 /// The shared error type where all the different errors are casted too to create one constant

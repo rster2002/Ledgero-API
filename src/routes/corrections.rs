@@ -12,7 +12,7 @@ use crate::models::entities::transaction::Transaction;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
-use crate::routes::transactions::transaction_management::get_single_transaction;
+
 use crate::shared::SharedPool;
 
 pub fn create_correction_routes() -> Vec<Route> {
@@ -64,7 +64,7 @@ pub async fn create_correction(
     .await?;
 
     let uuid = Uuid::new_v4();
-    let cloned_user = user.clone();
+    let _cloned_user = user.clone();
 
     let transaction = Transaction {
         id: uuid.to_string(),

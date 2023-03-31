@@ -42,8 +42,8 @@ impl ToErrorDto for HttpError {
     }
 }
 
-impl<T> Into<Result<T>> for HttpError {
-    fn into(self) -> Result<T> {
-        Err(Error::HttpError(self))
+impl<T> From<HttpError> for Result<T> {
+    fn from(val: HttpError) -> Self {
+        Err(Error::HttpError(val))
     }
 }

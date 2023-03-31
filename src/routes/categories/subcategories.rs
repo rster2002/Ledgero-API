@@ -121,7 +121,7 @@ pub async fn create_subcategory<'a>(
     let inner_pool = db_inner!(pool);
     let body = body.0;
 
-    Category::guard_one(inner_pool, &category_id, &user.uuid).await?;
+    Category::guard_one(inner_pool, category_id, &user.uuid).await?;
 
     let subcategory = Subcategory {
         id: Uuid::new_v4().to_string(),

@@ -8,8 +8,5 @@ pub fn create_blob_service() -> BlobService {
         .parse()
         .expect("SCHEDULER_INTERVAL_SECONDS is not a u32");
 
-    let blob_service =
-        BlobService::new(max_blob_unconfirmed).expect("Failed to create blob service");
-
-    blob_service
+    BlobService::new(max_blob_unconfirmed).expect("Failed to create blob service")
 }

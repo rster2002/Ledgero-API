@@ -1,8 +1,8 @@
 use chrono::{Months, Utc};
 use rocket::http::Status;
 use rocket::serde::json::Json;
-use rocket::{Route, State};
-use sqlx::{Pool, Postgres};
+use rocket::Route;
+
 use uuid::Uuid;
 
 use crate::db_inner;

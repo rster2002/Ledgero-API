@@ -117,7 +117,7 @@ pub async fn update_category(
     let body = body.0;
     let inner_pool = db_inner!(pool);
 
-    Category::guard_one(inner_pool, &id, &user.uuid).await?;
+    Category::guard_one(inner_pool, id, &user.uuid).await?;
 
     sqlx::query!(
         r#"
@@ -135,14 +135,14 @@ pub async fn update_category(
     .await?;
 
     debug!("Updated category '{}'", id);
-    get_category_by_id(pool, user, &id).await
+    get_category_by_id(pool, user, id).await
 }
 
 #[delete("/<id>")]
 pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: &str) -> Result<()> {
     let pool = db_inner!(pool);
 
-    Category::guard_one(pool, &id, &user.uuid).await?;
+    Category::guard_one(pool, id, &user.uuid).await?;
 
     sqlx::query!(
         r#"

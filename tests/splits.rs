@@ -1,6 +1,6 @@
 use crate::common::TestApp;
 use ledgero_api::models::dto::transactions::new_split_dto::NewSplitDto;
-use ledgero_api::prelude::*;
+
 use ledgero_api::routes::transactions::splits::{
     create_split, delete_split, get_splits, update_split,
 };
@@ -55,7 +55,7 @@ async fn a_positive_split_can_be_created(pool: PgPool) {
 
     assert_eq!(splits.get(0).unwrap().description, "New split");
 
-    util_check_transaction_amounts(&app, "transaction-1", 2567_00 - 100_00, 2567_00).await;
+    util_check_transaction_amounts(&app, "transaction-1", 256_700 - 10_000, 256_700).await;
 }
 
 #[sqlx::test(fixtures("users", "transactions"))]
@@ -68,7 +68,7 @@ async fn multiple_positive_splits_can_be_created(pool: PgPool) {
         "transaction-1",
         Json(NewSplitDto {
             description: "Split 1",
-            amount: 100_00,
+            amount: 10_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -90,7 +90,7 @@ async fn multiple_positive_splits_can_be_created(pool: PgPool) {
     .await
     .unwrap();
 
-    util_check_transaction_amounts(&app, "transaction-1", 2567_00 - 150_00, 2567_00).await;
+    util_check_transaction_amounts(&app, "transaction-1", 256_700 - 15_000, 256_700).await;
 }
 
 #[sqlx::test(fixtures("users", "transactions"))]
@@ -215,7 +215,7 @@ async fn a_split_with_a_subcategory_cannot_be_created_if_the_category_is_not_set
         "transaction-1",
         Json(NewSplitDto {
             description: "New split",
-            amount: 100_00,
+            amount: 10_000,
             category_id: None,
             subcategory_id: Some("subcategory"),
         }),
@@ -242,7 +242,7 @@ async fn cannot_create_a_single_split_that_exceeds_the_total_positive(pool: PgPo
         "transaction-1",
         Json(NewSplitDto {
             description: "Way too big",
-            amount: 10000_00,
+            amount: 1_000_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -258,7 +258,7 @@ async fn cannot_create_a_single_split_that_exceeds_the_total_positive(pool: PgPo
 
     assert_eq!(splits.len(), 0);
 
-    util_check_transaction_amounts(&app, "transaction-1", 2567_00, 2567_00).await;
+    util_check_transaction_amounts(&app, "transaction-1", 256_700, 256_700).await;
 }
 
 #[sqlx::test(fixtures("users", "transactions", "splits"))]
@@ -271,7 +271,7 @@ async fn cannot_create_a_single_split_that_exceeds_the_total_negative(pool: PgPo
         "transaction-2",
         Json(NewSplitDto {
             description: "Way too small",
-            amount: -1000_00,
+            amount: -100_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -291,7 +291,7 @@ async fn cannot_create_multiple_splits_that_exceeds_the_total_positive(pool: PgP
         "transaction-1",
         Json(NewSplitDto {
             description: "Way too big",
-            amount: 1000_00,
+            amount: 100_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -305,7 +305,7 @@ async fn cannot_create_multiple_splits_that_exceeds_the_total_positive(pool: PgP
         "transaction-1",
         Json(NewSplitDto {
             description: "Way too big",
-            amount: 10000_00,
+            amount: 1_000_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -321,7 +321,7 @@ async fn cannot_create_multiple_splits_that_exceeds_the_total_positive(pool: PgP
 
     assert_eq!(splits.len(), 1);
 
-    util_check_transaction_amounts(&app, "transaction-1", 2567_00 - 1000_00, 2567_00).await;
+    util_check_transaction_amounts(&app, "transaction-1", 256_700 - 100_000, 256_700).await;
 }
 
 #[sqlx::test(fixtures("users", "transactions"))]
@@ -398,7 +398,7 @@ async fn a_split_can_be_updated(pool: PgPool) {
         "split-1",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 1000_00,
+            amount: 100_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -415,7 +415,7 @@ async fn a_split_can_be_updated(pool: PgPool) {
 
     assert_eq!(splits.get(0).unwrap().description, "Updated split");
 
-    util_check_transaction_amounts(&app, "transaction-1", 2567_00 - 1500_00, 2567_00).await;
+    util_check_transaction_amounts(&app, "transaction-1", 256_700 - 150_000, 256_700).await;
 }
 
 #[sqlx::test(fixtures("users", "transactions", "splits"))]
@@ -450,7 +450,7 @@ async fn cannot_update_a_split_that_doesnt_exist(pool: PgPool) {
         "non-existent",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 1000_00,
+            amount: 100_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -471,7 +471,7 @@ async fn updating_a_positive_split_should_not_exceed_transaction_max(pool: PgPoo
         "split-1",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: 10000_00,
+            amount: 1_000_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -492,7 +492,7 @@ async fn updating_a_negative_split_should_not_exceed_transaction_max(pool: PgPoo
         "split-3",
         Json(NewSplitDto {
             description: "Updated split",
-            amount: -10000_00,
+            amount: -1_000_000,
             category_id: None,
             subcategory_id: None,
         }),
@@ -573,7 +573,7 @@ async fn a_split_can_be_deleted(pool: PgPool) {
         .await
         .unwrap();
 
-    util_check_transaction_amounts(&app, "transaction-1", 2567_00 - 500_00, 2567_00).await;
+    util_check_transaction_amounts(&app, "transaction-1", 256_700 - 50_000, 256_700).await;
 }
 
 #[sqlx::test(fixtures("users", "transactions", "splits"))]

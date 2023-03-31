@@ -1,14 +1,13 @@
-use directories::ProjectDirs;
 use rocket::data::ToByteUnit;
 use rocket::serde::json::Json;
-use rocket::{Data, Route, State};
+use rocket::{Data, Route};
 
 use crate::db_inner;
 use crate::models::dto::blobs::blob_token_dto::BlobTokenDto;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::services::blob_service::BlobService;
-use crate::shared::{SharedBlobService, SharedPool, PROJECT_DIRS};
+
+use crate::shared::{SharedBlobService, SharedPool};
 
 pub fn create_blob_routes() -> Vec<Route> {
     routes![upload_blob,]

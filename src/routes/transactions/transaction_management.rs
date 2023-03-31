@@ -10,7 +10,7 @@ use crate::models::dto::transactions::update_transaction_details_dto::UpdateTran
 use crate::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
 use crate::models::entities::category::Category;
 use crate::models::entities::transaction::transaction_type::TransactionType;
-use crate::models::entities::transaction::Transaction;
+
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;

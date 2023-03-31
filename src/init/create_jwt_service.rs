@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::{env, fs};
 
 use rsa::pkcs1::DecodeRsaPrivateKey;

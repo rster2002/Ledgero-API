@@ -30,7 +30,7 @@ pub async fn get_splits(
 ) -> Result<Json<Vec<SplitDto>>> {
     let pool = db_inner!(pool);
 
-    Transaction::guard_one(pool, &transaction_id, &user.uuid).await?;
+    Transaction::guard_one(pool, transaction_id, &user.uuid).await?;
 
     let records = sqlx::query_as!(
         SplitRecord,

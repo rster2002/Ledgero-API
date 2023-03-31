@@ -1,14 +1,13 @@
 use std::fs;
 use std::path::PathBuf;
 
-use base64_url::base64;
 use chrono::Utc;
 use rocket::data::DataStream;
 use sqlx::types::time::OffsetDateTime;
 
 use crate::error::blob_error::BlobError;
 use crate::prelude::*;
-use crate::shared::{DbPool, SharedPool, PROJECT_DIRS};
+use crate::shared::{DbPool, PROJECT_DIRS};
 use crate::utils::rand_string::rand_string;
 
 /// The blob service handles everything regarding blobs and files. Creating and using a blob
@@ -162,7 +161,7 @@ impl BlobService {
         .fetch_optional(pool)
         .await?;
 
-        if let None = record_option {
+        if record_option.is_none() {
             return Err(BlobError::NoBlobToConfirm.into());
         }
 
@@ -201,13 +200,13 @@ impl BlobService {
     }
 
     /// Returns a stream for the given blob if it exists.
-    pub async fn get_blob(&self, token: impl Into<String>) -> Result<()> {
+    pub async fn get_blob(&self, _token: impl Into<String>) -> Result<()> {
         todo!()
     }
 
     /// Returns a stream for the given blob if it exists and matches at least one of the provided
     /// mime types.
-    pub async fn get_blob_with_mimetype(&self, token: impl Into<String>) -> Result<()> {
+    pub async fn get_blob_with_mimetype(&self, _token: impl Into<String>) -> Result<()> {
         todo!()
     }
 
@@ -229,7 +228,7 @@ impl BlobService {
             result.rows_affected()
         );
 
-        let records = sqlx::query!(
+        let _records = sqlx::query!(
             r#"
                 SELECT token,
                        COUNT(e.*) +

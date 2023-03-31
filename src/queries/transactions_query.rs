@@ -1,7 +1,6 @@
 use rocket::time::format_description::well_known::Rfc3339;
 use sqlx::{Postgres, QueryBuilder};
 
-use crate::models::dto::bank_accounts::bank_account_dto::BankAccountDto;
 use crate::models::dto::bank_accounts::slim_bank_account_dto::SlimBankAccountDto;
 use crate::models::dto::categories::slim_category_dto::SlimCategoryDto;
 use crate::models::dto::categories::subcategories::slim_subcategory_dto::SlimSubcategoryDto;

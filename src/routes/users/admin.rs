@@ -16,7 +16,7 @@ use crate::routes::users::shared_resolvers::{
 };
 use crate::services::password_hash_service::PasswordHashService;
 use crate::shared::{SharedBlobService, SharedPool};
-use crate::utils::guard_role::{guard_role, guard_user_payload};
+use crate::utils::guard_role::guard_user_payload;
 
 #[get("/")]
 pub async fn admin_get_users(

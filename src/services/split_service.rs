@@ -163,10 +163,10 @@ impl SplitService {
     }
 
     fn check_amount(available_amount: i64, split_amount: i64) -> bool {
-        return if available_amount >= 0 {
+        if available_amount >= 0 {
             split_amount <= available_amount && split_amount > 0
         } else {
             split_amount >= available_amount && split_amount < 0
-        };
+        }
     }
 }
