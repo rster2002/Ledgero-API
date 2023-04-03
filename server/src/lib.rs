@@ -33,32 +33,32 @@ use crate::shared::PROJECT_DIRS;
 pub mod error;
 
 /// Contains all the structs like DTOs and entities.
-pub mod models;
+pub(crate) mod models;
 
 /// Module which allows other files to easily import some universal import.
-pub mod prelude;
+pub(crate) mod prelude;
 
 /// This module contains all the routes for the API and most of the business logic
 /// (yes the business logic is placed with the routing, come at me)
-pub mod routes;
+pub(crate) mod routes;
 
 /// Contains alias types for large or commonly used types.
-pub mod shared;
+pub(crate) mod shared;
 
 /// Shared utility functions used throughout the application.
-pub mod utils;
+pub(crate) mod utils;
 
 /// Module for enabling CORS.
-pub mod cors;
+pub(crate) mod cors;
 
 /// Contains shared logic that is used throughout the entire application.
-pub mod services;
+pub(crate) mod services;
 
 /// Houses certain big queries that need a lot of mapping and config.
-pub mod queries;
+pub(crate) mod queries;
 
 /// Module for splitting off large chunks of code that needs to be run at startup.
-pub mod init;
+pub(crate) mod init;
 
 pub async fn run() -> Result<(), rocket::Error> {
     let _ = dotenv::dotenv();
