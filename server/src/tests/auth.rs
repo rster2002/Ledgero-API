@@ -1,15 +1,14 @@
-use crate::common::*;
-use ledgero_api::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
-use ledgero_api::models::dto::auth::login_user_dto::LoginUserDto;
-use ledgero_api::models::dto::auth::register_user_dto::RegisterUserDto;
-use ledgero_api::models::dto::auth::revoke_dto::RevokeDto;
-use ledgero_api::models::entities::user::user_role::UserRole;
-use ledgero_api::models::jwt::jwt_user_payload::JwtUserPayload;
-use ledgero_api::routes::auth::{login, refresh, register, revoke};
 use rocket::serde::json::Json;
 use sqlx::PgPool;
 
-mod common;
+use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
+use crate::models::dto::auth::login_user_dto::LoginUserDto;
+use crate::models::dto::auth::register_user_dto::RegisterUserDto;
+use crate::models::dto::auth::revoke_dto::RevokeDto;
+use crate::models::entities::user::user_role::UserRole;
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::routes::auth::{login, refresh, register, revoke};
+use crate::tests::common::TestApp;
 
 #[sqlx::test]
 async fn user_can_register(pool: PgPool) {

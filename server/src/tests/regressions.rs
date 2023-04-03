@@ -1,11 +1,10 @@
-use crate::common::TestApp;
-use ledgero_api::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
-use ledgero_api::routes::categories::get_all_categories;
-use ledgero_api::routes::categories::subcategories::create_subcategory;
 use rocket::serde::json::Json;
 use sqlx::PgPool;
 
-mod common;
+use crate::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
+use crate::routes::categories::get_all_categories;
+use crate::routes::categories::subcategories::create_subcategory;
+use crate::tests::common::TestApp;
 
 #[sqlx::test(fixtures("users", "categories", "subcategories"))]
 async fn regression_test_issue_17(pool: PgPool) {

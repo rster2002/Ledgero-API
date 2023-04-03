@@ -60,6 +60,9 @@ pub(crate) mod queries;
 /// Module for splitting off large chunks of code that needs to be run at startup.
 pub(crate) mod init;
 
+/// Includes tests for this crate
+mod tests;
+
 pub async fn run() -> Result<(), rocket::Error> {
     let _ = dotenv::dotenv();
     env_logger::init();

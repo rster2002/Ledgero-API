@@ -1,17 +1,12 @@
-use crate::common::TestApp;
-use ledgero_api::models::dto::categories::new_category_dto::NewCategoryDto;
-use ledgero_api::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
-use ledgero_api::routes::categories::ordering::category_ordering;
-use ledgero_api::routes::categories::subcategories::{
-    create_subcategory, get_subcategories, subcategory_by_id, update_subcategory,
-};
-use ledgero_api::routes::categories::{
-    create_new_category, delete_category, get_all_categories, get_category_by_id, update_category,
-};
 use rocket::serde::json::Json;
 use sqlx::PgPool;
 
-mod common;
+use crate::models::dto::categories::new_category_dto::NewCategoryDto;
+use crate::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
+use crate::routes::categories::{create_new_category, delete_category, get_all_categories, get_category_by_id, update_category};
+use crate::routes::categories::ordering::category_ordering;
+use crate::routes::categories::subcategories::{create_subcategory, get_subcategories, subcategory_by_id, update_subcategory};
+use crate::tests::common::TestApp;
 
 #[sqlx::test(fixtures("users"))]
 async fn category_can_be_created(pool: PgPool) {

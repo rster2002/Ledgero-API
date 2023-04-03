@@ -1,12 +1,14 @@
+use std::str::FromStr;
+use std::sync::Arc;
+
 use async_rwlock::RwLock;
-use ledgero_api::models::entities::user::user_role::UserRole;
-use ledgero_api::models::jwt::jwt_user_payload::JwtUserPayload;
-use ledgero_api::services::jwt_service::JwtService;
 use rocket::State;
 use rsa::{BigUint, RsaPrivateKey};
 use sqlx::{PgPool, Pool, Postgres};
-use std::str::FromStr;
-use std::sync::Arc;
+use crate::models::entities::user::user_role::UserRole;
+use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+
+use crate::services::jwt_service::JwtService;
 
 pub struct TestApp {
     pool: Arc<RwLock<Pool<Postgres>>>,
@@ -54,10 +56,3 @@ impl TestApp {
         }
     }
 }
-
-// pub fn tp() -> State<Arc<RwLock<Pool<Postgres>>>> {
-//     let state = ;
-//     State::from(&state)
-//     // let rocket = rocket::build().manage();
-//     // State::from(&rocket)
-// }

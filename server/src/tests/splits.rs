@@ -1,14 +1,10 @@
-use crate::common::TestApp;
-use ledgero_api::models::dto::transactions::new_split_dto::NewSplitDto;
-
-use ledgero_api::routes::transactions::splits::{
-    create_split, delete_split, get_splits, update_split,
-};
-use ledgero_api::routes::transactions::transaction_management::get_single_transaction;
 use rocket::serde::json::Json;
 use sqlx::PgPool;
 
-mod common;
+use crate::models::dto::transactions::new_split_dto::NewSplitDto;
+use crate::routes::transactions::splits::{create_split, delete_split, get_splits, update_split};
+use crate::routes::transactions::transaction_management::get_single_transaction;
+use crate::tests::common::TestApp;
 
 #[sqlx::test(fixtures("users", "transactions", "splits"))]
 async fn all_splits_are_returned_correctly(pool: PgPool) {
