@@ -1,20 +1,18 @@
 #[macro_use]
 extern crate rocket;
 
-use std::sync::Arc;
-
 use std::env;
+use std::sync::Arc;
 
 use async_rwlock::RwLock;
 use directories::ProjectDirs;
+use hmac::digest::typenum::op;
 use rocket::http::Status;
-
 use sqlx::postgres::PgPoolOptions;
 
 use crate::cors::Cors;
-use crate::init::create_blob_service::create_blob_service;
-use crate::init::create_jwt_service::create_jwt_service;
 use crate::init::scheduler::start_scheduler;
+use crate::init::start_options::StartOptions;
 use crate::routes::aggregates::create_aggregate_routes;
 use crate::routes::auth::create_auth_routes;
 use crate::routes::bank_accounts::create_bank_account_routes;
@@ -25,7 +23,8 @@ use crate::routes::external_accounts::create_external_account_routes;
 use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
 use crate::routes::users::create_user_routes;
-
+use crate::services::blob_service::BlobService;
+use crate::services::jwt_service::JwtService;
 use crate::shared::PROJECT_DIRS;
 
 /// The shared error type where all the different errors are casted too to create one constant
@@ -52,28 +51,24 @@ pub(crate) mod utils;
 pub(crate) mod cors;
 
 /// Contains shared logic that is used throughout the entire application.
-pub(crate) mod services;
+pub mod services;
 
 /// Houses certain big queries that need a lot of mapping and config.
 pub(crate) mod queries;
 
 /// Module for splitting off large chunks of code that needs to be run at startup.
-pub(crate) mod init;
+pub mod init;
 
 /// Includes tests for this crate
 mod tests;
 
-pub async fn run() -> Result<(), rocket::Error> {
-    let _ = dotenv::dotenv();
+pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
     env_logger::init();
-
-    let db_connection_string =
-        std::env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
 
     let pool = Arc::new(RwLock::new(
         PgPoolOptions::new()
             .max_connections(5)
-            .connect(&db_connection_string)
+            .connect(&options.database_url)
             .await
             .expect("Could not create database pool"),
     ));
@@ -92,8 +87,16 @@ pub async fn run() -> Result<(), rocket::Error> {
         .expect("Failed to share project dirs");
 
     // Create JWT service
-    let jwt_service = create_jwt_service();
-    let blob_service = create_blob_service();
+    let jwt_service = JwtService::new(
+        options.jwt_signing_key,
+        options.jwt_expire_seconds,
+        options.jwt_issuer
+    );
+
+    // Create blob service
+    let blob_service = BlobService::new(
+        options.max_blob_unconfirmed,
+    ).expect("Failed to create blob service");
 
     // Wrap components in Arc<RwLock> where needed
     let blob_service = Arc::new(RwLock::new(blob_service));

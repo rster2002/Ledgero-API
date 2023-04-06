@@ -1,6 +1,8 @@
+use crate::db_executor;
 use crate::models::entities::user::user_role::UserRole;
 use crate::prelude::*;
 use crate::shared::DbPool;
+use sqlx::{Executor, Postgres};
 
 pub mod user_role;
 
@@ -15,7 +17,7 @@ pub struct User {
 }
 
 impl User {
-    pub async fn create(&self, pool: &DbPool) -> Result<()> {
+    pub async fn create<'r>(&self, pool: db_executor!('r)) -> Result<()> {
         let user_role: &str = self.role.into();
 
         sqlx::query!(

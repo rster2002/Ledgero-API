@@ -33,7 +33,6 @@ pub mod wrapped_sqlx_error;
 pub enum Error {
     Generic(String),
     IO(WrappedIoError),
-    DotEnv(dotenv::Error),
     Sqlx(WrappedSqlxError),
     SerdeJson(serde_json::Error),
     DecodeError(DecodeError),
@@ -54,12 +53,6 @@ impl Error {
 impl From<io::Error> for Error {
     fn from(value: io::Error) -> Self {
         Error::IO(WrappedIoError::new(value))
-    }
-}
-
-impl From<dotenv::Error> for Error {
-    fn from(value: dotenv::Error) -> Self {
-        Error::DotEnv(value)
     }
 }
 

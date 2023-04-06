@@ -47,15 +47,20 @@ impl PartialOrd for UserRole {
     }
 }
 
-impl From<String> for UserRole {
-    fn from(value: String) -> Self {
-        let str = &*value;
-
-        if str == "system" {
+impl From<&str> for UserRole {
+    fn from(value: &str) -> Self {
+        if value == "system" {
             return UserRole::System;
         }
 
         UserRole::User
+    }
+}
+
+impl From<String> for UserRole {
+    fn from(value: String) -> Self {
+        let str = &*value;
+        UserRole::from(str)
     }
 }
 

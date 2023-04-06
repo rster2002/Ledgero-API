@@ -20,14 +20,14 @@ use crate::prelude::Result;
 #[derive(Debug)]
 pub struct JwtService {
     signing_key: SigningKey<Sha256>,
-    access_token_seconds: i64,
+    access_token_seconds: u32,
     issuer: String,
 }
 
 impl JwtService {
     pub fn new(
         private_key: RsaPrivateKey,
-        access_token_seconds: i64,
+        access_token_seconds: u32,
         issuer: impl Into<String>,
     ) -> Self {
         Self {
@@ -37,7 +37,7 @@ impl JwtService {
         }
     }
 
-    pub fn get_access_token_seconds(&self) -> i64 {
+    pub fn get_access_token_seconds(&self) -> u32 {
         self.access_token_seconds
     }
 
@@ -56,7 +56,7 @@ impl JwtService {
             iss: self.issuer.to_string(),
             sub: "test".to_string(),
             aud: "authentication-server".to_string(),
-            exp: (Utc::now().add(Duration::seconds(self.access_token_seconds))).timestamp(),
+            exp: (Utc::now().add(Duration::seconds(self.access_token_seconds as i64))).timestamp(),
             nbf: Utc::now().timestamp(),
             iat: Utc::now().timestamp(),
             jti: Uuid::new_v4().to_string(),
