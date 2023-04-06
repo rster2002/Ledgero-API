@@ -9,12 +9,12 @@ use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
 use rocket::time::error::ComponentRange;
 use rocket::{Request, Response};
+use jumpdrive_auth::errors::jwt_error::JwtError;
 
 use crate::error::blob_error::BlobError;
 use crate::error::error_dto_trait::ToErrorDto;
 use crate::error::http_error::HttpError;
 use crate::error::import_error::ImportError;
-use crate::error::jwt_error::JwtError;
 use crate::error::wrapped_csv_error::WrappedCsvError;
 use crate::error::wrapped_io_error::WrappedIoError;
 use crate::error::wrapped_sqlx_error::WrappedSqlxError;

@@ -1,4 +1,4 @@
-use crate::error::jwt_error::JwtError;
+use jumpdrive_auth::errors::jwt_error::JwtError;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;

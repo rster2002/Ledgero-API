@@ -5,9 +5,9 @@ use directories::ProjectDirs;
 use once_cell::sync::OnceCell;
 use rocket::State;
 use sqlx::{Pool, Postgres};
+use jumpdrive_auth::services::jwt_service::JwtService;
 
 use crate::services::blob_service::BlobService;
-use crate::services::jwt_service::JwtService;
 
 pub type DbPool = Pool<Postgres>;
 

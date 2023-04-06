@@ -1071,6 +1071,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "jumpdrive-auth"
+version = "0.1.0"
+dependencies = [
+ "base64-url",
+ "chrono",
+ "hmac",
+ "rand",
+ "rsa",
+ "serde",
+ "serde_json",
+ "sha2",
+ "uuid",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1103,6 +1118,7 @@ dependencies = [
  "env_logger",
  "hmac",
  "infer",
+ "jumpdrive-auth",
  "log",
  "once_cell",
  "rand",

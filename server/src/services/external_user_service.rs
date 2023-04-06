@@ -5,8 +5,8 @@ use crate::prelude::*;
 use sqlx::{Executor, Postgres};
 use sqlx::postgres::PgPoolOptions;
 use uuid::Uuid;
+use jumpdrive_auth::services::password_hash_service::PasswordHashService;
 use crate::models::entities::user::User;
-use crate::services::password_hash_service::PasswordHashService;
 use crate::utils::single_use_connection::single_use_connection;
 
 /// Primarily used by external crates. The CLI in particular uses this to create users.

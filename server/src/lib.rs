@@ -9,6 +9,7 @@ use directories::ProjectDirs;
 use hmac::digest::typenum::op;
 use rocket::http::Status;
 use sqlx::postgres::PgPoolOptions;
+use jumpdrive_auth::services::jwt_service::JwtService;
 
 use crate::cors::Cors;
 use crate::init::scheduler::start_scheduler;
@@ -24,7 +25,6 @@ use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
 use crate::routes::users::create_user_routes;
 use crate::services::blob_service::BlobService;
-use crate::services::jwt_service::JwtService;
 use crate::shared::PROJECT_DIRS;
 
 /// The shared error type where all the different errors are casted too to create one constant

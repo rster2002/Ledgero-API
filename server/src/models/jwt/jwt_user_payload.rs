@@ -4,11 +4,11 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use jumpdrive_auth::errors::jwt_error::JwtError;
+use jumpdrive_auth::services::jwt_service::JwtService;
 
-use crate::error::jwt_error::JwtError;
 use crate::models::entities::user::user_role::UserRole;
 use crate::prelude::*;
-use crate::services::jwt_service::JwtService;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JwtUserPayload {
@@ -49,7 +49,7 @@ impl<'r> FromRequest<'r> for JwtUserPayload {
         let result = jwt_service.decode_access_token(bearer_value);
 
         let Ok(payload) = result else {
-            return Failure((Status::Unauthorized, result.expect_err("Was not Ok, bot also not an error?")));
+            return Failure((Status::Unauthorized, Error::from(result.expect_err("Was not Ok, bot also not an error?"))));
         };
 
         Success(payload)

@@ -5,10 +5,9 @@ use async_rwlock::RwLock;
 use rocket::State;
 use rsa::{BigUint, RsaPrivateKey};
 use sqlx::{PgPool, Pool, Postgres};
+use jumpdrive_auth::services::jwt_service::JwtService;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-
-use crate::services::jwt_service::JwtService;
 
 pub struct TestApp {
     pool: Arc<RwLock<Pool<Postgres>>>,

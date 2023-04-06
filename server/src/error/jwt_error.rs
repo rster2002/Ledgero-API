@@ -1,31 +1,9 @@
 use std::fmt::{Debug, Display, Formatter};
 
 use rocket::http::Status;
+use jumpdrive_auth::errors::jwt_error::JwtError;
 
 use crate::error::error_dto_trait::ToErrorDto;
-
-#[derive(Debug)]
-pub enum JwtError {
-    PayloadIsNotJson,
-    PayloadNotAnObject,
-    NotAnAccessToken,
-    MissingHeader,
-    MissingPayload,
-    MissingSignature,
-    InvalidSignature,
-    UsedBeforeNotBeforeClaim,
-    UsedAfterExpireClaim,
-    NotEnoughPermissions,
-    MissingToken,
-}
-
-impl Display for JwtError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "JWT: {:?}", self)
-    }
-}
-
-impl std::error::Error for JwtError {}
 
 impl ToErrorDto for JwtError {
     fn get_status_code(&self) -> Status {
@@ -42,6 +20,8 @@ impl ToErrorDto for JwtError {
             | JwtError::UsedBeforeNotBeforeClaim
             | JwtError::UsedAfterExpireClaim
             | JwtError::NotEnoughPermissions => Status::Forbidden,
+
+            _ => Status::InternalServerError,
         }
     }
 
@@ -60,6 +40,9 @@ impl ToErrorDto for JwtError {
                 "The current token does not have enough permissions to perform this action"
             }
             JwtError::MissingToken => "There is no token present in the request",
+            JwtError::FailedToSerializeJson => "Failed to serialize JSON",
+            JwtError::FailedToDecodeBase64Url => "Failed to decode base 64 url",
+            JwtError::FailedToReadStringAsUtf8 => "Failed to read string as UTF 8",
         };
 
         slice.to_string()

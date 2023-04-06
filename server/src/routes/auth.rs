@@ -4,6 +4,8 @@ use rocket::serde::json::Json;
 use rocket::Route;
 
 use uuid::Uuid;
+use jumpdrive_auth::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
+use jumpdrive_auth::services::password_hash_service::PasswordHashService;
 
 use crate::db_inner;
 use crate::error::http_error::HttpError;
@@ -17,7 +19,6 @@ use crate::models::entities::user::user_role::UserRole;
 use crate::models::entities::user::User;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
-use crate::services::password_hash_service::PasswordHashService;
 use crate::shared::{SharedJwtService, SharedPool};
 
 pub fn create_auth_routes() -> Vec<Route> {
@@ -126,7 +127,7 @@ pub async fn refresh(
         jwt_service.decode_access_token_unchecked::<JwtUserPayload>(body.access_token)?;
     info!("Token refresh attempt for '{}'", access_payload.username);
 
-    let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
+    let refresh_payload: JwtRefreshPayload = jwt_service.decode_refresh_token(body.refresh_token)?;
     debug!(
         "Attempting to refresh using grant id '{}'",
         refresh_payload.grant_id
@@ -219,7 +220,7 @@ pub async fn revoke(
     let pool = db_inner!(pool);
 
     let body = body.0;
-    let refresh_payload = jwt_service.decode_refresh_token(body.refresh_token)?;
+    let refresh_payload: JwtRefreshPayload = jwt_service.decode_refresh_token(body.refresh_token)?;
 
     debug!("Revoking grant with id '{}'", refresh_payload.grant_id);
     Grant::delete_by_id(pool, refresh_payload.grant_id).await?;
