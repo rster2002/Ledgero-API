@@ -10,9 +10,9 @@ use crate::models::entities::user::User;
 use crate::utils::single_use_connection::single_use_connection;
 
 /// Primarily used by external crates. The CLI in particular uses this to create users.
-pub struct UserService;
+pub struct ExternalUserService;
 
-impl UserService {
+impl ExternalUserService {
     pub async fn create_user(
         connection_string: &str,
         username: &str,
@@ -33,6 +33,26 @@ impl UserService {
 
         user
             .create(&connection)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn delete_user(
+        connection_string: &str,
+        username: &str,
+    ) -> Result<()> {
+        let connection = single_use_connection(connection_string)
+            .await?;
+
+        sqlx::query!(
+            r#"
+                DELETE FROM Users
+                WHERE username = $1;
+            "#,
+            username
+        )
+            .execute(&connection)
             .await?;
 
         Ok(())

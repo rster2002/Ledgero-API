@@ -29,4 +29,7 @@ pub struct CreateUserOptions {
 pub struct DeleteUserOptions {
     #[arg(short, long)]
     pub username: Option<String>,
+
+    #[arg(long)]
+    pub force: bool,
 }
