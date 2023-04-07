@@ -34,7 +34,8 @@ impl TestApp {
                 )
                     .unwrap(),
                 300,
-                "tester"
+                "tester",
+                "internal-testing"
             ),
         }
     }

@@ -98,10 +98,16 @@ pub async fn login<'a>(
     };
 
     debug!("Generating a new JWT access token for '{}'", body.username);
-    let jwt = jwt_service.create_access_token(&user_payload)?;
+    let jwt = jwt_service.create_access_token(
+        &user.id,
+        &user_payload
+    )?;
 
     debug!("Generating a new JWT refresh token for '{}'", body.username);
-    let refresh = jwt_service.create_refresh_token(&grant.id)?;
+    let refresh = jwt_service.create_refresh_token(
+        &user.id,
+        &grant.id
+    )?;
 
     grant.create(pool).await?;
 
@@ -196,8 +202,15 @@ pub async fn refresh(
     .await?;
 
     trace!("Generating new access- and refresh tokens");
-    let access_token = jwt_service.create_access_token(&access_payload)?;
-    let refresh_token = jwt_service.create_refresh_token(&new_grant_id)?;
+    let access_token = jwt_service.create_access_token(
+        &access_payload.uuid,
+        &access_payload
+    )?;
+
+    let refresh_token = jwt_service.create_refresh_token(
+        &access_payload.uuid,
+        &new_grant_id
+    )?;
 
     info!(
         "Successfully refreshed JWT access token for '{}'",

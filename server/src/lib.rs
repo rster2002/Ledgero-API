@@ -90,7 +90,8 @@ pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
     let jwt_service = JwtService::new(
         options.jwt_signing_key,
         options.jwt_expire_seconds,
-        options.jwt_issuer
+        options.jwt_issuer,
+        "ledgero-api"
     );
 
     // Create blob service
