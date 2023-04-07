@@ -1,17 +1,17 @@
 use clap::{Subcommand, Args};
 
 #[derive(Debug, Subcommand)]
-pub enum CliOperation {
+pub enum CliCommands {
     /// Starts the API server.
     Start,
 
     /// Allows you to manage users when the application itself is not online.
     #[clap(subcommand)]
-    User(UserOperations),
+    User(UserCommands),
 }
 
 #[derive(Debug, Subcommand)]
-pub enum UserOperations {
+pub enum UserCommands {
     Create(CreateUserOptions),
     Delete(DeleteUserOptions),
 }

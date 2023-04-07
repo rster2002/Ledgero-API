@@ -2,7 +2,7 @@ use std::env;
 use dialoguer::{Confirm, Input};
 use dialoguer::theme::ColorfulTheme;
 use ledgero_api::services::external_user_service::ExternalUserService;
-use crate::arguments::cli_operation::DeleteUserOptions;
+use crate::arguments::cli_commands::DeleteUserOptions;
 use crate::prelude::*;
 
 pub async fn delete_user(options: DeleteUserOptions) -> Result<()> {

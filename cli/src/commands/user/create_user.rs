@@ -3,7 +3,7 @@ use dialoguer::{Input, Password, Select};
 use dialoguer::theme::ColorfulTheme;
 use crate::prelude::*;
 use ledgero_api::services::external_user_service::ExternalUserService;
-use crate::arguments::cli_operation::CreateUserOptions;
+use crate::arguments::cli_commands::CreateUserOptions;
 
 pub async fn create_user(options: CreateUserOptions) -> Result<()> {
     let _ = dotenv::dotenv().expect("Failed to load .env file");

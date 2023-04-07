@@ -1,10 +1,10 @@
-pub mod cli_operation;
+pub mod cli_commands;
 
 use clap::Parser;
-use crate::arguments::cli_operation::CliOperation;
+use crate::arguments::cli_commands::CliCommands;
 
 #[derive(Debug, Parser)]
 pub struct Arguments {
     #[clap(subcommand)]
-    pub operation: CliOperation,
+    pub command: CliCommands,
 }
