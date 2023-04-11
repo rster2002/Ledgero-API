@@ -9,7 +9,7 @@ use directories::ProjectDirs;
 use hmac::digest::typenum::op;
 use rocket::http::Status;
 use sqlx::postgres::PgPoolOptions;
-use jumpdrive_auth::services::jwt_service::JwtService;
+use jumpdrive_auth::services::JwtService;
 
 use crate::cors::Cors;
 use crate::init::scheduler::start_scheduler;

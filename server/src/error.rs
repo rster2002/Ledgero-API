@@ -9,7 +9,7 @@ use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
 use rocket::time::error::ComponentRange;
 use rocket::{Request, Response};
-use jumpdrive_auth::errors::jwt_error::JwtError;
+use jumpdrive_auth::errors::JwtError;
 
 use crate::error::blob_error::BlobError;
 use crate::error::error_dto_trait::ToErrorDto;

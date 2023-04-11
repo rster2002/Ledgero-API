@@ -5,7 +5,7 @@ use crate::prelude::*;
 use sqlx::{Executor, Postgres};
 use sqlx::postgres::PgPoolOptions;
 use uuid::Uuid;
-use jumpdrive_auth::services::password_hash_service::PasswordHashService;
+use jumpdrive_auth::services::PasswordHashService;
 use crate::models::entities::user::User;
 use crate::utils::single_use_connection::single_use_connection;
 

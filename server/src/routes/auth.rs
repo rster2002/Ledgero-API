@@ -4,8 +4,8 @@ use rocket::serde::json::Json;
 use rocket::Route;
 
 use uuid::Uuid;
-use jumpdrive_auth::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
-use jumpdrive_auth::services::password_hash_service::PasswordHashService;
+use jumpdrive_auth::models::jwt::JwtRefreshPayload;
+use jumpdrive_auth::services::PasswordHashService;
 
 use crate::db_inner;
 use crate::error::http_error::HttpError;
@@ -106,7 +106,9 @@ pub async fn login<'a>(
     debug!("Generating a new JWT refresh token for '{}'", body.username);
     let refresh = jwt_service.create_refresh_token(
         &user.id,
-        &grant.id
+        JwtRefreshPayload {
+            grant_id: grant.id.to_string(),
+        },
     )?;
 
     grant.create(pool).await?;
@@ -209,7 +211,9 @@ pub async fn refresh(
 
     let refresh_token = jwt_service.create_refresh_token(
         &access_payload.uuid,
-        &new_grant_id
+        JwtRefreshPayload {
+            grant_id: new_grant_id,
+        },
     )?;
 
     info!(

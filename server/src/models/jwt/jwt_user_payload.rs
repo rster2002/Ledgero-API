@@ -4,8 +4,8 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use jumpdrive_auth::errors::jwt_error::JwtError;
-use jumpdrive_auth::services::jwt_service::JwtService;
+use jumpdrive_auth::errors::JwtError;
+use jumpdrive_auth::services::JwtService;
 
 use crate::models::entities::user::user_role::UserRole;
 use crate::prelude::*;

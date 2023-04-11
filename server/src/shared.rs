@@ -5,7 +5,7 @@ use directories::ProjectDirs;
 use once_cell::sync::OnceCell;
 use rocket::State;
 use sqlx::{Pool, Postgres};
-use jumpdrive_auth::services::jwt_service::JwtService;
+use jumpdrive_auth::services::JwtService;
 
 use crate::services::blob_service::BlobService;
 

@@ -1,7 +1,7 @@
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use uuid::Uuid;
-use jumpdrive_auth::services::password_hash_service::PasswordHashService;
+use jumpdrive_auth::services::PasswordHashService;
 
 use crate::db_inner;
 use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;

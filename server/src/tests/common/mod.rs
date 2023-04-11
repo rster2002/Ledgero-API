@@ -5,7 +5,7 @@ use async_rwlock::RwLock;
 use rocket::State;
 use rsa::{BigUint, RsaPrivateKey};
 use sqlx::{PgPool, Pool, Postgres};
-use jumpdrive_auth::services::jwt_service::JwtService;
+use jumpdrive_auth::services::JwtService;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 

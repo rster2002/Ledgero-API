@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 
 use rocket::http::Status;
-use jumpdrive_auth::errors::jwt_error::JwtError;
+use jumpdrive_auth::errors::JwtError;
 
 use crate::error::error_dto_trait::ToErrorDto;
 
