@@ -1596,6 +1596,18 @@
     },
     "query": "\n                    SELECT Id\n                    FROM Subcategories\n                    WHERE Id = $1 AND ParentCategory = $2;\n                "
   },
+  "d43ebb985e6799ca1e896100c9e5db54a1690aa4103ae25ba9b2bf876f664262": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                DELETE FROM Users\n                WHERE username = $1;\n            "
+  },
   "d5eb951c5053243458492b5648917095a071ac9f7a65b05672f2e4b221059556": {
     "describe": {
       "columns": [],

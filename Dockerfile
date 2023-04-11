@@ -1,13 +1,23 @@
 FROM rust:slim-buster as builder
 
 RUN cargo new --bin rust-and-docker
-COPY server/Cargo.toml ./Cargo.toml
-COPY server/src ./src
-COPY server/migrations ./migrations
-COPY sqlx-data.json ./sqlx-data.json
+
+COPY Cargo.toml ./Cargo.toml
+
+COPY server/Cargo.toml ./server/Cargo.toml
+COPY server/src ./server/src
+COPY server/migrations ./server/migrations
+COPY server/sqlx-data.json ./server/sqlx-data.json
+
+COPY auth/Cargo.toml ./auth/Cargo.toml
+COPY auth/src ./auth/src
+
+COPY cli/Cargo.toml ./cli/Cargo.toml
+COPY cli/src ./cli/src
+
 RUN CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse cargo build --release
 
 FROM ubuntu
-COPY --from=builder ./target/release/ledgero_api ./ledgero_api
+COPY --from=builder ./target/release/ledgero-cli ./ledgero-api
 EXPOSE 8000
-CMD ["./ledgero_api"]
+CMD ["./ledgero-api", "start"]

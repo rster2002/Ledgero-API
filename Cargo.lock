@@ -1113,7 +1113,7 @@ dependencies = [
 
 [[package]]
 name = "ledgero-cli"
-version = "0.1.0"
+version = "1.0.0-Alpha.1"
 dependencies = [
  "clap",
  "dialoguer",
@@ -1125,7 +1125,7 @@ dependencies = [
 
 [[package]]
 name = "ledgero-server"
-version = "0.1.0"
+version = "1.0.0-Alpha.1"
 dependencies = [
  "async-rwlock",
  "base64-url",
