@@ -1,9 +1,9 @@
 FROM rust:slim-buster as builder
 
 RUN cargo new --bin rust-and-docker
-COPY Cargo.toml ./Cargo.toml
-COPY src ./src
-COPY migrations ./migrations
+COPY server/Cargo.toml ./Cargo.toml
+COPY server/src ./src
+COPY server/migrations ./migrations
 COPY sqlx-data.json ./sqlx-data.json
 RUN CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse cargo build --release
 
