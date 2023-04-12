@@ -60,6 +60,7 @@ pub(crate) mod queries;
 pub mod init;
 
 /// Includes tests for this crate
+#[cfg(test)]
 mod tests;
 
 pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
