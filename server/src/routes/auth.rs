@@ -118,7 +118,7 @@ pub async fn login<'a>(
         access_token: jwt,
         refresh_token: refresh,
         token_type: "bearer".to_string(),
-        expires: jwt_service.get_access_token_seconds() as u32,
+        expires: jwt_service.get_access_token_seconds(),
     }))
 }
 
@@ -224,7 +224,7 @@ pub async fn refresh(
         access_token,
         refresh_token,
         token_type: "bearer".to_string(),
-        expires: jwt_service.get_access_token_seconds() as u32,
+        expires: jwt_service.get_access_token_seconds(),
     }))
 }
 

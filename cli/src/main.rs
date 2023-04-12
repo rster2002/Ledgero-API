@@ -1,6 +1,5 @@
 use clap::Parser;
 use crate::arguments::Arguments;
-use crate::arguments::cli_commands::CliCommands;
 use crate::commands::{run_command};
 
 pub(crate) mod error;

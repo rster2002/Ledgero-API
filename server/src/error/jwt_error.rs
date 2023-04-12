@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display, Formatter};
+
 
 use rocket::http::Status;
 use jumpdrive_auth::errors::JwtError;

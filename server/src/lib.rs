@@ -6,7 +6,6 @@ use std::sync::Arc;
 
 use async_rwlock::RwLock;
 use directories::ProjectDirs;
-use hmac::digest::typenum::op;
 use rocket::http::Status;
 use sqlx::postgres::PgPoolOptions;
 use jumpdrive_auth::services::JwtService;

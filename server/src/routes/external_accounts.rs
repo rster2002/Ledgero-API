@@ -353,7 +353,7 @@ pub async fn remove_external_account_name_associations(
     let inner_pool = db_inner!(pool);
 
     // Makes sure the external account exists
-    let record = sqlx::query!(
+    sqlx::query!(
         r#"
             SELECT name
             FROM ExternalAccountNames

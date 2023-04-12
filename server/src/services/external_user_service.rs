@@ -1,12 +1,10 @@
-use rocket::http::hyper::server::conn::Connection;
-use crate::db_executor;
+use uuid::Uuid;
+
+use jumpdrive_auth::services::PasswordHashService;
+
+use crate::models::entities::user::User;
 use crate::models::entities::user::user_role::UserRole;
 use crate::prelude::*;
-use sqlx::{Executor, Postgres};
-use sqlx::postgres::PgPoolOptions;
-use uuid::Uuid;
-use jumpdrive_auth::services::PasswordHashService;
-use crate::models::entities::user::User;
 use crate::utils::single_use_connection::single_use_connection;
 
 /// Primarily used by external crates. The CLI in particular uses this to create users.
