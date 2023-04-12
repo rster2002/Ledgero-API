@@ -27,7 +27,7 @@ impl<'a> TransactionQuery<'a> {
                     c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
                     s.Id as "SubcategoryId?", s.Name as "SubcategoryName?", s.Description as "SubcategoryDescription?", s.HexColor as "SubcategoryHexColor?",
                     b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
-                    e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.HexColor as "ExternalAccountHexColor?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?"
+                    e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.HexColor as "ExternalAccountHexColor?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?", e.DefaultSubcategoryId as "ExternalAccounDefaultSubcategoryId?"
                 FROM Transactions
                 LEFT JOIN categories c on transactions.categoryid = c.id
                 LEFT JOIN subcategories s on transactions.subcategoryid = s.id
@@ -181,6 +181,7 @@ impl<'a> TransactionQuery<'a> {
                     "External account id was not null, but the external account hex color was",
                 ),
                 default_category_id: record.external_account_default_category_id,
+                default_subcategory_id: record.external_account_default_subcategory_id,
             })
         }
 

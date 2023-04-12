@@ -83,4 +83,7 @@ pub struct TransactionRecord {
 
     #[sqlx(rename = "ExternalAccounDefaultCategoryId?")]
     pub external_account_default_category_id: Option<String>,
+
+    #[sqlx(rename = "ExternalAccounDefaultSubcategoryId?")]
+    pub external_account_default_subcategory_id: Option<String>,
 }

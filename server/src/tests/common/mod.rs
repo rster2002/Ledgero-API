@@ -55,4 +55,12 @@ impl TestApp {
             role: UserRole::User,
         }
     }
+
+    pub fn bob(&self) -> JwtUserPayload {
+        JwtUserPayload {
+            uuid: "def".to_string(),
+            username: "bob".to_string(),
+            role: UserRole::System,
+        }
+    }
 }
