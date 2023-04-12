@@ -16,6 +16,7 @@ pub struct ExternalAccount {
     /// If this is set, when a transaction is matched an external account, the category id is
     /// automatically set to this value.
     pub default_category_id: Option<String>,
+    pub default_subcategory_id: Option<String>,
 }
 
 impl ExternalAccount {
@@ -23,13 +24,15 @@ impl ExternalAccount {
         sqlx::query!(
             r#"
                 INSERT INTO ExternalAccounts
-                VALUES ($1, $2, $3, $4, $5);
+                VALUES ($1, $2, $3, $4, $5, $6, null, $7);
             "#,
             self.id,
             self.user_id,
             self.name,
             self.description,
-            self.default_category_id
+            self.default_category_id,
+            self.default_subcategory_id,
+            self.hex_color,
         )
         .execute(pool)
         .await?;

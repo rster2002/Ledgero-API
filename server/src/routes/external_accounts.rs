@@ -26,9 +26,11 @@ pub fn create_external_account_routes() -> Vec<Route> {
         update_external_account,
         delete_external_account,
         get_external_account_names,
-        new_external_account_name,
+        add_external_account_name,
         delete_external_account_name,
         get_transactions_for_external_account,
+        apply_external_account_name,
+        remove_external_account_name_associations,
     ]
 }
 
@@ -59,6 +61,7 @@ pub async fn get_all_external_accounts(
                 description: record.description,
                 hex_color: record.hexcolor,
                 default_category_id: record.defaultcategoryid,
+                default_subcategory_id: record.defaultsubcategoryid,
             })
             .collect(),
     ))
@@ -84,6 +87,7 @@ pub async fn create_new_external_account(
         description: body.description.to_string(),
         hex_color: body.hex_color.to_string(),
         default_category_id: body.default_category_id.map(|v| v.to_string()),
+        default_subcategory_id: body.default_subcategory_id.map(|v| v.to_string()),
     };
 
     external_account.create(inner_pool).await?;
@@ -118,6 +122,7 @@ pub async fn get_external_account_by_id(
         description: record.description,
         hex_color: record.hexcolor,
         default_category_id: record.defaultcategoryid,
+        default_subcategory_id: record.defaultsubcategoryid,
     }))
 }
 
@@ -140,14 +145,16 @@ pub async fn update_external_account(
     sqlx::query!(
         r#"
             UPDATE ExternalAccounts
-            SET Name = $3, Description = $4, DefaultCategoryId = $5
+            SET Name = $3, Description = $4, DefaultCategoryId = $5, DefaultSubcategoryId = $6, HexColor = $7
             WHERE Id = $1 AND UserId = $2
         "#,
         id,
         user.uuid,
         body.name,
         body.description,
-        body.default_category_id
+        body.default_category_id,
+        body.default_subcategory_id,
+        body.hex_color
     )
     .execute(inner_pool)
     .await?;
@@ -195,9 +202,10 @@ pub async fn get_external_account_names(
         r#"
             SELECT *
             FROM ExternalAccountNames
-            WHERE UserId = $1;
+            WHERE UserId = $1 AND ParentExternalAccount = $2;
         "#,
-        user.uuid
+        user.uuid,
+        id,
     )
     .fetch_all(inner_pool)
     .await?;
@@ -215,7 +223,7 @@ pub async fn get_external_account_names(
 }
 
 #[post("/<id>/names", data = "<body>")]
-pub async fn new_external_account_name(
+pub async fn add_external_account_name(
     pool: &SharedPool,
     user: JwtUserPayload,
     id: String,
@@ -294,4 +302,82 @@ pub async fn get_transactions_for_external_account(
         pagination,
         transactions,
     )))
+}
+
+#[patch("/<id>/names/<name_id>/apply")]
+pub async fn apply_external_account_name(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: String,
+    name_id: String,
+) -> Result<()> {
+    let inner_pool = db_inner!(pool);
+
+    let record = sqlx::query!(
+        r#"
+            SELECT name
+            FROM ExternalAccountNames
+            WHERE UserId = $1 AND ParentExternalAccount = $2 AND Id = $3;
+        "#,
+        user.uuid,
+        id,
+        name_id
+    )
+        .fetch_one(inner_pool)
+        .await?;
+
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET ExternalAccountId = $3, ExternalAccountNameId = $4
+            WHERE UserId = $1 AND ExternalAccountName = $2;
+        "#,
+        user.uuid,
+        record.name,
+        id,
+        name_id
+    )
+        .execute(inner_pool)
+        .await?;
+
+    Ok(())
+}
+
+#[patch("/<id>/names/<name_id>/remove-associations")]
+pub async fn remove_external_account_name_associations(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    id: String,
+    name_id: String,
+) -> Result<()> {
+    let inner_pool = db_inner!(pool);
+
+    // Makes sure the external account exists
+    let record = sqlx::query!(
+        r#"
+            SELECT name
+            FROM ExternalAccountNames
+            WHERE UserId = $1 AND ParentExternalAccount = $2 AND Id = $3;
+        "#,
+        user.uuid,
+        id,
+        name_id
+    )
+        .fetch_one(inner_pool)
+        .await?;
+
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET ExternalAccountId = null, ExternalAccountNameId = null
+            WHERE UserId = $1 AND ExternalAccountId = $2 AND ExternalAccountNameId = $3;
+        "#,
+        user.uuid,
+        id,
+        name_id,
+    )
+        .execute(inner_pool)
+        .await?;
+
+    Ok(())
 }
