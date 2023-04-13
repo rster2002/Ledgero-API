@@ -4,6 +4,7 @@ use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
 use crate::models::dto::pagination::pagination_response_dto::PaginationResponseDto;
+use crate::models::dto::transactions::bulk_update_transaction_categories_dto::BulkUpdateTransactionCategoriesDto;
 use crate::models::dto::transactions::transaction_dto::TransactionDto;
 use crate::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
 use crate::models::dto::transactions::update_transaction_details_dto::UpdateTransactionDetailsDto;
@@ -219,4 +220,54 @@ pub async fn update_transaction<'a>(
 
     debug!("Updated entire transaction '{}'", id);
     get_single_transaction(pool, user.clone(), id).await
+}
+
+#[patch("/bulk-update-categories", data="<body>")]
+pub async fn bulk_update_transaction_categories(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    body: Json<BulkUpdateTransactionCategoriesDto>,
+) -> Result<()> {
+    let inner_pool = db_inner!(pool);
+    let body = body.0;
+
+    if body.category_id.is_none() && body.subcategory_id.is_some() {
+        return HttpError::new(404)
+            .message("Cannot update subcategory without specifying a category")
+            .into();
+    }
+
+    let record = sqlx::query!(
+        r#"
+            SELECT COUNT(*)
+            FROM Transactions
+            WHERE UserId = $1 AND Id = ANY($2);
+        "#,
+        user.uuid,
+        &body.transactions[..]
+    )
+        .fetch_one(inner_pool)
+        .await?;
+
+    if record.count.unwrap_or(0) as usize != body.transactions.len() {
+        return HttpError::new(404)
+            .message("Not all transactions exist")
+            .into();
+    }
+
+    sqlx::query!(
+        r#"
+            UPDATE Transactions
+            SET CategoryId = $3, SubcategoryId = $4
+            WHERE UserId = $1 AND Id = ANY($2);
+        "#,
+        user.uuid,
+        &body.transactions[..],
+        body.category_id,
+        body.subcategory_id
+    )
+        .execute(inner_pool)
+        .await?;
+
+    Ok(())
 }

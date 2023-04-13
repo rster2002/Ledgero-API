@@ -13,6 +13,7 @@ pub fn create_transaction_routes() -> Vec<Route> {
         change_category_for_transaction,
         update_transaction_details,
         update_transaction,
+        bulk_update_transaction_categories,
         get_splits,
         create_split,
         update_split,
