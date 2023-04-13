@@ -10,6 +10,7 @@ use rocket::response::Responder;
 use rocket::time::error::ComponentRange;
 use rocket::{Request, Response};
 use jumpdrive_auth::errors::JwtError;
+use crate::error::auth_error::AuthError;
 
 use crate::error::blob_error::BlobError;
 use crate::error::error_dto_trait::ToErrorDto;
@@ -28,6 +29,7 @@ pub mod jwt_error;
 pub mod wrapped_csv_error;
 pub mod wrapped_io_error;
 pub mod wrapped_sqlx_error;
+pub mod auth_error;
 
 #[derive(Debug)]
 pub enum Error {
@@ -42,6 +44,7 @@ pub enum Error {
     Csv(WrappedCsvError),
     ImportError(ImportError),
     BlobError(BlobError),
+    Auth(AuthError),
 }
 
 impl Error {
@@ -146,6 +149,12 @@ impl From<BlobError> for Error {
     }
 }
 
+impl From<AuthError> for Error {
+    fn from(value: AuthError) -> Self {
+        Error::Auth(value)
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
@@ -156,6 +165,7 @@ impl Error {
             Error::HttpError(error) => error.get_status_code().code,
             Error::BlobError(error) => error.get_status_code().code,
             Error::IO(error) => error.get_status_code().code,
+            Error::Auth(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
         }
@@ -169,6 +179,7 @@ impl Error {
             Error::JwtError(error) => error.to_error_dto(),
             Error::BlobError(error) => error.to_error_dto(),
             Error::IO(error) => error.to_error_dto(),
+            Error::Auth(error) => error.to_error_dto(),
             _ => ErrorDTO {
                 error: ErrorContent {
                     code: 500,

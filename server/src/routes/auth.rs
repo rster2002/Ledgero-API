@@ -9,6 +9,7 @@ use jumpdrive_auth::models::jwt::JwtRefreshPayload;
 use jumpdrive_auth::services::PasswordHashService;
 
 use crate::db_inner;
+use crate::error::auth_error::AuthError;
 use crate::error::http_error::HttpError;
 use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
 use crate::models::dto::auth::jwt_response_dto::JwtResponseDto;
@@ -52,15 +53,11 @@ pub async fn register(pool: &SharedPool, body: Json<RegisterUserDto<'_>>) -> Res
     let body = body.0;
 
     if body.username.len() < 4 {
-        return Err(HttpError::new(400)
-            .message("Username has to have at least four characters")
-            .into());
+        return Err(AuthError::UsernameLessThanFourChars.into());
     }
 
     if body.password.len() < 8 {
-        return Err(HttpError::new(400)
-            .message("Password has to have at least four characters")
-            .into());
+        return Err(AuthError::PasswordLessThanEightChars.into());
     }
 
     let password_hash = PasswordHashService::create_new_hash(body.password);
@@ -101,13 +98,13 @@ pub async fn login<'a>(
     debug!("Checking if user with username '{}' exists", body.username);
     let Some(user) = user else {
         info!("No user exists with username '{}'", body.username);
-        return Err(Status::Unauthorized.into());
+        return Err(AuthError::UsernameNotFound.into());
     };
 
     let valid_password = PasswordHashService::verify(user.passwordhash, body.password);
     if !valid_password {
         info!("The password for user '{}' was incorrect", body.username);
-        return Err(Status::Unauthorized.into());
+        return Err(AuthError::PasswordIncorrect.into());
     }
 
     let grant = Grant::new(&user.id);
@@ -176,11 +173,7 @@ pub async fn refresh(
 
     let Some(_) = user else {
         debug!("No user was found for grant id '{}'", refresh_payload.grant_id);
-        return Err(
-            HttpError::from_status(Status::NotFound)
-                .message("No user with the give id was found. The user might have been deleted")
-                .into()
-        );
+        return Err(AuthError::NoUserForGrant.into());
     };
 
     trace!("Checking if the grant exists");
@@ -197,11 +190,7 @@ pub async fn refresh(
 
     let Some(grant) = grant else {
         debug!("No grant found with id '{}'", refresh_payload.grant_id);
-        return Err(
-            HttpError::from_status(Status::Unauthorized)
-                .message("The given refresh token has been revoked")
-                .into()
-        );
+        return Err(AuthError::NoGrantWithId.into());
     };
 
     let new_grant_id = Uuid::new_v4().to_string();
