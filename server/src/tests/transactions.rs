@@ -2,9 +2,10 @@ use rocket::serde::json::Json;
 use sqlx::PgPool;
 
 use crate::models::dto::pagination::pagination_query_dto::PaginationQueryDto;
+use crate::models::dto::transactions::bulk_update_transaction_categories_dto::BulkUpdateTransactionCategoriesDto;
 use crate::models::dto::transactions::transaction_set_category_dto::TransactionSetCategoryDto;
 use crate::models::dto::transactions::update_transaction_dto::UpdateTransactionDto;
-use crate::routes::transactions::transaction_management::{change_category_for_transaction, get_all_transactions, get_single_transaction, update_transaction};
+use crate::routes::transactions::transaction_management::{bulk_update_transaction_categories, change_category_for_transaction, get_all_transactions, get_single_transaction, update_transaction};
 use crate::tests::common::TestApp;
 
 #[sqlx::test(fixtures("users", "transactions"))]
@@ -252,6 +253,111 @@ async fn subcategory_cannot_be_set_without_category_when_updating_entire_transac
         }),
     )
     .await;
+
+    assert!(result.is_err());
+}
+
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
+async fn category_of_multiple_transactions_can_be_set_at_once(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    bulk_update_transaction_categories(
+        app.pool_state(),
+        app.alice(),
+    Json(BulkUpdateTransactionCategoriesDto {
+            transactions: vec![
+                "transaction-1".to_string(),
+                "transaction-2".to_string(),
+            ],
+            category_id: Some("category-1".to_string()),
+            subcategory_id: Some("subcategory-1".to_string()),
+        }),
+    )
+        .await
+        .unwrap();
+
+    let transactions = get_all_transactions(
+        app.pool_state(),
+        app.alice(),
+        PaginationQueryDto {
+            page: 1,
+            limit: 10,
+        },
+    )
+        .await
+        .unwrap()
+        .0
+        .into_items();
+
+    let first_transaction = transactions.get(0).unwrap();
+    assert_eq!(first_transaction.category.as_ref().unwrap().id, "category-1");
+    assert_eq!(first_transaction.subcategory.as_ref().unwrap().id, "subcategory-1");
+
+    let second_transaction = transactions.get(1).unwrap();
+    assert_eq!(second_transaction.category.as_ref().unwrap().id, "category-1");
+    assert_eq!(second_transaction.subcategory.as_ref().unwrap().id, "subcategory-1");
+}
+
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
+async fn cannot_bulk_update_transaction_categories_across_users(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let result = bulk_update_transaction_categories(
+        app.pool_state(),
+        app.alice(),
+        Json(BulkUpdateTransactionCategoriesDto {
+            transactions: vec![
+                "transaction-1".to_string(),
+                "transaction-2".to_string(),
+                "transaction-6".to_string(),
+            ],
+            category_id: Some("category-1".to_string()),
+            subcategory_id: Some("subcategory-1".to_string()),
+        }),
+    )
+        .await;
+
+    assert!(result.is_err());
+}
+
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
+async fn cannot_bulk_update_transaction_subcategories_without_specifying_category_id(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let result = bulk_update_transaction_categories(
+        app.pool_state(),
+        app.alice(),
+        Json(BulkUpdateTransactionCategoriesDto {
+            transactions: vec![
+                "transaction-1".to_string(),
+                "transaction-2".to_string(),
+            ],
+            category_id: None,
+            subcategory_id: Some("subcategory-1".to_string()),
+        }),
+    )
+        .await;
+
+    assert!(result.is_err());
+}
+
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
+async fn cannot_bulk_update_transaction_categories_for_transactions_that_dont_exist(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let result = bulk_update_transaction_categories(
+        app.pool_state(),
+        app.alice(),
+        Json(BulkUpdateTransactionCategoriesDto {
+            transactions: vec![
+                "transaction-1".to_string(),
+                "does-not-exist".to_string(),
+            ],
+            category_id: None,
+            subcategory_id: Some("subcategory-1".to_string()),
+        }),
+    )
+        .await;
 
     assert!(result.is_err());
 }
