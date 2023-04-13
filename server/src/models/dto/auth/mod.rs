@@ -4,3 +4,4 @@ pub mod login_user_dto;
 pub mod me_response_dto;
 pub mod register_user_dto;
 pub mod revoke_dto;
+pub mod registration_enabled_dto;

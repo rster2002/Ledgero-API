@@ -1,3 +1,4 @@
+use std::env;
 use chrono::{Months, Utc};
 use rocket::http::Status;
 use rocket::serde::json::Json;
@@ -13,6 +14,7 @@ use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
 use crate::models::dto::auth::jwt_response_dto::JwtResponseDto;
 use crate::models::dto::auth::login_user_dto::LoginUserDto;
 use crate::models::dto::auth::register_user_dto::RegisterUserDto;
+use crate::models::dto::auth::registration_enabled_dto::RegistrationEnabledDto;
 use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::grant::Grant;
 use crate::models::entities::user::user_role::UserRole;
@@ -22,11 +24,30 @@ use crate::prelude::*;
 use crate::shared::{SharedJwtService, SharedPool};
 
 pub fn create_auth_routes() -> Vec<Route> {
-    routes![register, login, refresh, revoke,]
+    routes![
+        registration_enabled,
+        register,
+        login,
+        refresh,
+        revoke,
+    ]
+}
+
+#[get("/register")]
+pub async fn registration_enabled() -> Json<RegistrationEnabledDto> {
+    Json(RegistrationEnabledDto {
+        enabled: env::var("DISABLE_REGISTRATION").is_err(),
+    })
 }
 
 #[post("/register", data = "<body>")]
 pub async fn register(pool: &SharedPool, body: Json<RegisterUserDto<'_>>) -> Result<Status> {
+    if env::var("DISABLE_REGISTRATION").is_ok() {
+        return HttpError::new(403)
+            .message("Registration is disabled")
+            .into();
+    }
+
     let pool = db_inner!(pool);
     let body = body.0;
 
