@@ -33,7 +33,7 @@ jobs:
           use-cross: true
           command: build
           args: --release --target=${{ matrix.target }}
-#      - uses: AButler/upload-release-assets@v2.0
-#        with:
-#          files: 'target/release/'
-#          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: AButler/upload-release-assets@v2.0
+        with:
+          files: 'target/release/ledgero-cli?(.exe)'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
