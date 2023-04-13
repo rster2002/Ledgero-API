@@ -28,6 +28,10 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
+      - uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: musl-tools # provides musl-gcc
+          version: 1.0
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
