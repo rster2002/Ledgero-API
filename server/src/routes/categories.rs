@@ -48,6 +48,7 @@ pub async fn get_all_categories(
 ) -> Result<Json<Vec<CategoryDto>>> {
     let pool = db_inner!(pool);
 
+    debug!("Querying all categories for user '{}'", user);
     let categories = CategoriesQuery::new(&user.uuid)
         .order()
         .fetch_all(pool)
@@ -65,6 +66,7 @@ pub async fn create_new_category(
     let body = body.0;
     let inner_pool = db_inner!(pool);
 
+    trace!("Finding max order index");
     let ordering_index = sqlx::query!(
         r#"
             SELECT MAX(OrderIndex) AS MaxIndex
@@ -85,6 +87,7 @@ pub async fn create_new_category(
         ordering_index: ordering_index.maxindex.unwrap_or(0) + 1,
     };
 
+    debug!("Creating new category for user '{}'", user);
     category.create(inner_pool).await?;
 
     debug!("Created category '{}'", category.id);
@@ -99,6 +102,7 @@ pub async fn get_category_by_id(
 ) -> Result<Json<CategoryDto>> {
     let pool = db_inner!(pool);
 
+    debug!("Querying category with id '{}'", id);
     let category = CategoriesQuery::new(&user.uuid)
         .where_id(id)
         .fetch_one(pool)
@@ -117,8 +121,10 @@ pub async fn update_category(
     let body = body.0;
     let inner_pool = db_inner!(pool);
 
+    debug!("Executing category guard for id '{}' with user '{}'", id, user);
     Category::guard_one(inner_pool, id, &user.uuid).await?;
 
+    debug!("Updating category with id '{}'", id);
     sqlx::query!(
         r#"
             UPDATE Categories
@@ -142,8 +148,10 @@ pub async fn update_category(
 pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: &str) -> Result<()> {
     let pool = db_inner!(pool);
 
+    debug!("Executing category guard for id '{}' with user '{}'", id, user);
     Category::guard_one(pool, id, &user.uuid).await?;
 
+    debug!("Deleting category with id '{}'", id);
     sqlx::query!(
         r#"
             DELETE FROM Categories
@@ -168,6 +176,7 @@ pub async fn get_category_transactions(
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
     let pool = db_inner!(pool);
 
+    debug!("Executing category guard for id '{}' with user '{}'", id, user);
     Category::guard_one(pool, &id, &user.uuid).await?;
 
     let transactions = TransactionQuery::new(&user.uuid)
