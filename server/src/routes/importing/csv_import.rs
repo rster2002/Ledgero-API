@@ -99,14 +99,16 @@ pub async fn import_csv(
             complete_amount: mapped_record.amount,
             amount: mapped_record.amount,
             date: mapped_record.date,
-            bank_account_id: bank_account_id?,
+            bank_account_id: Some(bank_account_id?),
             category_id: None,
             parent_transaction_id: None,
             external_account_name: mapped_record.external_account_name.to_string(),
             external_account_id: None,
+            external_account_name_id: None,
             parent_import_id: Some(import_uuid.to_string()),
             subcategory_id: None,
             order_indicator,
+            related_move_transaction: None,
         };
 
         let external_account_id = external_account_map

@@ -27,20 +27,23 @@ pub struct TransactionRecord {
     #[sqlx(rename = "date")]
     pub date: OffsetDateTime,
 
-    #[sqlx(rename = "bankaccountid")]
-    pub bank_account_id: String,
+    #[sqlx(rename = "relatedmovetransaction")]
+    pub related_move_transaction: Option<String>,
 
-    #[sqlx(rename = "bankaccountiban")]
-    pub bank_account_iban: String,
+    #[sqlx(rename = "BankAccountId?")]
+    pub bank_account_id: Option<String>,
 
-    #[sqlx(rename = "bankaccountname")]
-    pub bank_account_name: String,
+    #[sqlx(rename = "BankAccountIban?")]
+    pub bank_account_iban: Option<String>,
 
-    #[sqlx(rename = "bankaccountdescription")]
-    pub bank_account_description: String,
+    #[sqlx(rename = "BankAccountName?")]
+    pub bank_account_name: Option<String>,
 
-    #[sqlx(rename = "bankaccounthexcolor")]
-    pub bank_account_hex_color: String,
+    #[sqlx(rename = "BankAccountDescription?")]
+    pub bank_account_description: Option<String>,
+
+    #[sqlx(rename = "BankAccountHexColor?")]
+    pub bank_account_hex_color: Option<String>,
 
     #[sqlx(rename = "externalaccountname")]
     pub external_account_name: String,

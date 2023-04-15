@@ -85,7 +85,8 @@ async fn a_single_transaction_is_returned_correctly(pool: PgPool) {
     assert_eq!(category.description, "For all the food");
     assert_eq!(category.hex_color, "303030");
 
-    let bank_account = transaction.bank_account;
+    let bank_account = transaction.bank_account
+        .unwrap();
 
     assert_eq!(bank_account.id, "bank-account-1");
     assert_eq!(bank_account.iban, "NL12 RABO 12345678910");
@@ -264,6 +265,45 @@ async fn category_of_multiple_transactions_can_be_set_at_once(pool: PgPool) {
     bulk_update_transaction_categories(
         app.pool_state(),
         app.alice(),
+        Json(BulkUpdateTransactionCategoriesDto {
+            transactions: vec![
+                "transaction-1".to_string(),
+                "transaction-2".to_string(),
+            ],
+            category_id: Some("category-1".to_string()),
+            subcategory_id: None,
+        }),
+    )
+        .await
+        .unwrap();
+
+    let transactions = get_all_transactions(
+        app.pool_state(),
+        app.alice(),
+        PaginationQueryDto {
+            page: 1,
+            limit: 10,
+        },
+    )
+        .await
+        .unwrap()
+        .0
+        .into_items();
+
+    let first_transaction = transactions.get(0).unwrap();
+    assert_eq!(first_transaction.category.as_ref().unwrap().id, "category-1");
+
+    let second_transaction = transactions.get(1).unwrap();
+    assert_eq!(second_transaction.category.as_ref().unwrap().id, "category-1");
+}
+
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
+async fn subcategory_of_multiple_transactions_can_be_set_at_once(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    bulk_update_transaction_categories(
+        app.pool_state(),
+        app.alice(),
     Json(BulkUpdateTransactionCategoriesDto {
             transactions: vec![
                 "transaction-1".to_string(),
@@ -355,6 +395,24 @@ async fn cannot_bulk_update_transaction_categories_for_transactions_that_dont_ex
             ],
             category_id: None,
             subcategory_id: Some("subcategory-1".to_string()),
+        }),
+    )
+        .await;
+
+    assert!(result.is_err());
+}
+
+#[sqlx::test(fixtures("users", "transactions", "categories", "subcategories"))]
+async fn cannot_bulk_update_no_transactions(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let result = bulk_update_transaction_categories(
+        app.pool_state(),
+        app.alice(),
+        Json(BulkUpdateTransactionCategoriesDto {
+            transactions: vec![],
+            category_id: Some("category-1".to_string()),
+            subcategory_id: None,
         }),
     )
         .await;

@@ -76,14 +76,16 @@ pub async fn create_correction(
         complete_amount: body.amount,
         amount: body.amount,
         date: Utc::now(),
-        bank_account_id: body.bank_account_id,
+        bank_account_id: Some(body.bank_account_id),
         category_id: body.category_id,
         parent_transaction_id: None,
         external_account_name: "Correction".to_string(),
         external_account_id: None,
+        external_account_name_id: None,
         parent_import_id: None,
         subcategory_id: body.subcategory_id,
         order_indicator: record.max.unwrap_or(0) + 1,
+        related_move_transaction: None,
     };
 
     debug!("Creating new correction '{}'", transaction.id);
@@ -145,7 +147,7 @@ pub async fn update_correction(
         .fetch_one(inner_pool)
         .await?;
 
-    debug!("Updated correction '{}'", id);
+    debug!("Updated correction '{}'", transaction.id);
     Ok(Json(transaction))
 }
 

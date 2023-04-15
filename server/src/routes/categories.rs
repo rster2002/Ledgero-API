@@ -13,15 +13,17 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::categories_query::CategoriesQuery;
 use crate::queries::transactions_query::TransactionQuery;
+use crate::routes::categories::moving::{delete_move, move_money_between_categories};
 use crate::routes::categories::ordering::category_ordering;
 use crate::routes::categories::subcategories::{
     create_subcategory, delete_subcategory, get_subcategories, get_subcategory_transactions,
-    subcategory_by_id, update_subcategory,
+    get_subcategory_by_id, update_subcategory,
 };
 use crate::shared::SharedPool;
 
 pub mod ordering;
 pub mod subcategories;
+pub mod moving;
 
 pub fn create_category_routes() -> Vec<Route> {
     routes![
@@ -31,13 +33,15 @@ pub fn create_category_routes() -> Vec<Route> {
         update_category,
         delete_category,
         get_category_transactions,
-        subcategory_by_id,
+        get_subcategory_by_id,
         delete_subcategory,
         get_subcategories,
         create_subcategory,
         update_subcategory,
         get_subcategory_transactions,
         category_ordering,
+        move_money_between_categories,
+        delete_move,
     ]
 }
 

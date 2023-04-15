@@ -23,10 +23,10 @@ impl<'a> TransactionQuery<'a> {
         let mut builder = QueryBuilder::new(
             r#"
                 SELECT
-                    transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName,
+                    transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName, RelatedMoveTransaction,
                     c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
                     s.Id as "SubcategoryId?", s.Name as "SubcategoryName?", s.Description as "SubcategoryDescription?", s.HexColor as "SubcategoryHexColor?",
-                    b.Id as BankAccountId, b.Iban as BankAccountIban, b.Name as BankAccountName, b.Description as BankAccountDescription, b.HexColor as BankAccountHexColor,
+                    b.Id as "BankAccountId?", b.Iban as "BankAccountIban?", b.Name as "BankAccountName?", b.Description as "BankAccountDescription?", b.HexColor as "BankAccountHexColor?",
                     e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.HexColor as "ExternalAccountHexColor?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?", e.DefaultSubcategoryId as "ExternalAccounDefaultSubcategoryId?"
                 FROM Transactions
                 LEFT JOIN categories c on transactions.categoryid = c.id
@@ -125,18 +125,31 @@ impl<'a> TransactionQuery<'a> {
             complete_amount: record.complete_amount,
             amount: record.amount,
             date: record.date.format(&Rfc3339).expect("Incorrect formatting"),
-            bank_account: SlimBankAccountDto {
-                id: record.bank_account_id,
-                iban: record.bank_account_iban,
-                name: record.bank_account_name,
-                description: record.bank_account_description,
-                hex_color: record.bank_account_hex_color,
-            },
+            bank_account: None,
             category: None,
             subcategory: None,
             external_account_name: record.external_account_name,
             external_account: None,
+            related_move_transaction: record.related_move_transaction,
         };
+
+        if let Some(id) = record.bank_account_id {
+            transaction.bank_account = Some(SlimBankAccountDto {
+                id,
+                iban: record
+                    .bank_account_iban
+                    .expect("Bank account id was not null, but bank account iban was"),
+                name: record
+                    .bank_account_name
+                    .expect("Bank account id was not null, but bank account name was"),
+                description: record
+                    .bank_account_description
+                    .expect("Bank account id was not null, but bank account description was"),
+                hex_color: record
+                    .bank_account_hex_color
+                    .expect("Bank account id was not null, but bank account hex color was"),
+            });
+        }
 
         if let Some(id) = record.category_id {
             transaction.category = Some(SlimCategoryDto {

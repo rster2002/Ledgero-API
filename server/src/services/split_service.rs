@@ -51,8 +51,10 @@ impl SplitService {
             parent_transaction_id: Some(parent_transaction.id),
             external_account_name: parent_transaction.externalaccountname,
             external_account_id: parent_transaction.externalaccountid,
+            external_account_name_id: None,
             parent_import_id: None,
             order_indicator: 0,
+            related_move_transaction: None,
         };
 
         debug!("Creating new split with id '{}'", split_transaction.id);
