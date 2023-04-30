@@ -1088,6 +1088,7 @@ dependencies = [
 [[package]]
 name = "jumpdrive-auth"
 version = "0.1.0"
+source = "git+https://github.com/Jumpdrive-dev/Auth-Services?tag=1.0.0#06371b2161cc98476816ac4b2101910dd5531fa6"
 dependencies = [
  "base32",
  "base64-url",

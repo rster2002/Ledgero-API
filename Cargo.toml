@@ -1,8 +1,7 @@
 [workspace]
 members = [
     "server",
-    "cli",
-    "auth"
+    "cli"
 ]
 default-members = [
     "cli"
