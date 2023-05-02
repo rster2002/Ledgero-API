@@ -13,15 +13,17 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::categories_query::CategoriesQuery;
 use crate::queries::transactions_query::TransactionQuery;
+use crate::routes::categories::moving::{delete_move, move_money_between_categories};
 use crate::routes::categories::ordering::category_ordering;
 use crate::routes::categories::subcategories::{
     create_subcategory, delete_subcategory, get_subcategories, get_subcategory_transactions,
-    subcategory_by_id, update_subcategory,
+    get_subcategory_by_id, update_subcategory,
 };
 use crate::shared::SharedPool;
 
 pub mod ordering;
 pub mod subcategories;
+pub mod moving;
 
 pub fn create_category_routes() -> Vec<Route> {
     routes![
@@ -31,13 +33,15 @@ pub fn create_category_routes() -> Vec<Route> {
         update_category,
         delete_category,
         get_category_transactions,
-        subcategory_by_id,
+        get_subcategory_by_id,
         delete_subcategory,
         get_subcategories,
         create_subcategory,
         update_subcategory,
         get_subcategory_transactions,
         category_ordering,
+        move_money_between_categories,
+        delete_move,
     ]
 }
 
@@ -48,6 +52,7 @@ pub async fn get_all_categories(
 ) -> Result<Json<Vec<CategoryDto>>> {
     let pool = db_inner!(pool);
 
+    debug!("Querying all categories for user '{}'", user);
     let categories = CategoriesQuery::new(&user.uuid)
         .order()
         .fetch_all(pool)
@@ -65,6 +70,7 @@ pub async fn create_new_category(
     let body = body.0;
     let inner_pool = db_inner!(pool);
 
+    trace!("Finding max order index");
     let ordering_index = sqlx::query!(
         r#"
             SELECT MAX(OrderIndex) AS MaxIndex
@@ -85,6 +91,7 @@ pub async fn create_new_category(
         ordering_index: ordering_index.maxindex.unwrap_or(0) + 1,
     };
 
+    debug!("Creating new category for user '{}'", user);
     category.create(inner_pool).await?;
 
     debug!("Created category '{}'", category.id);
@@ -99,6 +106,7 @@ pub async fn get_category_by_id(
 ) -> Result<Json<CategoryDto>> {
     let pool = db_inner!(pool);
 
+    debug!("Querying category with id '{}'", id);
     let category = CategoriesQuery::new(&user.uuid)
         .where_id(id)
         .fetch_one(pool)
@@ -117,8 +125,10 @@ pub async fn update_category(
     let body = body.0;
     let inner_pool = db_inner!(pool);
 
+    debug!("Executing category guard for id '{}' with user '{}'", id, user);
     Category::guard_one(inner_pool, id, &user.uuid).await?;
 
+    debug!("Updating category with id '{}'", id);
     sqlx::query!(
         r#"
             UPDATE Categories
@@ -142,8 +152,10 @@ pub async fn update_category(
 pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: &str) -> Result<()> {
     let pool = db_inner!(pool);
 
+    debug!("Executing category guard for id '{}' with user '{}'", id, user);
     Category::guard_one(pool, id, &user.uuid).await?;
 
+    debug!("Deleting category with id '{}'", id);
     sqlx::query!(
         r#"
             DELETE FROM Categories
@@ -168,6 +180,7 @@ pub async fn get_category_transactions(
 ) -> Result<Json<PaginationResponseDto<TransactionDto>>> {
     let pool = db_inner!(pool);
 
+    debug!("Executing category guard for id '{}' with user '{}'", id, user);
     Category::guard_one(pool, &id, &user.uuid).await?;
 
     let transactions = TransactionQuery::new(&user.uuid)

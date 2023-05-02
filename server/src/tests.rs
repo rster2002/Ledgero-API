@@ -6,4 +6,5 @@ mod splits;
 mod transactions;
 mod regressions;
 mod external_accounts;
+mod categories_move;
 

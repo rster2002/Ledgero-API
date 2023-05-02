@@ -15,7 +15,7 @@ use crate::queries::transactions_query::TransactionQuery;
 use crate::shared::SharedPool;
 
 #[get("/<category_id>/subcategories/<subcategory_id>")]
-pub async fn subcategory_by_id(
+pub async fn get_subcategory_by_id(
     pool: &SharedPool,
     user: JwtUserPayload,
     category_id: &str,
@@ -134,7 +134,7 @@ pub async fn create_subcategory<'a>(
 
     subcategory.create(inner_pool).await?;
 
-    subcategory_by_id(pool, user, &subcategory.parent_category, &subcategory.id).await
+    get_subcategory_by_id(pool, user, &subcategory.parent_category, &subcategory.id).await
 }
 
 #[put("/<category_id>/subcategories/<subcategory_id>", data = "<body>")]
@@ -164,7 +164,7 @@ pub async fn update_subcategory<'a>(
     .execute(inner_pool)
     .await?;
 
-    subcategory_by_id(pool, user, category_id, subcategory_id).await
+    get_subcategory_by_id(pool, user, category_id, subcategory_id).await
 }
 
 #[get("/<category_id>/subcategories/<subcategory_id>/transactions?<pagination..>")]

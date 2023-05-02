@@ -16,7 +16,7 @@ use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::prelude::*;
 use crate::queries::transactions_query::TransactionQuery;
 use crate::routes::categories::get_category_by_id;
-use crate::routes::categories::subcategories::subcategory_by_id;
+use crate::routes::categories::subcategories::get_subcategory_by_id;
 use crate::services::split_service::SplitService;
 use crate::shared::SharedPool;
 
@@ -177,7 +177,7 @@ pub async fn update_transaction<'a>(
         get_category_by_id(pool, user.clone(), category_id).await?;
 
         if let Some(subcategory_id) = &body.subcategory_id {
-            subcategory_by_id(pool, user.clone(), category_id, subcategory_id).await?;
+            get_subcategory_by_id(pool, user.clone(), category_id, subcategory_id).await?;
         }
     }
 
@@ -230,6 +230,12 @@ pub async fn bulk_update_transaction_categories(
 ) -> Result<()> {
     let inner_pool = db_inner!(pool);
     let body = body.0;
+
+    if body.transactions.is_empty() {
+        return HttpError::new(400)
+            .message("List of transaction ids cannot be empty")
+            .into();
+    }
 
     if body.category_id.is_none() && body.subcategory_id.is_some() {
         return HttpError::new(404)

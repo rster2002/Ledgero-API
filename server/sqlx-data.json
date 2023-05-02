@@ -75,6 +75,27 @@
     },
     "query": "ROLLBACK TO T"
   },
+  "113783cb2f967c3d1b79b84b69eb720533429cd046b06eb6572fd8f05d0e11a1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "TextArray"
+        ]
+      }
+    },
+    "query": "\n            SELECT COUNT(*)\n            FROM Transactions\n            WHERE UserId = $1 AND Id = ANY($2);\n        "
+  },
   "1172527980182322e2d35251de4feacbd2d8f2928d363256eea718444b3c5dad": {
     "describe": {
       "columns": [],
@@ -1001,6 +1022,21 @@
       }
     },
     "query": "\n            UPDATE Users\n            SET passwordHash = $2\n            WHERE Id = $1\n        "
+  },
+  "6bb92a566cdbba6b8ffca76995303a78a7f609e00b470723d206e757bf67ecd2": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "TextArray",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE Transactions\n            SET CategoryId = $3, SubcategoryId = $4\n            WHERE UserId = $1 AND Id = ANY($2);\n        "
   },
   "6bd436ec1872b37bc1712042855e937acfe4832bb0de9b1bf8ceec5015ba9e02": {
     "describe": {

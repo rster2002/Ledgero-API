@@ -104,6 +104,7 @@ pub async fn get_external_account_by_id(
 ) -> Result<Json<ExternalAccountDto>> {
     let pool = db_inner!(pool);
 
+    debug!("Querying external account '{}'", id);
     let record = sqlx::query!(
         r#"
             SELECT *
@@ -136,12 +137,15 @@ pub async fn update_external_account(
     let inner_pool = db_inner!(pool);
     let body = body.0;
 
+    debug!("Executing external account guard for '{}' with user '{}'", id, user);
     ExternalAccount::guard_one(inner_pool, &id, &user.uuid).await?;
 
     if let Some(category_id) = &body.default_category_id {
+        debug!("Executing category guard for '{}' with user '{}'", category_id, user);
         Category::guard_one(inner_pool, category_id, &user.uuid).await?;
     }
 
+    debug!("Updating external account '{}'", id);
     sqlx::query!(
         r#"
             UPDATE ExternalAccounts
@@ -171,8 +175,10 @@ pub async fn delete_external_account(
 ) -> Result<()> {
     let inner_pool = db_inner!(pool);
 
+    debug!("Executing external account guard for '{}' with user '{}'", id, user);
     ExternalAccount::guard_one(inner_pool, &id, &user.uuid).await?;
 
+    trace!("Deleting external account '{}'", id);
     sqlx::query!(
         r#"
             DELETE FROM ExternalAccounts
@@ -196,8 +202,10 @@ pub async fn get_external_account_names(
 ) -> Result<Json<Vec<ExternalAccountNameDto>>> {
     let inner_pool = db_inner!(pool);
 
+    debug!("Executing external account guard for '{}' with user '{}'", id, user);
     ExternalAccount::guard_one(inner_pool, &id, &user.uuid).await?;
 
+    trace!("Querying external account names");
     let records = sqlx::query!(
         r#"
             SELECT *
@@ -210,6 +218,7 @@ pub async fn get_external_account_names(
     .fetch_all(inner_pool)
     .await?;
 
+    trace!("Mapping external account names");
     Ok(Json(
         records
             .into_iter()
@@ -232,6 +241,7 @@ pub async fn add_external_account_name(
     let inner_pool = db_inner!(pool);
     let body = body.0;
 
+    debug!("Executing external account guard for '{}' with user '{}'", id, user);
     ExternalAccount::guard_one(inner_pool, &id, &user.uuid).await?;
 
     let external_account_name = ExternalAccountName {
@@ -241,6 +251,7 @@ pub async fn add_external_account_name(
         parent_external_account: id,
     };
 
+    debug!("Creating new external account name '{}'", external_account_name.id);
     external_account_name.create(inner_pool).await?;
 
     debug!(
@@ -263,10 +274,13 @@ pub async fn delete_external_account_name(
 ) -> Result<()> {
     let pool = db_inner!(pool);
 
+    debug!("Executing external account guard for '{}' with user '{}'", id, user);
     ExternalAccount::guard_one(pool, &id, &user.uuid).await?;
 
+    debug!("Executing external account name guard for '{}' with user '{}'", id, user);
     ExternalAccountName::guard_one(pool, &name_id, &user.uuid).await?;
 
+    debug!("Deleting name '{}' from '{}'", name_id, id);
     sqlx::query!(
         r#"
             DELETE FROM ExternalAccountNames
@@ -278,7 +292,7 @@ pub async fn delete_external_account_name(
     .execute(pool)
     .await?;
 
-    debug!("Added deleted '{}' from '{}'", name_id, id);
+    debug!("Deleted name '{}' from '{}'", name_id, id);
     Ok(())
 }
 

@@ -17,9 +17,10 @@ pub struct TransactionDto {
     pub complete_amount: i64,
     pub amount: i64,
     pub date: String,
-    pub bank_account: SlimBankAccountDto,
+    pub bank_account: Option<SlimBankAccountDto>,
     pub category: Option<SlimCategoryDto>,
     pub subcategory: Option<SlimSubcategoryDto>,
     pub external_account_name: String,
     pub external_account: Option<ExternalAccountDto>,
+    pub related_move_transaction: Option<String>,
 }

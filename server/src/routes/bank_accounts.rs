@@ -32,6 +32,7 @@ pub async fn get_bank_accounts(
 ) -> Result<Json<Vec<BankAccountDto>>> {
     let inner_pool = db_inner!(pool);
 
+    debug!("Querying all bank accounts for user '{}'", user);
     let records = sqlx::query!(
         r#"
             SELECT *, (
@@ -47,6 +48,7 @@ pub async fn get_bank_accounts(
     .fetch_all(inner_pool)
     .await?;
 
+    trace!("Mapping bank account records");
     let bank_accounts = records
         .into_iter()
         .map(|record| BankAccountDto {
@@ -70,6 +72,7 @@ pub async fn get_bank_account_by_id(
 ) -> Result<Json<BankAccountDto>> {
     let inner_pool = db_inner!(pool);
 
+    debug!("Querying database for bank account with id '{}'", id);
     let record = sqlx::query!(
         r#"
             SELECT *, (
@@ -86,6 +89,7 @@ pub async fn get_bank_account_by_id(
     .fetch_one(inner_pool)
     .await?;
 
+    trace!("Returning bank account entry");
     Ok(Json(BankAccountDto {
         id: record.id,
         iban: record.iban,
@@ -106,6 +110,7 @@ pub async fn update_bank_account(
     let inner_pool = db_inner!(pool);
     let body = body.0;
 
+    debug!("Updating bank account '{}'", id);
     sqlx::query!(
         r#"
             UPDATE BankAccounts
@@ -133,6 +138,7 @@ pub async fn delete_bank_account(
 ) -> Result<()> {
     let inner_pool = db_inner!(pool);
 
+    debug!("Deleting bank account '{}'", id);
     let result = sqlx::query!(
         r#"
             DELETE FROM BankAccounts
@@ -157,6 +163,7 @@ pub async fn delete_bank_account(
             return Err(error.into());
         }
 
+        trace!("Failed to delete bank account due to transaction constraints");
         return Err(
             HttpError::new(409) // Conflict
                 .message(

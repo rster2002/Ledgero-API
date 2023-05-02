@@ -5,7 +5,7 @@ use crate::models::dto::categories::new_category_dto::NewCategoryDto;
 use crate::models::dto::categories::subcategories::new_subcategory_dto::NewSubcategoryDto;
 use crate::routes::categories::{create_new_category, delete_category, get_all_categories, get_category_by_id, update_category};
 use crate::routes::categories::ordering::category_ordering;
-use crate::routes::categories::subcategories::{create_subcategory, get_subcategories, subcategory_by_id, update_subcategory};
+use crate::routes::categories::subcategories::{create_subcategory, get_subcategories, get_subcategory_by_id, update_subcategory};
 use crate::tests::common::TestApp;
 
 #[sqlx::test(fixtures("users"))]
@@ -271,7 +271,7 @@ async fn subcategory_by_id_is_returned_correctly(pool: PgPool) {
     let app = TestApp::new(pool);
 
     let subcategory =
-        subcategory_by_id(app.pool_state(), app.alice(), "category-1", "subcategory-1")
+        get_subcategory_by_id(app.pool_state(), app.alice(), "category-1", "subcategory-1")
             .await
             .unwrap()
             .0;
@@ -286,7 +286,7 @@ async fn subcategory_by_id_is_returned_correctly(pool: PgPool) {
 async fn cannot_get_a_subcategory_that_does_not_exist(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let result = subcategory_by_id(
+    let result = get_subcategory_by_id(
         app.pool_state(),
         app.alice(),
         "category-1",
@@ -301,7 +301,7 @@ async fn cannot_get_a_subcategory_that_does_not_exist(pool: PgPool) {
 async fn cannot_get_a_subcategory_with_category_that_does_not_exist(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let result = subcategory_by_id(
+    let result = get_subcategory_by_id(
         app.pool_state(),
         app.alice(),
         "does-not-exist",
@@ -339,7 +339,7 @@ async fn subcategory_can_be_updated(pool: PgPool) {
     assert_eq!(returned_subcategory.hex_color, "404040");
 
     let stored_subcategory =
-        subcategory_by_id(app.pool_state(), app.alice(), "category-1", "subcategory-1")
+        get_subcategory_by_id(app.pool_state(), app.alice(), "category-1", "subcategory-1")
             .await
             .unwrap()
             .0;
