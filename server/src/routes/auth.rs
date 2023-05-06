@@ -11,7 +11,8 @@ use jumpdrive_auth::services::PasswordHashService;
 use crate::db_inner;
 use crate::error::http_error::HttpError;
 use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
-use crate::models::dto::auth::jwt_response_dto::JwtResponseDto;
+use crate::models::dto::auth::auth_response_dto::AuthResponseDto;
+use crate::models::dto::auth::auth_response_dto::jwt_access_token_payload::JwtAccessTokenPayload;
 use crate::models::dto::auth::login_user_dto::LoginUserDto;
 use crate::models::dto::auth::register_user_dto::RegisterUserDto;
 use crate::models::dto::auth::registration_enabled_dto::RegistrationEnabledDto;
@@ -81,7 +82,7 @@ pub async fn login<'a>(
     pool: &'a SharedPool,
     jwt_service: &'a SharedJwtService,
     body: Json<LoginUserDto<'a>>,
-) -> Result<Json<JwtResponseDto>> {
+) -> Result<Json<AuthResponseDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
 
@@ -135,12 +136,12 @@ pub async fn login<'a>(
     grant.create(pool).await?;
 
     info!("Successfully logged in '{}'", body.username);
-    Ok(Json(JwtResponseDto {
+    Ok(Json(AuthResponseDto::JwtAccessToken(JwtAccessTokenPayload {
         access_token: jwt,
         refresh_token: refresh,
         token_type: "bearer".to_string(),
         expires: jwt_service.get_access_token_seconds(),
-    }))
+    })))
 }
 
 #[post("/refresh", data = "<body>")]
@@ -148,7 +149,7 @@ pub async fn refresh(
     pool: &SharedPool,
     jwt_service: &SharedJwtService,
     body: Json<JwtRefreshDto<'_>>,
-) -> Result<Json<JwtResponseDto>> {
+) -> Result<Json<AuthResponseDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
 
@@ -241,12 +242,12 @@ pub async fn refresh(
         "Successfully refreshed JWT access token for '{}'",
         access_payload.username
     );
-    Ok(Json(JwtResponseDto {
+    Ok(Json(AuthResponseDto::JwtAccessToken(JwtAccessTokenPayload {
         access_token,
         refresh_token,
         token_type: "bearer".to_string(),
         expires: jwt_service.get_access_token_seconds(),
-    }))
+    })))
 }
 
 #[post("/revoke", data = "<body>")]

@@ -133,7 +133,9 @@ async fn user_can_log_in(pool: PgPool) {
     .await;
 
     assert!(result.is_ok());
-    let body = result.unwrap().0;
+    let body = result.unwrap()
+        .0
+        .unwrap_jwt_access_token();
 
     let (claims, payload) = jwt_service_state
         .inner()
@@ -164,7 +166,8 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
     )
     .await
     .unwrap()
-    .0;
+    .0
+    .unwrap_jwt_access_token();
 
     let response = refresh(
         app.pool_state(),
@@ -177,7 +180,9 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
     .await;
 
     assert!(response.is_ok());
-    let body = response.unwrap().0;
+    let body = response.unwrap()
+        .0
+        .unwrap_jwt_access_token();
 
     assert_ne!(body.access_token, login_response.access_token);
     assert_ne!(body.refresh_token, login_response.refresh_token);
@@ -197,7 +202,8 @@ async fn tokens_cannot_be_refreshed_multiple_times(pool: PgPool) {
     )
     .await
     .unwrap()
-    .0;
+    .0
+    .unwrap_jwt_access_token();
 
     refresh(
         app.pool_state(),
@@ -237,7 +243,8 @@ async fn tokens_can_be_revoked(pool: PgPool) {
     )
     .await
     .unwrap()
-    .0;
+    .0
+    .unwrap_jwt_access_token();
 
     revoke(
         app.pool_state(),
