@@ -286,3 +286,65 @@ async fn tokens_can_be_revoked(pool: PgPool) {
 
     assert!(result.is_err());
 }
+
+#[sqlx::test(fixtures("users"))]
+async fn user_can_be_logged_out_everywhere(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let login_response_1 = login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "alice",
+            password: "alice",
+        }),
+    )
+        .await
+        .unwrap()
+        .0
+        .unwrap_jwt_access_token();
+
+    let login_response_2 = login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "alice",
+            password: "alice",
+        }),
+    )
+        .await
+        .unwrap()
+        .0
+        .unwrap_jwt_access_token();
+
+    let response = logout_everywhere(
+        app.pool_state(),
+        app.alice(),
+    )
+        .await;
+
+    assert!(response.is_ok());
+
+    let refresh_1_result = refresh(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(JwtRefreshDto {
+            access_token: &login_response_1.access_token,
+            refresh_token: &login_response_1.refresh_token,
+        })
+    )
+        .await;
+
+    let refresh_2_result = refresh(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(JwtRefreshDto {
+            access_token: &login_response_2.access_token,
+            refresh_token: &login_response_2.refresh_token,
+        })
+    )
+        .await;
+
+    assert!(refresh_1_result.is_err());
+    assert!(refresh_2_result.is_err());
+}
