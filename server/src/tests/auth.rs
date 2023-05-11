@@ -6,6 +6,7 @@ use crate::models::dto::auth::login_user_dto::LoginUserDto;
 use crate::models::dto::auth::register_user_dto::RegisterUserDto;
 use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::user::user_role::UserRole;
+use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
 use crate::routes::auth::{login, refresh, register, revoke};
 use crate::tests::common::TestApp;
@@ -169,6 +170,8 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
     .0
     .unwrap_jwt_access_token();
 
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+
     let response = refresh(
         app.pool_state(),
         app.jwt_service(),
@@ -186,6 +189,21 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
 
     assert_ne!(body.access_token, login_response.access_token);
     assert_ne!(body.refresh_token, login_response.refresh_token);
+
+    // Refreshing a refresh token should not update it's expire time
+    let jwt_service = app.jwt_service();
+
+    let old_refresh_claims = jwt_service
+        .decode_refresh_token_unchecked::<JwtRefreshPayload>(body.refresh_token)
+        .unwrap()
+        .0;
+
+    let new_refresh_claims = jwt_service
+        .decode_refresh_token_unchecked::<JwtRefreshPayload>(login_response.refresh_token)
+        .unwrap()
+        .0;
+
+    assert_eq!(old_refresh_claims.exp, new_refresh_claims.exp);
 }
 
 #[sqlx::test(fixtures("users"))]
