@@ -9,7 +9,7 @@ use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
 use rocket::time::error::ComponentRange;
 use rocket::{Request, Response};
-use jumpdrive_auth::errors::JwtError;
+use jumpdrive_auth::errors::{JwtError, TotpError};
 
 use crate::error::blob_error::BlobError;
 use crate::error::error_dto_trait::ToErrorDto;
@@ -18,6 +18,7 @@ use crate::error::import_error::ImportError;
 use crate::error::wrapped_csv_error::WrappedCsvError;
 use crate::error::wrapped_io_error::WrappedIoError;
 use crate::error::wrapped_sqlx_error::WrappedSqlxError;
+use crate::error::wrapper_totp_error::WrapperTotpError;
 use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 
 pub mod blob_error;
@@ -28,6 +29,7 @@ pub mod jwt_error;
 pub mod wrapped_csv_error;
 pub mod wrapped_io_error;
 pub mod wrapped_sqlx_error;
+pub mod wrapper_totp_error;
 
 #[derive(Debug)]
 pub enum Error {
@@ -42,6 +44,7 @@ pub enum Error {
     Csv(WrappedCsvError),
     ImportError(ImportError),
     BlobError(BlobError),
+    TotpError(WrapperTotpError),
 }
 
 impl Error {
@@ -146,6 +149,12 @@ impl From<BlobError> for Error {
     }
 }
 
+impl From<TotpError> for Error {
+    fn from(value: TotpError) -> Self {
+        Error::TotpError(WrapperTotpError::new(value))
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
@@ -156,6 +165,7 @@ impl Error {
             Error::HttpError(error) => error.get_status_code().code,
             Error::BlobError(error) => error.get_status_code().code,
             Error::IO(error) => error.get_status_code().code,
+            Error::TotpError(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
             _ => 500,
         }
@@ -169,6 +179,7 @@ impl Error {
             Error::JwtError(error) => error.to_error_dto(),
             Error::BlobError(error) => error.to_error_dto(),
             Error::IO(error) => error.to_error_dto(),
+            Error::TotpError(error) => error.to_error_dto(),
             _ => ErrorDTO {
                 error: ErrorContent {
                     code: 500,

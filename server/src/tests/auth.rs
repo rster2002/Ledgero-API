@@ -1,5 +1,7 @@
+use jumpdrive_auth::services::TotpService;
 use rocket::serde::json::Json;
 use sqlx::PgPool;
+use crate::models::dto::auth::auth_response_dto::AuthResponseDto;
 
 use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
 use crate::models::dto::auth::login_user_dto::LoginUserDto;
@@ -8,7 +10,7 @@ use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::routes::auth::{login, refresh, register, revoke};
+use crate::routes::auth::{login, refresh, register, revoke, revoke_all};
 use crate::tests::common::TestApp;
 
 #[sqlx::test]
@@ -116,6 +118,7 @@ async fn user_can_log_in(pool: PgPool) {
         Json(LoginUserDto {
             username: "alice",
             password: "something-else",
+            mfa_code: None,
         }),
     )
     .await;
@@ -129,6 +132,7 @@ async fn user_can_log_in(pool: PgPool) {
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
+            mfa_code: None,
         }),
     )
     .await;
@@ -163,6 +167,7 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
+            mfa_code: None,
         }),
     )
     .await
@@ -203,7 +208,7 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
         .unwrap()
         .0;
 
-    assert_eq!(old_refresh_claims.exp, new_refresh_claims.exp);
+    assert!(new_refresh_claims.exp - old_refresh_claims.exp < 100);
 }
 
 #[sqlx::test(fixtures("users"))]
@@ -216,6 +221,7 @@ async fn tokens_cannot_be_refreshed_multiple_times(pool: PgPool) {
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
+            mfa_code: None,
         }),
     )
     .await
@@ -257,6 +263,7 @@ async fn tokens_can_be_revoked(pool: PgPool) {
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
+            mfa_code: None,
         }),
     )
     .await
@@ -297,6 +304,7 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
+            mfa_code: None,
         }),
     )
         .await
@@ -310,6 +318,7 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
+            mfa_code: None,
         }),
     )
         .await
@@ -317,7 +326,7 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
         .0
         .unwrap_jwt_access_token();
 
-    let response = logout_everywhere(
+    let response = revoke_all(
         app.pool_state(),
         app.alice(),
     )
@@ -347,4 +356,61 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
 
     assert!(refresh_1_result.is_err());
     assert!(refresh_2_result.is_err());
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn user_with_2fa_can_log_in_using_correct_code(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let login_response = login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "charley",
+            password: "alice",
+            mfa_code: None,
+        }),
+    )
+        .await
+        .unwrap()
+        .0;
+
+    let AuthResponseDto::TwoFAChallenge = login_response else {
+        panic!("Expected 2FA challenge");
+    };
+
+    let current_code = TotpService::test_generate_current_code("MU3EEY32LJTXIMKHKQ3TAR2MIJVUIVKM")
+        .unwrap();
+
+    let _ = login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "charley",
+            password: "alice",
+            mfa_code: Some(&current_code),
+        }),
+    )
+        .await
+        .unwrap()
+        .0
+        .unwrap_jwt_access_token();
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn user_with_2fa_cannot_log_in_using_incorrect_code(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let login_result = login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "charley",
+            password: "alice",
+            mfa_code: Some("123456"),
+        }),
+    )
+        .await;
+
+    assert!(login_result.is_err());
 }

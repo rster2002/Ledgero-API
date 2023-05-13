@@ -6,7 +6,7 @@ use rocket::Route;
 
 use uuid::Uuid;
 use jumpdrive_auth::models::jwt::JwtRefreshPayload;
-use jumpdrive_auth::services::PasswordHashService;
+use jumpdrive_auth::services::{PasswordHashService, TotpService};
 
 use crate::db_inner;
 use crate::error::http_error::HttpError;
@@ -31,6 +31,7 @@ pub fn create_auth_routes() -> Vec<Route> {
         login,
         refresh,
         revoke,
+        revoke_all,
     ]
 }
 
@@ -109,6 +110,14 @@ pub async fn login<'a>(
     if !valid_password {
         info!("The password for user '{}' was incorrect", body.username);
         return Err(Status::Unauthorized.into());
+    }
+
+    if let Some(mfa_secret) = user.mfasecret {
+        let Some(mfa_code) = body.mfa_code else {
+            return Ok(Json(AuthResponseDto::TwoFAChallenge));
+        };
+
+        TotpService::guard_code(mfa_secret, mfa_code)?;
     }
 
     let grant = Grant::new(&user.id);
@@ -264,5 +273,27 @@ pub async fn revoke(
     debug!("Revoking grant with id '{}'", refresh_payload.grant_id);
     Grant::delete_by_id(pool, refresh_payload.grant_id).await?;
 
+    Ok(())
+}
+
+#[put("/revoke-all")]
+pub async fn revoke_all(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+) -> Result<()> {
+    let inner_pool = db_inner!(pool);
+
+    debug!("Logging user {} out everywhere", user);
+    sqlx::query!(
+        r#"
+            DELETE FROM Grants
+            WHERE UserId = $1;
+        "#,
+        user.uuid
+    )
+        .execute(inner_pool)
+        .await?;
+
+    debug!("Logged out user {} everywhere", user);
     Ok(())
 }

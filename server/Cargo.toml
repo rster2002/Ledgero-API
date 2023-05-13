@@ -11,7 +11,7 @@ path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-jumpdrive-auth = { git = "https://github.com/Jumpdrive-dev/Auth-Services", tag = "1.0.0" }
+jumpdrive-auth = { git = "https://github.com/Jumpdrive-dev/Auth-Services", tag = "1.1.1", features = ["test-utils"] }
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"
@@ -30,3 +30,4 @@ infer = "0.13.0"
 async-rwlock = "1.3.0"
 env_logger = "0.10.0"
 log = "0.4.17"
+memcache = { version = "*", default-features = false }
