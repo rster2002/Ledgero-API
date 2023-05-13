@@ -1,6 +1,9 @@
 use chrono::{Months, Utc};
+use sqlx::Executor;
+use sqlx::Postgres;
 use uuid::Uuid;
 
+use crate::db_executor;
 use crate::prelude::*;
 use crate::shared::DbPool;
 
@@ -47,7 +50,7 @@ impl Grant {
         }
     }
 
-    pub async fn create(&self, pool: &DbPool) -> Result<()> {
+    pub async fn create<'r>(&self, pool: db_executor!('r)) -> Result<()> {
         sqlx::query!(
             r#"
                 INSERT INTO Grants

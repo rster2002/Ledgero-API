@@ -1,8 +1,8 @@
 use jumpdrive_auth::services::TotpService;
 use rocket::serde::json::Json;
 use sqlx::PgPool;
-use crate::models::dto::auth::auth_response_dto::AuthResponseDto;
 
+use crate::models::dto::auth::auth_response_dto::AuthResponseDto;
 use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
 use crate::models::dto::auth::login_user_dto::LoginUserDto;
 use crate::models::dto::auth::register_user_dto::RegisterUserDto;
@@ -10,7 +10,10 @@ use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::routes::auth::{login, refresh, register, revoke, revoke_all};
+use crate::routes::auth::login::perform_login;
+use crate::routes::auth::refresh_token::refresh;
+use crate::routes::auth::registration::register;
+use crate::routes::auth::revoke_token::{revoke, revoke_all};
 use crate::tests::common::TestApp;
 
 #[sqlx::test]
@@ -112,7 +115,7 @@ async fn user_can_log_in(pool: PgPool) {
     let jwt_service_state = app.jwt_service();
 
     // Check if user without correct password returns an Err
-    let result = login(
+    let result = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -126,7 +129,7 @@ async fn user_can_log_in(pool: PgPool) {
     assert!(result.is_err());
 
     // Check if user with the correct password returns an Ok
-    let result = login(
+    let result = perform_login(
         app.pool_state(),
         jwt_service_state,
         Json(LoginUserDto {
@@ -161,7 +164,7 @@ async fn user_can_log_in(pool: PgPool) {
 async fn tokens_can_be_refreshed(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let login_response = login(
+    let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -215,7 +218,7 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
 async fn tokens_cannot_be_refreshed_multiple_times(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let login_response = login(
+    let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -257,7 +260,7 @@ async fn tokens_cannot_be_refreshed_multiple_times(pool: PgPool) {
 async fn tokens_can_be_revoked(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let login_response = login(
+    let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -298,7 +301,7 @@ async fn tokens_can_be_revoked(pool: PgPool) {
 async fn user_can_be_logged_out_everywhere(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let login_response_1 = login(
+    let login_response_1 = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -312,7 +315,7 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
         .0
         .unwrap_jwt_access_token();
 
-    let login_response_2 = login(
+    let login_response_2 = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -359,10 +362,10 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
 }
 
 #[sqlx::test(fixtures("users"))]
-async fn user_with_2fa_can_log_in_using_correct_code(pool: PgPool) {
+async fn user_with_mfa_can_log_in_using_correct_code(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let login_response = login(
+    let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -382,7 +385,7 @@ async fn user_with_2fa_can_log_in_using_correct_code(pool: PgPool) {
     let current_code = TotpService::test_generate_current_code("MU3EEY32LJTXIMKHKQ3TAR2MIJVUIVKM")
         .unwrap();
 
-    let _ = login(
+    let _ = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -398,10 +401,10 @@ async fn user_with_2fa_can_log_in_using_correct_code(pool: PgPool) {
 }
 
 #[sqlx::test(fixtures("users"))]
-async fn user_with_2fa_cannot_log_in_using_incorrect_code(pool: PgPool) {
+async fn user_with_mfa_cannot_log_in_using_incorrect_code(pool: PgPool) {
     let app = TestApp::new(pool);
 
-    let login_result = login(
+    let login_result = perform_login(
         app.pool_state(),
         app.jwt_service(),
         Json(LoginUserDto {
@@ -413,4 +416,53 @@ async fn user_with_2fa_cannot_log_in_using_incorrect_code(pool: PgPool) {
         .await;
 
     assert!(login_result.is_err());
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn user_with_mfa_can_log_in_using_backup_code(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let login_result = perform_login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "charley",
+            password: "alice",
+            mfa_code: Some("abcd1234"),
+        }),
+    )
+        .await;
+
+    assert!(login_result.is_ok());
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn cannot_use_the_same_mfa_backup_code_multiple_times(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let login_result_1 = perform_login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "charley",
+            password: "alice",
+            mfa_code: Some("abcd1234"),
+        }),
+    )
+        .await;
+
+    assert!(login_result_1.is_ok());
+
+    let login_result_2 = perform_login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "charley",
+            password: "alice",
+            mfa_code: Some("abcd1234"),
+        }),
+    )
+        .await;
+
+    assert!(login_result_2.is_err());
 }

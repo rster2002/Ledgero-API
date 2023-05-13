@@ -3,6 +3,7 @@ use rocket::serde::json::Json;
 use jumpdrive_auth::services::PasswordHashService;
 
 use crate::db_inner;
+use crate::models::dto::account::enable_mfa_dto::EnableMfaDto;
 use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
 use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
 use crate::models::dto::users::update_user_password_dto::UpdateUserPasswordDto;
@@ -80,4 +81,21 @@ pub async fn update_me_password(
 pub async fn delete_me(pool: &SharedPool, user: JwtUserPayload) -> Result<()> {
     info!("{} deleted their own account", user);
     resolve_delete_user(pool, &user.uuid).await
+}
+
+#[patch("/me/enable-mfa", data="<body>")]
+pub async fn enable_mfa_me(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+    body: Json<EnableMfaDto>,
+) -> Result<()> {
+    todo!()
+}
+
+#[patch("/me/disable-mfa")]
+pub async fn disable_mfa_me(
+    pool: &SharedPool,
+    user: JwtUserPayload,
+) -> Result<()> {
+    todo!()
 }
