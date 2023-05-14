@@ -9,7 +9,8 @@ use rocket::http::{ContentType, Status};
 use rocket::response::Responder;
 use rocket::time::error::ComponentRange;
 use rocket::{Request, Response};
-use jumpdrive_auth::errors::JwtError;
+use jumpdrive_auth::errors::{JwtError, TotpError};
+use memcache::MemcacheError;
 
 use crate::error::blob_error::BlobError;
 use crate::error::error_dto_trait::ToErrorDto;
@@ -17,7 +18,9 @@ use crate::error::http_error::HttpError;
 use crate::error::import_error::ImportError;
 use crate::error::wrapped_csv_error::WrappedCsvError;
 use crate::error::wrapped_io_error::WrappedIoError;
+use crate::error::wrapped_memcached_error::WrappedMemcachedError;
 use crate::error::wrapped_sqlx_error::WrappedSqlxError;
+use crate::error::wrapper_totp_error::WrapperTotpError;
 use crate::models::dto::error_dto::{ErrorContent, ErrorDTO};
 
 pub mod blob_error;
@@ -28,6 +31,8 @@ pub mod jwt_error;
 pub mod wrapped_csv_error;
 pub mod wrapped_io_error;
 pub mod wrapped_sqlx_error;
+pub mod wrapper_totp_error;
+pub mod wrapped_memcached_error;
 
 #[derive(Debug)]
 pub enum Error {
@@ -42,6 +47,9 @@ pub enum Error {
     Csv(WrappedCsvError),
     ImportError(ImportError),
     BlobError(BlobError),
+    TotpError(WrapperTotpError),
+    MemcachedError(WrappedMemcachedError),
+    RateLimitError,
 }
 
 impl Error {
@@ -146,6 +154,18 @@ impl From<BlobError> for Error {
     }
 }
 
+impl From<TotpError> for Error {
+    fn from(value: TotpError) -> Self {
+        Error::TotpError(WrapperTotpError::new(value))
+    }
+}
+
+impl From<MemcacheError> for Error {
+    fn from(value: MemcacheError) -> Self {
+        Error::MemcachedError(WrappedMemcachedError::new(value))
+    }
+}
+
 impl Error {
     fn get_status_code(&self) -> u16 {
         match self {
@@ -156,7 +176,10 @@ impl Error {
             Error::HttpError(error) => error.get_status_code().code,
             Error::BlobError(error) => error.get_status_code().code,
             Error::IO(error) => error.get_status_code().code,
+            Error::TotpError(error) => error.get_status_code().code,
+            Error::MemcachedError(error) => error.get_status_code().code,
             Error::SerdeJson(_) => Status::BadRequest.code,
+            Error::RateLimitError => Status::TooManyRequests.code,
             _ => 500,
         }
     }
@@ -169,6 +192,15 @@ impl Error {
             Error::JwtError(error) => error.to_error_dto(),
             Error::BlobError(error) => error.to_error_dto(),
             Error::IO(error) => error.to_error_dto(),
+            Error::TotpError(error) => error.to_error_dto(),
+            Error::MemcachedError(error) => error.to_error_dto(),
+            Error::RateLimitError => ErrorDTO {
+                error: ErrorContent {
+                    code: Status::TooManyRequests.code,
+                    reason: "Too Many Requests".to_string(),
+                    description: "Too many requests where send".to_string(),
+                }
+            },
             _ => ErrorDTO {
                 error: ErrorContent {
                     code: 500,

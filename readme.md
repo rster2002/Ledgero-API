@@ -17,13 +17,17 @@ To start developing for this repository, follow these steps:
 
 5. Make sure you're running a Postgres database (you can use the `docker-compose.yaml` for this)
 6. Create an `.env` file using the `.env.example` file and update the values accordingly.
-7. Make sure to run the migrations during development using:
+7. Create the database using:
+   ```bash
+   sqlx database create
+   ```
+8. Make sure to run the migrations during development using:
 
    ```bash
    sqlx migrate run
    ```
 
-8. Start the application using:
+9. Start the application using:
 
    ```bash
    cargo run

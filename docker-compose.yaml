@@ -1,7 +1,7 @@
 version: '3.1'
 
 services:
-  piggybanks-dev:
+  ledgero-api-db:
     image: docker.io/postgres
     restart: always
     environment:
@@ -9,3 +9,9 @@ services:
       POSTGRES_PASSWORD: test
     ports:
       - "5462:5432"
+
+  ledgero-api-memcached:
+    image: docker.io/memcached
+    restart: always
+    ports:
+      - "11211:11211"

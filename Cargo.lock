@@ -618,6 +618,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum_dispatch"
+version = "0.3.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11f36e95862220b211a6e2aa5eca09b4fa391b13cd52ceb8035a24bf65a79de2"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "env_logger"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1088,7 +1100,7 @@ dependencies = [
 [[package]]
 name = "jumpdrive-auth"
 version = "0.1.0"
-source = "git+https://github.com/Jumpdrive-dev/Auth-Services?tag=1.0.0#06371b2161cc98476816ac4b2101910dd5531fa6"
+source = "git+https://github.com/Jumpdrive-dev/Auth-Services?tag=1.1.1#fa76944ae80c14ec7bf6f2f44a551ae6951c2815"
 dependencies = [
  "base32",
  "base64-url",
@@ -1138,6 +1150,7 @@ dependencies = [
  "infer",
  "jumpdrive-auth",
  "log",
+ "memcache",
  "once_cell",
  "rand",
  "rocket",
@@ -1226,6 +1239,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6365506850d44bff6e2fbcb5176cf63650e48bd45ef2fe2665ae1570e0f4b9ca"
 dependencies = [
  "digest",
+]
+
+[[package]]
+name = "memcache"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "063cadf0ccd3d27460d95d973ba1cf1e805a36d3d6297481b74d55ead4ebcb52"
+dependencies = [
+ "byteorder",
+ "enum_dispatch",
+ "r2d2",
+ "rand",
+ "url",
 ]
 
 [[package]]
@@ -1532,6 +1558,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "r2d2"
+version = "0.8.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51de85fb3fb6524929c8a2eb85e6b6d363de4e8c48f9e2c2eac4944abc181c93"
+dependencies = [
+ "log",
+ "parking_lot 0.12.1",
+ "scheduled-thread-pool",
+]
+
+[[package]]
 name = "rand"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1799,6 +1836,15 @@ name = "ryu"
 version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f91339c0467de62360649f8d3e185ca8de4224ff281f66000de5eb2a77a79041"
+
+[[package]]
+name = "scheduled-thread-pool"
+version = "0.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3cbc66816425a074528352f5789333ecff06ca41b36b0b0efdfbb29edc391a19"
+dependencies = [
+ "parking_lot 0.12.1",
+]
 
 [[package]]
 name = "scoped-tls"

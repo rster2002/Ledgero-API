@@ -25,5 +25,7 @@ pub fn create_user_routes() -> Vec<Route> {
         update_me_info,
         update_me_password,
         delete_me,
+        enable_mfa_me,
+        disable_mfa_me,
     ]
 }
