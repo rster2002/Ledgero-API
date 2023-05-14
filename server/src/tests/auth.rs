@@ -121,6 +121,7 @@ async fn user_can_log_in(pool: PgPool) {
     let result = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "something-else",
@@ -135,6 +136,7 @@ async fn user_can_log_in(pool: PgPool) {
     let result = perform_login(
         app.pool_state(),
         jwt_service_state,
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -170,6 +172,7 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
     let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -224,6 +227,7 @@ async fn tokens_cannot_be_refreshed_multiple_times(pool: PgPool) {
     let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -266,6 +270,7 @@ async fn tokens_can_be_revoked(pool: PgPool) {
     let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -307,6 +312,7 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
     let login_response_1 = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -321,6 +327,7 @@ async fn user_can_be_logged_out_everywhere(pool: PgPool) {
     let login_response_2 = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -371,6 +378,7 @@ async fn user_with_mfa_can_log_in_using_correct_code(pool: PgPool) {
     let login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "charley",
             password: "alice",
@@ -389,6 +397,7 @@ async fn user_with_mfa_can_log_in_using_correct_code(pool: PgPool) {
     let _ = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "charley",
             password: "alice",
@@ -408,6 +417,7 @@ async fn user_with_mfa_cannot_log_in_using_incorrect_code(pool: PgPool) {
     let login_result = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "charley",
             password: "alice",
@@ -426,6 +436,7 @@ async fn user_with_mfa_can_log_in_using_backup_code(pool: PgPool) {
     let login_result = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "charley",
             password: "alice",
@@ -444,6 +455,7 @@ async fn cannot_use_the_same_mfa_backup_code_multiple_times(pool: PgPool) {
     let login_result_1 = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "charley",
             password: "alice",
@@ -457,6 +469,7 @@ async fn cannot_use_the_same_mfa_backup_code_multiple_times(pool: PgPool) {
     let login_result_2 = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "charley",
             password: "alice",
@@ -495,6 +508,7 @@ async fn mfa_can_be_enabled(pool: PgPool) {
     let initial_login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -513,6 +527,7 @@ async fn mfa_can_be_enabled(pool: PgPool) {
     let mfa_login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",
@@ -555,6 +570,7 @@ async fn mfa_new_backup_codes_can_be_used(pool: PgPool) {
     let mfa_login_response = perform_login(
         app.pool_state(),
         app.jwt_service(),
+        app.rate_limiter(),
         Json(LoginUserDto {
             username: "alice",
             password: "alice",

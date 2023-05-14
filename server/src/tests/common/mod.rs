@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -8,16 +9,19 @@ use sqlx::{PgPool, Pool, Postgres};
 use jumpdrive_auth::services::JwtService;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::services::rate_limiter::RateLimiter;
 
 pub struct TestApp {
     pool: Arc<RwLock<Pool<Postgres>>>,
     jwt_service: JwtService,
+    rate_limiter: RateLimiter,
 }
 
 impl TestApp {
     pub fn new(pool: PgPool) -> Self {
         Self {
             pool: Arc::new(RwLock::new(pool)),
+            rate_limiter: RateLimiter::new_test(),
             jwt_service: JwtService::new(
                 RsaPrivateKey::from_components(
                     BigUint::from_str("74997830905646587139816226014144719862265627823949553374295905850158141318656719276313209175746760261055971134897398913479558563360202476134525738215443985213798786134947536321820103185111448036430087812065337288385932817127530120303914818733328961756008475729319280311987156480371871574865965853381575857139")
@@ -42,6 +46,14 @@ impl TestApp {
 
     pub fn pool_state(&self) -> &State<Arc<RwLock<Pool<Postgres>>>> {
         State::from(&self.pool)
+    }
+
+    pub fn rate_limiter(&self) -> &State<RateLimiter> {
+        State::from(&self.rate_limiter)
+    }
+
+    pub fn remote_ip(&self) -> SocketAddr {
+        SocketAddr::new("127.0.0.0".parse().unwrap(), 600)
     }
 
     pub fn jwt_service(&self) -> &State<JwtService> {

@@ -1,13 +1,16 @@
+use std::sync::Arc;
 use crate::prelude::*;
 
 pub struct RateLimiter {
-    memcached_client: memcache::Client,
+    #[cfg(not(test))]
+    client: memcache::Client,
 }
 
+#[cfg(not(test))]
 impl RateLimiter {
     pub fn new(client: memcache::Client) -> Self {
         Self {
-            memcached_client: client,
+            client,
         }
     }
 
@@ -21,14 +24,33 @@ impl RateLimiter {
         }
 
         let key = key.into();
-        let existing = self.memcached_client.get::<bool>(&key)?;
+        let existing = self.client.get::<bool>(&key)?;
 
         if existing.is_some() {
             return Err(Error::RateLimitError);
         }
 
-        self.memcached_client.set(&key, true, timeout)?;
+        self.client.set(&key, true, timeout)?;
 
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+impl RateLimiter {
+    pub fn new(client: memcache::Client) -> Self {
+        Self {}
+    }
+
+    pub fn new_test() -> Self {
+        Self {}
+    }
+
+    pub fn limit(
+        &self,
+        key: impl Into<String>,
+        timeout: u32,
+    ) -> Result<()> {
         Ok(())
     }
 }

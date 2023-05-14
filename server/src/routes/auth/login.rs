@@ -1,7 +1,9 @@
 use jumpdrive_auth::errors::TotpError;
 use jumpdrive_auth::services::{PasswordHashService, TotpService};
+use rocket::{Request, State};
 use rocket::http::Status;
 use rocket::serde::json::Json;
+
 use crate::db_inner;
 use crate::models::dto::auth::auth_response_dto::AuthResponseDto;
 use crate::models::dto::auth::auth_response_dto::jwt_access_token_payload::JwtAccessTokenPayload;
@@ -10,17 +12,21 @@ use crate::models::entities::grant::Grant;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
-use crate::shared::{SharedJwtService, SharedPool};
 use crate::prelude::*;
+use crate::services::rate_limiter::RateLimiter;
+use crate::shared::{SharedJwtService, SharedPool};
 
 #[post("/login", data = "<body>")]
 pub async fn perform_login<'a>(
     pool: &'a SharedPool,
     jwt_service: &'a SharedJwtService,
+    rate_limiter: &State<RateLimiter>,
     body: Json<LoginUserDto<'a>>,
 ) -> Result<Json<AuthResponseDto>> {
     let pool = db_inner!(pool);
     let body = body.0;
+
+    rate_limiter.limit(&*body.username, 1)?;
 
     let mut db_transaction = pool.begin().await?;
 
