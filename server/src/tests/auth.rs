@@ -1,6 +1,7 @@
 use jumpdrive_auth::services::TotpService;
 use rocket::serde::json::Json;
 use sqlx::PgPool;
+use crate::models::dto::account::enable_mfa_dto::EnableMfaDto;
 
 use crate::models::dto::auth::auth_response_dto::AuthResponseDto;
 use crate::models::dto::auth::jwt_refresh_dto::JwtRefreshDto;
@@ -10,10 +11,12 @@ use crate::models::dto::auth::revoke_dto::RevokeDto;
 use crate::models::entities::user::user_role::UserRole;
 use crate::models::jwt::jwt_refresh_payload::JwtRefreshPayload;
 use crate::models::jwt::jwt_user_payload::JwtUserPayload;
+use crate::routes::auth::get_random_mfa_secret_key;
 use crate::routes::auth::login::perform_login;
 use crate::routes::auth::refresh_token::refresh;
 use crate::routes::auth::registration::register;
 use crate::routes::auth::revoke_token::{revoke, revoke_all};
+use crate::routes::users::me::enable_mfa_me;
 use crate::tests::common::TestApp;
 
 #[sqlx::test]
@@ -378,9 +381,7 @@ async fn user_with_mfa_can_log_in_using_correct_code(pool: PgPool) {
         .unwrap()
         .0;
 
-    let AuthResponseDto::TwoFAChallenge = login_response else {
-        panic!("Expected 2FA challenge");
-    };
+    assert!(matches!(login_response, AuthResponseDto::TwoFAChallenge));
 
     let current_code = TotpService::test_generate_current_code("MU3EEY32LJTXIMKHKQ3TAR2MIJVUIVKM")
         .unwrap();
@@ -465,4 +466,104 @@ async fn cannot_use_the_same_mfa_backup_code_multiple_times(pool: PgPool) {
         .await;
 
     assert!(login_result_2.is_err());
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn mfa_can_be_enabled(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let secret_key = get_random_mfa_secret_key()
+        .await
+        .unwrap()
+        .0
+        .secret_key;
+
+    let code = TotpService::test_generate_current_code(&secret_key)
+        .unwrap();
+
+    enable_mfa_me(
+        app.pool_state(),
+        app.alice(),
+        Json(EnableMfaDto {
+            secret_key: secret_key.to_string(),
+            code,
+        })
+    )
+        .await
+        .unwrap();
+
+    let initial_login_response = perform_login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "alice",
+            password: "alice",
+            mfa_code: None,
+        })
+    )
+        .await
+        .unwrap()
+        .0;
+
+    assert!(matches!(initial_login_response, AuthResponseDto::TwoFAChallenge));
+
+    let login_code = TotpService::test_generate_current_code(&secret_key)
+        .unwrap();
+
+    let mfa_login_response = perform_login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "alice",
+            password: "alice",
+            mfa_code: Some(&login_code),
+        })
+    )
+        .await
+        .unwrap()
+        .0;
+
+    assert!(matches!(mfa_login_response, AuthResponseDto::JwtAccessToken(_)));
+}
+
+#[sqlx::test(fixtures("users"))]
+async fn mfa_new_backup_codes_can_be_used(pool: PgPool) {
+    let app = TestApp::new(pool);
+
+    let secret_key = get_random_mfa_secret_key()
+        .await
+        .unwrap()
+        .0
+        .secret_key;
+
+    let code = TotpService::test_generate_current_code(&secret_key)
+        .unwrap();
+
+    let backup_codes = enable_mfa_me(
+        app.pool_state(),
+        app.alice(),
+        Json(EnableMfaDto {
+            secret_key: secret_key.to_string(),
+            code,
+        })
+    )
+        .await
+        .unwrap()
+        .0
+        .backup_codes;
+
+    let mfa_login_response = perform_login(
+        app.pool_state(),
+        app.jwt_service(),
+        Json(LoginUserDto {
+            username: "alice",
+            password: "alice",
+            mfa_code: Some(&backup_codes[0]),
+        })
+    )
+        .await
+        .unwrap()
+        .0;
+
+    assert!(matches!(mfa_login_response, AuthResponseDto::JwtAccessToken(_)));
 }

@@ -7,6 +7,9 @@ pub fn create_start_options() -> StartOptions {
     let db_connection_string =
         env::var("DATABASE_URL").expect("Environment variable 'DATABASE_URL' not set");
 
+    let memcached_connection_string =
+        env::var("MEMCACHED_URL").expect("Environment variable 'MEMCACHED_URL' not set");
+
     // JWT options
     let issuer = env::var("JWT_ISSUER").expect("JWT_ISSUER not set");
 
@@ -32,6 +35,7 @@ pub fn create_start_options() -> StartOptions {
 
     StartOptions {
         database_url: db_connection_string,
+        memcached_url: memcached_connection_string,
         jwt_issuer: issuer,
         jwt_expire_seconds: expire_seconds,
         jwt_signing_key: private_key,

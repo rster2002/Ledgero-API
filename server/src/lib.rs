@@ -24,6 +24,7 @@ use crate::routes::importing::create_importing_routes;
 use crate::routes::transactions::create_transaction_routes;
 use crate::routes::users::create_user_routes;
 use crate::services::blob_service::BlobService;
+use crate::services::rate_limiter::RateLimiter;
 use crate::shared::PROJECT_DIRS;
 
 /// The shared error type where all the different errors are casted too to create one constant
@@ -99,6 +100,11 @@ pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
         options.max_blob_unconfirmed,
     ).expect("Failed to create blob service");
 
+    // Create rate limiter
+    let memcached_client = memcache::connect(options.memcached_url)
+        .expect("Failed to connect to memcached");
+    let rate_limiter = RateLimiter::new(memcached_client);
+
     // Wrap components in Arc<RwLock> where needed
     let blob_service = Arc::new(RwLock::new(blob_service));
 
@@ -111,6 +117,7 @@ pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
         .manage(pool)
         .manage(jwt_service)
         .manage(blob_service)
+        .manage(rate_limiter)
         .mount("/", routes![all_options])
         .mount("/auth", create_auth_routes())
         .mount("/users", create_user_routes())

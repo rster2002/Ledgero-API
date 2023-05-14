@@ -1,9 +1,11 @@
 use rocket::http::Status;
 use rocket::serde::json::Json;
-use jumpdrive_auth::services::PasswordHashService;
+use jumpdrive_auth::services::{PasswordHashService, TotpService};
+use rand::Rng;
 
 use crate::db_inner;
 use crate::models::dto::account::enable_mfa_dto::EnableMfaDto;
+use crate::models::dto::account::mfa_enabled_response_dto::MfaEnabledResponseDto;
 use crate::models::dto::users::admin_update_user_password_dto::AdminUpdateUserPasswordDto;
 use crate::models::dto::users::admin_user_info_dto::AdminUserInfoDto;
 use crate::models::dto::users::update_user_password_dto::UpdateUserPasswordDto;
@@ -88,8 +90,50 @@ pub async fn enable_mfa_me(
     pool: &SharedPool,
     user: JwtUserPayload,
     body: Json<EnableMfaDto>,
-) -> Result<()> {
-    todo!()
+) -> Result<Json<MfaEnabledResponseDto>> {
+    let inner_pool = db_inner!(pool);
+    let body = body.0;
+
+    if body.secret_key.len() < 32 {
+        return Err(Status::BadRequest.into());
+    }
+
+    TotpService::guard_code(&body.secret_key, &body.code)?;
+
+    let backup_codes:[String; 8] = {
+        let mut rng = rand::thread_rng();
+
+        let backup_codes = [
+            rng.gen_range(100000..=999999),
+            rng.gen_range(100000..=999999),
+            rng.gen_range(100000..=999999),
+            rng.gen_range(100000..=999999),
+            rng.gen_range(100000..=999999),
+            rng.gen_range(100000..=999999),
+            rng.gen_range(100000..=999999),
+            rng.gen_range(100000..=999999),
+        ]
+            .map(|code| code.to_string());
+
+        backup_codes
+    };
+
+    sqlx::query!(
+        r#"
+            UPDATE Users
+            SET mfaSecret = $2, mfaBackupCodes = $3
+            WHERE Id = $1
+        "#,
+        user.uuid,
+        body.secret_key,
+        &backup_codes
+    )
+        .execute(inner_pool)
+        .await?;
+
+    Ok(Json(MfaEnabledResponseDto {
+        backup_codes,
+    }))
 }
 
 #[patch("/me/disable-mfa")]
@@ -97,5 +141,18 @@ pub async fn disable_mfa_me(
     pool: &SharedPool,
     user: JwtUserPayload,
 ) -> Result<()> {
-    todo!()
+    let inner_pool = db_inner!(pool);
+
+    sqlx::query!(
+        r#"
+            UPDATE Users
+            SET mfaSecret = null, mfaBackupCodes = null
+            WHERE Id = $1;
+        "#,
+        user.uuid
+    )
+        .execute(inner_pool)
+        .await?;
+
+    Ok(())
 }
