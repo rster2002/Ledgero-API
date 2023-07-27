@@ -54,7 +54,7 @@ pub async fn category_ordering(
             user.uuid,
             i as i32
         )
-        .execute(&mut db_transaction)
+        .execute(&mut *db_transaction)
         .await?;
     }
 

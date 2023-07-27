@@ -189,7 +189,7 @@ pub async fn delete_split(
         user.uuid,
         new_transaction_amount
     )
-    .execute(&mut db_transaction)
+    .execute(&mut *db_transaction)
     .await?;
 
     sqlx::query!(
@@ -200,7 +200,7 @@ pub async fn delete_split(
         split_id,
         user.uuid
     )
-    .execute(&mut db_transaction)
+    .execute(&mut *db_transaction)
     .await?;
 
     db_transaction.commit().await?;

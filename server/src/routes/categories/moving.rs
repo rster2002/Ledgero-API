@@ -68,8 +68,8 @@ pub async fn move_money_between_categories(
 
     let mut db_transaction = inner_pool.begin().await?;
 
-    transaction_to.create(&mut db_transaction).await?;
-    transaction_from.create(&mut db_transaction).await?;
+    transaction_to.create(&mut *db_transaction).await?;
+    transaction_from.create(&mut *db_transaction).await?;
 
     db_transaction.commit().await?;
 

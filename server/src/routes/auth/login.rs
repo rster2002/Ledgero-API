@@ -40,7 +40,7 @@ pub async fn perform_login<'a>(
         "#,
         body.username
     )
-        .fetch_optional(&mut db_transaction)
+        .fetch_optional(&mut *db_transaction)
         .await?;
 
     debug!("Checking if user with username '{}' exists", body.username);
@@ -86,7 +86,7 @@ pub async fn perform_login<'a>(
                 user.id,
                 &backup_codes
             )
-                .execute(&mut db_transaction)
+                .execute(&mut *db_transaction)
                 .await?;
         }
     }
@@ -113,7 +113,7 @@ pub async fn perform_login<'a>(
         },
     )?;
 
-    grant.create(&mut db_transaction).await?;
+    grant.create(&mut *db_transaction).await?;
     db_transaction.commit().await?;
 
     info!("Successfully logged in '{}'", body.username);

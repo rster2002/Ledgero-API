@@ -66,6 +66,7 @@ mod tests;
 pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
     env_logger::init();
 
+    trace!("Creating database pool");
     let pool = Arc::new(RwLock::new(
         PgPoolOptions::new()
             .max_connections(5)
@@ -74,11 +75,13 @@ pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
             .expect("Could not create database pool"),
     ));
 
+    trace!("Running migrations");
     sqlx::migrate!()
         .run(&*(pool.read().await))
         .await
         .expect("Failed to migrate");
 
+    trace!("Configuring directories");
     // Configure directories
     let project_dirs =
         ProjectDirs::from("dev", "Jumpdrive", "Ledgero-API").expect("Failed to init directories");
@@ -88,6 +91,7 @@ pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
         .expect("Failed to share project dirs");
 
     // Create JWT service
+    trace!("Creating JWT service");
     let jwt_service = JwtService::new(
         options.jwt_signing_key,
         options.jwt_expire_seconds,
@@ -96,11 +100,14 @@ pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
     );
 
     // Create blob service
+    trace!("Creating BLOB service");
     let blob_service = BlobService::new(
         options.max_blob_unconfirmed,
     ).expect("Failed to create blob service");
 
     // Create rate limiter
+    trace!("Creating memcached client");
+    dbg!(&options.memcached_url);
     let memcached_client = memcache::connect(options.memcached_url)
         .expect("Failed to connect to memcached");
     let rate_limiter = RateLimiter::new(memcached_client);

@@ -9,9 +9,6 @@ COPY server/src ./server/src
 COPY server/migrations ./server/migrations
 COPY server/sqlx-data.json ./server/sqlx-data.json
 
-COPY auth/Cargo.toml ./auth/Cargo.toml
-COPY auth/src ./auth/src
-
 COPY cli/Cargo.toml ./cli/Cargo.toml
 COPY cli/src ./cli/src
 

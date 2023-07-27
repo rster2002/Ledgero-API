@@ -47,7 +47,7 @@ pub async fn import_csv(
     };
 
     // Create the parent import in the database
-    import.create(&mut db_transaction).await?;
+    import.create(&mut *db_transaction).await?;
 
     let records: Vec<StringRecord> =
         try_collect(csv::Reader::from_reader(Cursor::new(body.csv)).records())?;
@@ -75,7 +75,7 @@ pub async fn import_csv(
                     hex_color: "ffffff".to_string(),
                 };
 
-                bank_account.create(&mut db_transaction).await?;
+                bank_account.create(&mut *db_transaction).await?;
 
                 bank_account_map.insert(mapped_record.account_iban, bank_account.id.to_string());
 
@@ -124,10 +124,10 @@ pub async fn import_csv(
         // so if the insert fails like we expect, the savepoint is the one that is implicitly
         // rolled back instead of the actual transaction.
         sqlx::query!("SAVEPOINT T")
-            .execute(&mut db_transaction)
+            .execute(&mut *db_transaction)
             .await?;
 
-        let result = transaction.create(&mut db_transaction).await;
+        let result = transaction.create(&mut *db_transaction).await;
 
         // If the result is Ok the transactions is guaranteed to be a new transaction.
         if result.is_ok() {
@@ -135,7 +135,7 @@ pub async fn import_csv(
         }
 
         sqlx::query!("ROLLBACK TO T")
-            .execute(&mut db_transaction)
+            .execute(&mut *db_transaction)
             .await?;
 
         // If the database returned an Err, the transaction may be a duplicate, so that is checked
@@ -165,7 +165,7 @@ pub async fn import_csv(
             user.uuid.to_string(),
             transaction.follow_number
         )
-        .execute(&mut db_transaction)
+        .execute(&mut *db_transaction)
         .await?;
     }
 

@@ -195,7 +195,7 @@ pub async fn update_transaction<'a>(
         body.subcategory_id,
         body.external_account_id
     )
-    .execute(&mut db_transaction)
+    .execute(&mut *db_transaction)
     .await?;
 
     trace!("Deleting original splits");
@@ -207,7 +207,7 @@ pub async fn update_transaction<'a>(
         user.uuid,
         Some(id.to_string())
     )
-    .execute(&mut db_transaction)
+    .execute(&mut *db_transaction)
     .await?;
 
     trace!("Creating new splits");

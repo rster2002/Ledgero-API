@@ -30,7 +30,7 @@ impl SplitService {
             transaction_id,
             user_id
         )
-        .fetch_one(&mut db_transaction)
+        .fetch_one(&mut *db_transaction)
         .await?;
 
         Self::guard_amount(parent_transaction.amount, body.amount)?;
@@ -58,7 +58,7 @@ impl SplitService {
         };
 
         debug!("Creating new split with id '{}'", split_transaction.id);
-        split_transaction.create(&mut db_transaction).await?;
+        split_transaction.create(&mut *db_transaction).await?;
 
         let new_amount = parent_transaction.amount - split_transaction.amount;
 
@@ -73,7 +73,7 @@ impl SplitService {
             user_id,
             new_amount
         )
-        .execute(&mut db_transaction)
+        .execute(&mut *db_transaction)
         .await?;
 
         Ok(db_transaction)
@@ -95,7 +95,7 @@ impl SplitService {
             transaction_id,
             user_id
         )
-        .fetch_one(&mut db_transaction)
+        .fetch_one(&mut *db_transaction)
         .await?;
 
         let split = sqlx::query!(
@@ -112,7 +112,7 @@ impl SplitService {
             transaction_id,
             split_id
         )
-        .fetch_one(&mut db_transaction)
+        .fetch_one(&mut *db_transaction)
         .await?;
 
         let available_amount = parent_transaction.amount + split.amount;
@@ -132,7 +132,7 @@ impl SplitService {
             body.amount,
             body.category_id
         )
-        .execute(&mut db_transaction)
+        .execute(&mut *db_transaction)
         .await?;
 
         sqlx::query!(
@@ -145,7 +145,7 @@ impl SplitService {
             user_id,
             new_parent_amount
         )
-        .execute(&mut db_transaction)
+        .execute(&mut *db_transaction)
         .await?;
 
         Ok(db_transaction)
