@@ -187,6 +187,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "base64-url"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c5b0a88aa36e9f095ee2e2b13fb8c5e4313e022783aedacc123328c0084916d"
+dependencies = [
+ "base64 0.21.0",
+]
+
+[[package]]
 name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1181,16 +1190,16 @@ dependencies = [
 
 [[package]]
 name = "jumpdrive-auth"
-version = "0.1.0"
-source = "git+https://github.com/Jumpdrive-dev/Auth-Services?tag=1.1.1#fa76944ae80c14ec7bf6f2f44a551ae6951c2815"
+version = "2.1.1"
+source = "git+https://github.com/Jumpdrive-dev/Auth-Services?tag=2.1.1#87c2ac3b8fafde564bd3cfecf69c655af9bfb5ed"
 dependencies = [
  "base32",
- "base64-url",
+ "base64-url 2.0.0",
  "chrono",
  "hmac",
  "hmac-sha1",
  "rand",
- "rsa 0.8.2",
+ "rsa 0.9.2",
  "serde",
  "serde_json",
  "sha2",
@@ -1213,6 +1222,7 @@ dependencies = [
  "clap",
  "dialoguer",
  "dotenv",
+ "jumpdrive-auth",
  "ledgero-server",
  "rsa 0.8.2",
  "tokio",
@@ -1223,7 +1233,7 @@ name = "ledgero-server"
 version = "1.0.0-Alpha.1"
 dependencies = [
  "async-rwlock",
- "base64-url",
+ "base64-url 1.4.13",
  "chrono",
  "csv",
  "directories",

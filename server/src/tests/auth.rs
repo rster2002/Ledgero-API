@@ -162,7 +162,7 @@ async fn user_can_log_in(pool: PgPool) {
     assert_eq!(payload.username, "alice");
     assert_eq!(payload.role, UserRole::User);
 
-    assert_eq!(claims.iss, "tester");
+    assert_eq!(claims.iss, Some("tester".to_string()));
 }
 
 #[sqlx::test(fixtures("users"))]
@@ -217,7 +217,7 @@ async fn tokens_can_be_refreshed(pool: PgPool) {
         .unwrap()
         .0;
 
-    assert!(new_refresh_claims.exp - old_refresh_claims.exp < 100);
+    assert!(new_refresh_claims.exp.unwrap() - old_refresh_claims.exp.unwrap() < 100);
 }
 
 #[sqlx::test(fixtures("users"))]

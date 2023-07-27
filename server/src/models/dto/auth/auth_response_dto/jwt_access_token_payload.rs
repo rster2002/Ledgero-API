@@ -5,5 +5,5 @@ pub struct JwtAccessTokenPayload {
     pub access_token: String,
     pub refresh_token: String,
     pub token_type: String,
-    pub expires: u32,
+    pub expires: i64,
 }

@@ -3,8 +3,9 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use async_rwlock::RwLock;
+use jumpdrive_auth::services::jwt_service::{Duration, RsaPrivateKey};
 use rocket::State;
-use rsa::{BigUint, RsaPrivateKey};
+use rsa::{BigUint};
 use sqlx::{PgPool, Pool, Postgres};
 use jumpdrive_auth::services::JwtService;
 use crate::models::entities::user::user_role::UserRole;
@@ -37,7 +38,8 @@ impl TestApp {
                     ]
                 )
                     .unwrap(),
-                300,
+                Duration::seconds(300),
+                Duration::seconds(600),
                 "tester",
                 "internal-testing"
             ),

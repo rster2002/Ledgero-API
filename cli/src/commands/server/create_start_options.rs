@@ -1,6 +1,5 @@
 use std::{env, fs};
-use rsa::pkcs1::DecodeRsaPrivateKey;
-use rsa::RsaPrivateKey;
+use jumpdrive_auth::services::jwt_service::{RsaPrivateKey,DecodeRsaPrivateKey};
 use ledgero_api::init::start_options::StartOptions;
 
 pub fn create_start_options() -> StartOptions {
@@ -13,10 +12,15 @@ pub fn create_start_options() -> StartOptions {
     // JWT options
     let issuer = env::var("JWT_ISSUER").expect("JWT_ISSUER not set");
 
-    let expire_seconds = std::env::var("JWT_EXPIRE_SECONDS")
-        .expect("JWT_EXPIRE_SECONDS not set")
+    let access_expire_seconds = std::env::var("JWT_ACCESS_EXPIRE_SECONDS")
+        .expect("JWT_ACCESS_EXPIRE_SECONDS not set")
         .parse()
-        .expect("JWT_EXPIRE_SECONDS is not an i64");
+        .expect("JWT_ACCESS_EXPIRE_SECONDS is not an i64");
+
+    let access_refresh_seconds = std::env::var("JWT_REFRESH_EXPIRE_SECONDS")
+        .expect("JWT_REFRESH_EXPIRE_SECONDS not set")
+        .parse()
+        .expect("JWT_REFRESH_EXPIRE_SECONDS is not an i64");
 
     let pem_path = env::var("PRIVATE_PEM_PATH").expect("PRIVATE_PEM_PATH not set");
 
@@ -37,7 +41,8 @@ pub fn create_start_options() -> StartOptions {
         database_url: db_connection_string,
         memcached_url: memcached_connection_string,
         jwt_issuer: issuer,
-        jwt_expire_seconds: expire_seconds,
+        jwt_access_expire_seconds: access_expire_seconds,
+        jwt_refresh_expire_seconds: access_refresh_seconds,
         jwt_signing_key: private_key,
         max_blob_unconfirmed,
     }

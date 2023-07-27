@@ -5,6 +5,7 @@ use std::env;
 use std::sync::Arc;
 
 use async_rwlock::RwLock;
+use chrono::Duration;
 use directories::ProjectDirs;
 use rocket::http::Status;
 use sqlx::postgres::PgPoolOptions;
@@ -94,7 +95,8 @@ pub async fn run(options: StartOptions) -> Result<(), rocket::Error> {
     trace!("Creating JWT service");
     let jwt_service = JwtService::new(
         options.jwt_signing_key,
-        options.jwt_expire_seconds,
+        Duration::seconds(options.jwt_access_expire_seconds as i64),
+        Duration::seconds(options.jwt_refresh_expire_seconds as i64),
         options.jwt_issuer,
         "ledgero-api"
     );
