@@ -11,7 +11,7 @@ path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-jumpdrive-auth = { git = "https://github.com/Jumpdrive-dev/Auth-Services", tag = "2.1.1", features = ["test-utils"] }
+jumpdrive-auth = { git = "https://github.com/Jumpdrive-dev/Auth-Services", tag = "2.2.0", features = ["test-utils"] }
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"

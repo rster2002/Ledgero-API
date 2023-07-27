@@ -22,10 +22,12 @@ pub async fn refresh(
     let pool = db_inner!(pool);
     let body = body.0;
 
+    trace!("Decoding access payload");
     let (_, access_payload) =
         jwt_service.decode_access_token_unchecked::<JwtUserPayload>(body.access_token)?;
     info!("Token refresh attempt for '{}'", access_payload.username);
 
+    trace!("Decoding refresh payload");
     let refresh_payload: JwtRefreshPayload = jwt_service.decode_refresh_token(body.refresh_token)?;
     debug!(
         "Attempting to refresh using grant id '{}'",
