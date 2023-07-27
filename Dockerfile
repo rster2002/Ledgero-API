@@ -7,7 +7,7 @@ COPY Cargo.toml ./Cargo.toml
 COPY server/Cargo.toml ./server/Cargo.toml
 COPY server/src ./server/src
 COPY server/migrations ./server/migrations
-COPY server/sqlx-data.json ./server/sqlx-data.json
+COPY server/.sqlx ./server/.sqlx
 
 COPY cli/Cargo.toml ./cli/Cargo.toml
 COPY cli/src ./cli/src
