@@ -33,7 +33,13 @@ impl SplitService {
         .fetch_one(&mut *db_transaction)
         .await?;
 
-        Self::guard_amount(parent_transaction.amount, body.amount)?;
+        let split_amount: i64 = if parent_transaction.amount < 0 {
+            -(body.amount as i64)
+        } else {
+            body.amount as i64
+        };
+
+        Self::guard_amount(parent_transaction.amount, split_amount)?;
 
         let split_transaction = Transaction {
             id: Uuid::new_v4().to_string(),
@@ -42,8 +48,8 @@ impl SplitService {
             follow_number: Uuid::new_v4().to_string(),
             original_description: body.description.to_string(),
             description: body.description.to_string(),
-            complete_amount: body.amount,
-            amount: body.amount,
+            complete_amount: split_amount,
+            amount: split_amount,
             date: Utc::now(),
             bank_account_id: parent_transaction.bankaccountid,
             category_id: body.category_id.map(|v| v.to_string()),
@@ -115,10 +121,16 @@ impl SplitService {
         .fetch_one(&mut *db_transaction)
         .await?;
 
-        let available_amount = parent_transaction.amount + split.amount;
-        SplitService::guard_amount(available_amount, body.amount)?;
+        let split_amount = if parent_transaction.amount < 0 {
+            -(body.amount as i64)
+        } else {
+            body.amount as i64
+        };
 
-        let new_parent_amount = available_amount - body.amount;
+        let available_amount = parent_transaction.amount + split_amount;
+        SplitService::guard_amount(available_amount, split_amount)?;
+
+        let new_parent_amount = available_amount - split_amount;
 
         sqlx::query!(
             r#"
@@ -129,7 +141,7 @@ impl SplitService {
             split_id,
             user_id,
             body.description,
-            body.amount,
+            split_amount,
             body.category_id
         )
         .execute(&mut *db_transaction)
