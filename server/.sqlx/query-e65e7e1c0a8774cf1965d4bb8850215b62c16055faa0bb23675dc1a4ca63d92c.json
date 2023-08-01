@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT Amount, ParentTransactionId\n            FROM Transactions\n            WHERE TransactionType = 'split' AND Id = $1 AND UserId = $2;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "amount",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "parenttransactionid",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "e65e7e1c0a8774cf1965d4bb8850215b62c16055faa0bb23675dc1a4ca63d92c"
+}

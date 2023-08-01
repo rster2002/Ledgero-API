@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE ExternalAccounts\n            SET Name = $3, Description = $4, DefaultCategoryId = $5, DefaultSubcategoryId = $6, HexColor = $7\n            WHERE Id = $1 AND UserId = $2\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a3f944555c4d4d1237b3ab08cfaba4da3d86ffcccf916a6aaa2f0cb9e2284bfb"
+}

@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE Transactions\n            SET Description = $3, CategoryId = $4, SubcategoryId = $5, ExternalAccountId = $6\n            WHERE Id = $1 AND UserId = $2;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f4214511a99686f6a24ce80a025ea462b5579c332bae8c1baf35f8f241ef4885"
+}

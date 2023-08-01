@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId\n                FROM Transactions\n                WHERE Id = $1 AND UserId = $2;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "bankaccountid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "amount",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "externalaccountname",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "externalaccountid",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "71439d5a0ce1e0fdfb5fa7777e498dcb0d2be85dc5b55ea3e6be9a5dbd33b94e"
+}

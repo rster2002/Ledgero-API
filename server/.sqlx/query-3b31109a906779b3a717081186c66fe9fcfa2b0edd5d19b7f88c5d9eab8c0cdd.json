@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT TransactionType\n            FROM Transactions\n            WHERE Id = $1 AND UserId = $2;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "transactiontype",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3b31109a906779b3a717081186c66fe9fcfa2b0edd5d19b7f88c5d9eab8c0cdd"
+}

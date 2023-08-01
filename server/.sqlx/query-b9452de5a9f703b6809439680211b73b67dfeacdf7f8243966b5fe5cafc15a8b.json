@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM transactions\n            WHERE UserId = $1 AND TransactionType = 'move' AND Id = $2;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b9452de5a9f703b6809439680211b73b67dfeacdf7f8243966b5fe5cafc15a8b"
+}

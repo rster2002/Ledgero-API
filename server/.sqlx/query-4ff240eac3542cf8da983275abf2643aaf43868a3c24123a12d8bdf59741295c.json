@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM blobs\n                WHERE confirmedat IS null AND EXTRACT(EPOCH FROM (now() - uploadedat)) > $1::bigint;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4ff240eac3542cf8da983275abf2643aaf43868a3c24123a12d8bdf59741295c"
+}

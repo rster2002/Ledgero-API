@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT Amount\n            FROM Transactions\n            WHERE TransactionType = 'transaction' AND Id = $1 AND UserId = $2;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "amount",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2d199cb11775c35e3f4763203ecc643de2f5cc647c711c70c6569b70526ee081"
+}

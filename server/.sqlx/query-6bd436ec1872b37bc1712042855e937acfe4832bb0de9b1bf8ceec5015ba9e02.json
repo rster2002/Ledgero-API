@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE Blobs\n                SET ConfirmedAt = $3\n                WHERE Token = $1 AND UserId = $2;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6bd436ec1872b37bc1712042855e937acfe4832bb0de9b1bf8ceec5015ba9e02"
+}

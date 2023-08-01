@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM Transactions\n            WHERE UserId = $1 AND ParentTransactionId = $2 AND TransactionType = 'split';\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "80d458da08bc745267699b801c3eccba75d69527fc9fd2cfc0881a2e5ebca455"
+}

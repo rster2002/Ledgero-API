@@ -101,8 +101,8 @@ pub async fn create_split(
 
     let mut db_transaction = inner_pool.begin().await?;
 
-    db_transaction =
-        SplitService::create_split(db_transaction, &user.uuid, transaction_id, body.0).await?;
+    SplitService::create_split(&mut db_transaction, &user.uuid, transaction_id, body.0)
+        .await?;
 
     db_transaction.commit().await?;
 
@@ -120,8 +120,7 @@ pub async fn update_split(
 ) -> Result<()> {
     let mut db_transaction = db_inner!(pool).begin().await?;
 
-    db_transaction =
-        SplitService::update_split(db_transaction, &user.uuid, transaction_id, split_id, body.0)
+    SplitService::update_split(&mut db_transaction, &user.uuid, transaction_id, split_id, body.0)
             .await?;
 
     db_transaction.commit().await?;

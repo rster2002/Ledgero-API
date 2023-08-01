@@ -1,0 +1,59 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                transactions.Id, transactions.Description, Amount,\n                c.Id as \"category_id?\", c.Name as \"category_name?\", c.Description as \"category_description?\", c.HexColor as \"category_hex_color?\"\n            FROM Transactions\n            LEFT JOIN categories c on transactions.categoryid = c.id\n            WHERE TransactionType = 'split' AND transactions.UserId = $1 AND ParentTransactionId = $2;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "amount",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "category_id?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "category_name?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "category_description?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "category_hex_color?",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "559ed36b89bf0e755d248eba4fc996c1b02e5ee4e0a7593bd77f355ce890cea7"
+}

@@ -13,11 +13,11 @@ pub struct SplitService;
 
 impl SplitService {
     pub async fn create_split<'a>(
-        mut db_transaction: DbTransaction<'a>,
+        db_transaction: &mut DbTransaction<'a>,
         user_id: &'a str,
         transaction_id: &'a str,
         body: NewSplitDto<'a>,
-    ) -> Result<sqlx::Transaction<'a, Postgres>> {
+    ) -> Result<()> {
         trace!("Creating new split");
 
         trace!("Fetching parent transaction from database");
@@ -30,10 +30,16 @@ impl SplitService {
             transaction_id,
             user_id
         )
-        .fetch_one(&mut *db_transaction)
+        .fetch_one(&mut **db_transaction)
         .await?;
 
-        Self::guard_amount(parent_transaction.amount, body.amount)?;
+        let split_amount: i64 = if parent_transaction.amount < 0 {
+            -(body.amount as i64)
+        } else {
+            body.amount as i64
+        };
+
+        Self::guard_amount(parent_transaction.amount, split_amount)?;
 
         let split_transaction = Transaction {
             id: Uuid::new_v4().to_string(),
@@ -42,8 +48,8 @@ impl SplitService {
             follow_number: Uuid::new_v4().to_string(),
             original_description: body.description.to_string(),
             description: body.description.to_string(),
-            complete_amount: body.amount,
-            amount: body.amount,
+            complete_amount: split_amount,
+            amount: split_amount,
             date: Utc::now(),
             bank_account_id: parent_transaction.bankaccountid,
             category_id: body.category_id.map(|v| v.to_string()),
@@ -58,7 +64,7 @@ impl SplitService {
         };
 
         debug!("Creating new split with id '{}'", split_transaction.id);
-        split_transaction.create(&mut *db_transaction).await?;
+        split_transaction.create(&mut **db_transaction).await?;
 
         let new_amount = parent_transaction.amount - split_transaction.amount;
 
@@ -73,19 +79,19 @@ impl SplitService {
             user_id,
             new_amount
         )
-        .execute(&mut *db_transaction)
+        .execute(&mut **db_transaction)
         .await?;
 
-        Ok(db_transaction)
+        Ok(())
     }
 
     pub async fn update_split<'a>(
-        mut db_transaction: DbTransaction<'a>,
+        db_transaction: &mut DbTransaction<'a>,
         user_id: &'a str,
         transaction_id: &'a str,
         split_id: &'a str,
         body: NewSplitDto<'a>,
-    ) -> Result<sqlx::Transaction<'a, Postgres>> {
+    ) -> Result<()> {
         let parent_transaction = sqlx::query!(
             r#"
                 SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId
@@ -95,7 +101,7 @@ impl SplitService {
             transaction_id,
             user_id
         )
-        .fetch_one(&mut *db_transaction)
+        .fetch_one(&mut **db_transaction)
         .await?;
 
         let split = sqlx::query!(
@@ -112,13 +118,19 @@ impl SplitService {
             transaction_id,
             split_id
         )
-        .fetch_one(&mut *db_transaction)
+        .fetch_one(&mut **db_transaction)
         .await?;
 
-        let available_amount = parent_transaction.amount + split.amount;
-        SplitService::guard_amount(available_amount, body.amount)?;
+        let split_amount = if parent_transaction.amount < 0 {
+            -(body.amount as i64)
+        } else {
+            body.amount as i64
+        };
 
-        let new_parent_amount = available_amount - body.amount;
+        let available_amount = parent_transaction.amount + split.amount;
+        SplitService::guard_amount(available_amount, split_amount)?;
+
+        let new_parent_amount = available_amount - split_amount;
 
         sqlx::query!(
             r#"
@@ -129,10 +141,10 @@ impl SplitService {
             split_id,
             user_id,
             body.description,
-            body.amount,
+            split_amount,
             body.category_id
         )
-        .execute(&mut *db_transaction)
+        .execute(&mut **db_transaction)
         .await?;
 
         sqlx::query!(
@@ -145,10 +157,10 @@ impl SplitService {
             user_id,
             new_parent_amount
         )
-        .execute(&mut *db_transaction)
+        .execute(&mut **db_transaction)
         .await?;
 
-        Ok(db_transaction)
+        Ok(())
     }
 
     fn guard_amount(available_amount: i64, split_amount: i64) -> Result<()> {
