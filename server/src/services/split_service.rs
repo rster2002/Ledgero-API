@@ -127,7 +127,7 @@ impl SplitService {
             body.amount as i64
         };
 
-        let available_amount = parent_transaction.amount + split_amount;
+        let available_amount = parent_transaction.amount + split.amount;
         SplitService::guard_amount(available_amount, split_amount)?;
 
         let new_parent_amount = available_amount - split_amount;
