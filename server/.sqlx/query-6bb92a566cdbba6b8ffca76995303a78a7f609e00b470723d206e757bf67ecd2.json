@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE Transactions\n            SET CategoryId = $3, SubcategoryId = $4\n            WHERE UserId = $1 AND Id = ANY($2);\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "TextArray",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6bb92a566cdbba6b8ffca76995303a78a7f609e00b470723d206e757bf67ecd2"
+}

@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT ExternalAccountNames.Name, ParentExternalAccount, e.DefaultCategoryId\n            FROM ExternalAccountNames\n            INNER JOIN ExternalAccounts e ON e.Id = ExternalAccountNames.ParentExternalAccount\n            WHERE ExternalAccountNames.UserId = $1;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "parentexternalaccount",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "defaultcategoryid",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "551ec0d9216a790493a3efc8378c3a409da931cc3062dd03d283460e0c4a6354"
+}

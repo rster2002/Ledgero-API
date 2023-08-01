@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM BankAccounts\n            WHERE Id = $1 AND UserId = $2;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3127cf41d5114115b06ed99637f2006a24ee9c6c7d7b3d3702501b5bccf465c5"
+}

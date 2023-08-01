@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT MAX(OrderIndex) AS MaxIndex\n            FROM Categories\n            WHERE UserId = $1;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "maxindex",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "b453d01c706bd542a977047fc6a06690b3024b5bd0cf43b7880d52e485ec83f7"
+}

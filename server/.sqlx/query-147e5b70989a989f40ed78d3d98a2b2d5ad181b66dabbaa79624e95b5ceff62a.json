@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE Categories\n                SET OrderIndex = $3\n                WHERE Id = $1 AND UserId = $2;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "147e5b70989a989f40ed78d3d98a2b2d5ad181b66dabbaa79624e95b5ceff62a"
+}

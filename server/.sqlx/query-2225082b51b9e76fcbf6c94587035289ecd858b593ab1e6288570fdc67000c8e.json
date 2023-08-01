@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE Users\n            SET Username = $2, Role = $3, ProfileImage = $4\n            WHERE Id = $1;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2225082b51b9e76fcbf6c94587035289ecd858b593ab1e6288570fdc67000c8e"
+}

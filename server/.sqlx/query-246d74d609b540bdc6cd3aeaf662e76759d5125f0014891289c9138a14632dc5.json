@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT token,\n                       COUNT(e.*) +\n                       COUNT(u.*) AS \"references\"\n                FROM blobs\n                LEFT JOIN externalaccounts e on blobs.token = e.image\n                LEFT JOIN users u on blobs.token = u.profileimage\n                GROUP BY blobs.token;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "token",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "references",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "246d74d609b540bdc6cd3aeaf662e76759d5125f0014891289c9138a14632dc5"
+}

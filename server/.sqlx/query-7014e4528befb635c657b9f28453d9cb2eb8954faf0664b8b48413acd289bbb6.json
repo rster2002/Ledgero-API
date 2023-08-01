@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT *, (\n                SELECT SUM(Amount)\n                FROM Transactions\n                WHERE Transactions.BankAccountId = BankAccounts.id\n            )::bigint AS Amount\n            FROM BankAccounts\n            WHERE UserId = $1;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "iban",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "userid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "hexcolor",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "amount",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "7014e4528befb635c657b9f28453d9cb2eb8954faf0664b8b48413acd289bbb6"
+}

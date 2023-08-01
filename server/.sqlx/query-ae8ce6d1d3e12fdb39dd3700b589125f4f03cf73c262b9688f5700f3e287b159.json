@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE Transactions\n            SET ExternalAccountId = null, ExternalAccountNameId = null\n            WHERE UserId = $1 AND ExternalAccountId = $2 AND ExternalAccountNameId = $3;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ae8ce6d1d3e12fdb39dd3700b589125f4f03cf73c262b9688f5700f3e287b159"
+}

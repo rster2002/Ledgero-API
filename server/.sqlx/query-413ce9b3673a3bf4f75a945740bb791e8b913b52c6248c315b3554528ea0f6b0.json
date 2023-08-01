@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM ExternalAccountNames\n            WHERE Id = $1 AND UserId = $2;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "413ce9b3673a3bf4f75a945740bb791e8b913b52c6248c315b3554528ea0f6b0"
+}

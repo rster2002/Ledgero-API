@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT *, (\n                SELECT COUNT(Id)\n                FROM Transactions\n                WHERE ParentImport = Imports.Id\n            )::int AS Imported,\n            (\n                SELECT COUNT(FollowNumber)\n                FROM SkippedTransactions\n                WHERE ImportId = Imports.Id\n            )::int AS Skipped\n            FROM Imports\n            WHERE UserId = $1\n            ORDER BY ImportedAt DESC;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "userid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "importedat",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "filename",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "imported",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "skipped",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "11cab86049c3e4da53b2ab085595d4f52a46f885805f5d569c83c00c01c1d62e"
+}

@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE Subcategories\n            SET Name = $4, Description = $5, HexColor = $6\n            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "dbdae8dede072340f0c5c5b0a51672af4f46a8ef61d7ac0fd0fe56eeb9acab65"
+}

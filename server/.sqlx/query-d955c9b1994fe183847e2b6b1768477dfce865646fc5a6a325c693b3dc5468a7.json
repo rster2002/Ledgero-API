@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE BankAccounts\n            SET Name = $3, Description = $4, HexColor = $5\n            WHERE Id = $1 AND UserId = $2;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d955c9b1994fe183847e2b6b1768477dfce865646fc5a6a325c693b3dc5468a7"
+}

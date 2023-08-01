@@ -1,0 +1,60 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT *, (\n                SELECT SUM(Amount)::bigint\n                FROM Transactions\n                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId\n            )::bigint AS Amount\n            FROM Subcategories\n            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "userid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "parentcategory",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "hexcolor",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "amount",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "717c37a8851ce85f05e2e223cdc0f8a058904a4f8bea92335a5f49361afded42"
+}

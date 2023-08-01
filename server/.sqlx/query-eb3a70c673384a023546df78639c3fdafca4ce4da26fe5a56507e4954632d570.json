@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    UPDATE Users\n                    SET mfaBackupCodes = $2\n                    WHERE Id = $1;\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "VarcharArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "eb3a70c673384a023546df78639c3fdafca4ce4da26fe5a56507e4954632d570"
+}

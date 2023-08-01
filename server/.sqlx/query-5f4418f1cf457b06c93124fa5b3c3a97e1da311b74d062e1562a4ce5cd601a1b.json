@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO ExternalAccounts\n                VALUES ($1, $2, $3, $4, $5, $6, null, $7);\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5f4418f1cf457b06c93124fa5b3c3a97e1da311b74d062e1562a4ce5cd601a1b"
+}

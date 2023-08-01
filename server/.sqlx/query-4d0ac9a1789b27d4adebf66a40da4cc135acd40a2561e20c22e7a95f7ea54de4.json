@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT *\n            FROM ExternalAccounts\n            WHERE Id = $1 AND UserId = $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "userid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "defaultcategoryid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "defaultsubcategoryid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "image",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "hexcolor",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "4d0ac9a1789b27d4adebf66a40da4cc135acd40a2561e20c22e7a95f7ea54de4"
+}
