@@ -212,7 +212,8 @@ pub async fn update_transaction<'a>(
 
     trace!("Creating new splits");
     for split in body.splits {
-        db_transaction = SplitService::create_split(db_transaction, &user.uuid, id, split).await?;
+        SplitService::create_split(&mut db_transaction, &user.uuid, id, split)
+            .await?;
     }
 
     trace!("Committing database transaction");

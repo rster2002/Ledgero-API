@@ -13,11 +13,11 @@ pub struct SplitService;
 
 impl SplitService {
     pub async fn create_split<'a>(
-        mut db_transaction: DbTransaction<'a>,
+        db_transaction: &mut DbTransaction<'a>,
         user_id: &'a str,
         transaction_id: &'a str,
         body: NewSplitDto<'a>,
-    ) -> Result<sqlx::Transaction<'a, Postgres>> {
+    ) -> Result<()> {
         trace!("Creating new split");
 
         trace!("Fetching parent transaction from database");
@@ -30,7 +30,7 @@ impl SplitService {
             transaction_id,
             user_id
         )
-        .fetch_one(&mut *db_transaction)
+        .fetch_one(&mut **db_transaction)
         .await?;
 
         let split_amount: i64 = if parent_transaction.amount < 0 {
@@ -64,7 +64,7 @@ impl SplitService {
         };
 
         debug!("Creating new split with id '{}'", split_transaction.id);
-        split_transaction.create(&mut *db_transaction).await?;
+        split_transaction.create(&mut **db_transaction).await?;
 
         let new_amount = parent_transaction.amount - split_transaction.amount;
 
@@ -79,19 +79,19 @@ impl SplitService {
             user_id,
             new_amount
         )
-        .execute(&mut *db_transaction)
+        .execute(&mut **db_transaction)
         .await?;
 
-        Ok(db_transaction)
+        Ok(())
     }
 
     pub async fn update_split<'a>(
-        mut db_transaction: DbTransaction<'a>,
+        db_transaction: &mut DbTransaction<'a>,
         user_id: &'a str,
         transaction_id: &'a str,
         split_id: &'a str,
         body: NewSplitDto<'a>,
-    ) -> Result<sqlx::Transaction<'a, Postgres>> {
+    ) -> Result<()> {
         let parent_transaction = sqlx::query!(
             r#"
                 SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId
@@ -101,7 +101,7 @@ impl SplitService {
             transaction_id,
             user_id
         )
-        .fetch_one(&mut *db_transaction)
+        .fetch_one(&mut **db_transaction)
         .await?;
 
         let split = sqlx::query!(
@@ -118,7 +118,7 @@ impl SplitService {
             transaction_id,
             split_id
         )
-        .fetch_one(&mut *db_transaction)
+        .fetch_one(&mut **db_transaction)
         .await?;
 
         let split_amount = if parent_transaction.amount < 0 {
@@ -144,7 +144,7 @@ impl SplitService {
             split_amount,
             body.category_id
         )
-        .execute(&mut *db_transaction)
+        .execute(&mut **db_transaction)
         .await?;
 
         sqlx::query!(
@@ -157,10 +157,10 @@ impl SplitService {
             user_id,
             new_parent_amount
         )
-        .execute(&mut *db_transaction)
+        .execute(&mut **db_transaction)
         .await?;
 
-        Ok(db_transaction)
+        Ok(())
     }
 
     fn guard_amount(available_amount: i64, split_amount: i64) -> Result<()> {
