@@ -41,9 +41,9 @@ impl Import {
     pub async fn guard_one(pool: &DbPool, id: &String, user_id: &String) -> Result<()> {
         sqlx::query!(
             r#"
-                SELECT Id
-                FROM Imports
-                WHERE Id = $1 AND UserId = $2;
+                SELECT id
+                FROM imports
+                WHERE id = $1 AND user_id = $2;
             "#,
             id,
             user_id

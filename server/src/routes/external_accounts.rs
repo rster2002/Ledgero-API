@@ -44,8 +44,8 @@ pub async fn get_all_external_accounts(
     let records = sqlx::query!(
         r#"
             SELECT *
-            FROM ExternalAccounts
-            WHERE UserId = $1;
+            FROM external_accounts
+            WHERE user_id = $1;
         "#,
         user.uuid
     )
@@ -108,8 +108,8 @@ pub async fn get_external_account_by_id(
     let record = sqlx::query!(
         r#"
             SELECT *
-            FROM ExternalAccounts
-            WHERE Id = $1 AND UserId = $2
+            FROM external_accounts
+            WHERE id = $1 AND user_id = $2
         "#,
         id,
         user.uuid
@@ -148,9 +148,9 @@ pub async fn update_external_account(
     debug!("Updating external account '{}'", id);
     sqlx::query!(
         r#"
-            UPDATE ExternalAccounts
-            SET Name = $3, Description = $4, DefaultCategoryId = $5, DefaultSubcategoryId = $6, HexColor = $7
-            WHERE Id = $1 AND UserId = $2
+            UPDATE external_accounts
+            SET name = $3, description = $4, default_category_id = $5, default_subcategory_id = $6, hex_color = $7
+            WHERE id = $1 AND user_id = $2
         "#,
         id,
         user.uuid,
@@ -181,8 +181,8 @@ pub async fn delete_external_account(
     trace!("Deleting external account '{}'", id);
     sqlx::query!(
         r#"
-            DELETE FROM ExternalAccounts
-            WHERE Id = $1 AND UserId = $2;
+            DELETE FROM external_accounts
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid
@@ -209,8 +209,8 @@ pub async fn get_external_account_names(
     let records = sqlx::query!(
         r#"
             SELECT *
-            FROM ExternalAccountNames
-            WHERE UserId = $1 AND ParentExternalAccount = $2;
+            FROM external_account_names
+            WHERE user_id = $1 AND parent_external_account = $2;
         "#,
         user.uuid,
         id,
@@ -283,8 +283,8 @@ pub async fn delete_external_account_name(
     debug!("Deleting name '{}' from '{}'", name_id, id);
     sqlx::query!(
         r#"
-            DELETE FROM ExternalAccountNames
-            WHERE Id = $1 AND UserId = $2;
+            DELETE FROM external_account_names
+            WHERE id = $1 AND user_id = $2;
         "#,
         name_id,
         user.uuid
@@ -330,8 +330,8 @@ pub async fn apply_external_account_name(
     let record = sqlx::query!(
         r#"
             SELECT name
-            FROM ExternalAccountNames
-            WHERE UserId = $1 AND ParentExternalAccount = $2 AND Id = $3;
+            FROM external_account_names
+            WHERE user_id = $1 AND parent_external_account = $2 AND id = $3;
         "#,
         user.uuid,
         id,
@@ -342,9 +342,9 @@ pub async fn apply_external_account_name(
 
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET ExternalAccountId = $3, ExternalAccountNameId = $4
-            WHERE UserId = $1 AND ExternalAccountName = $2;
+            UPDATE transactions
+            SET external_account_id = $3, external_account_name_id = $4
+            WHERE user_id = $1 AND external_account_name = $2;
         "#,
         user.uuid,
         record.name,
@@ -370,8 +370,8 @@ pub async fn remove_external_account_name_associations(
     sqlx::query!(
         r#"
             SELECT name
-            FROM ExternalAccountNames
-            WHERE UserId = $1 AND ParentExternalAccount = $2 AND Id = $3;
+            FROM external_account_names
+            WHERE user_id = $1 AND parent_external_account = $2 AND id = $3;
         "#,
         user.uuid,
         id,
@@ -382,9 +382,9 @@ pub async fn remove_external_account_name_associations(
 
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET ExternalAccountId = null, ExternalAccountNameId = null
-            WHERE UserId = $1 AND ExternalAccountId = $2 AND ExternalAccountNameId = $3;
+            UPDATE transactions
+            SET external_account_id = null, external_account_name_id = null
+            WHERE user_id = $1 AND external_account_id = $2 AND external_account_name_id = $3;
         "#,
         user.uuid,
         id,

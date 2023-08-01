@@ -79,9 +79,9 @@ pub async fn perform_login<'a>(
 
             sqlx::query!(
                 r#"
-                    UPDATE Users
-                    SET mfaBackupCodes = $2
-                    WHERE Id = $1;
+                    UPDATE users
+                    SET mfa_backup_codes = $2
+                    WHERE id = $1;
                 "#,
                 user.id,
                 &backup_codes

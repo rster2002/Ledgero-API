@@ -36,11 +36,11 @@ pub async fn get_splits(
         SplitRecord,
         r#"
             SELECT
-                transactions.Id, transactions.Description, Amount,
-                c.Id as "category_id?", c.Name as "category_name?", c.Description as "category_description?", c.HexColor as "category_hex_color?"
-            FROM Transactions
-            LEFT JOIN categories c on transactions.categoryid = c.id
-            WHERE TransactionType = 'split' AND transactions.UserId = $1 AND ParentTransactionId = $2;
+                transactions.id, transactions.description, amount,
+                c.id as "category_id?", c.name as "category_name?", c.description as "category_description?", c.hex_color as "category_hex_color?"
+            FROM transactions
+            LEFT JOIN categories c on transactions.category_id = c.id
+            WHERE transaction_type = 'split' AND transactions.user_id = $1 AND parent_transaction_id = $2;
         "#,
         user.uuid,
         transaction_id
@@ -74,9 +74,9 @@ pub async fn create_split(
         if let Some(subcategory_id) = &body.subcategory_id {
             sqlx::query!(
                 r#"
-                    SELECT Id
-                    FROM Subcategories
-                    WHERE Id = $1 AND ParentCategory = $2;
+                    SELECT id
+                    FROM subcategories
+                    WHERE id = $1 AND parent_category = $2;
                 "#,
                 subcategory_id,
                 category_id
@@ -89,9 +89,9 @@ pub async fn create_split(
     // Anything other than a 'transaction' type should should not be allowed to create a split
     sqlx::query!(
         r#"
-            SELECT TransactionType
-            FROM Transactions
-            WHERE Id = $1 AND UserId = $2 AND TransactionType = 'transaction';
+            SELECT transaction_type
+            FROM transactions
+            WHERE id = $1 AND user_id = $2 AND transaction_type = 'transaction';
         "#,
         transaction_id,
         user.uuid
@@ -141,9 +141,9 @@ pub async fn delete_split(
 
     let split_record = sqlx::query!(
         r#"
-            SELECT Amount, ParentTransactionId
-            FROM Transactions
-            WHERE TransactionType = 'split' AND Id = $1 AND UserId = $2;
+            SELECT amount, parent_transaction_id
+            FROM transactions
+            WHERE transaction_type = 'split' AND id = $1 AND user_id = $2;
         "#,
         split_id,
         user.uuid
@@ -165,9 +165,9 @@ pub async fn delete_split(
 
     let transaction_record = sqlx::query!(
         r#"
-            SELECT Amount
-            FROM Transactions
-            WHERE TransactionType = 'transaction' AND Id = $1 AND UserId = $2;
+            SELECT amount
+            FROM transactions
+            WHERE transaction_type = 'transaction' AND id = $1 AND user_id = $2;
         "#,
         transaction_id,
         user.uuid
@@ -181,9 +181,9 @@ pub async fn delete_split(
 
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET Amount = $3
-            WHERE Id = $1 AND UserId = $2;
+            UPDATE transactions
+            SET amount = $3
+            WHERE id = $1 AND user_id = $2;
         "#,
         transaction_id,
         user.uuid,
@@ -194,8 +194,8 @@ pub async fn delete_split(
 
     sqlx::query!(
         r#"
-            DELETE FROM Transactions
-            WHERE Id = $1 AND UserId = $2;
+            DELETE FROM transactions
+            WHERE id = $1 AND user_id = $2;
         "#,
         split_id,
         user.uuid

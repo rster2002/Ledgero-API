@@ -86,9 +86,9 @@ pub async fn delete_move(
 
     sqlx::query!(
         r#"
-            SELECT TransactionType
+            SELECT transaction_type
             FROM transactions
-            WHERE UserId = $1 AND TransactionType = 'move' AND Id = $2;
+            WHERE user_id = $1 AND transaction_type = 'move' AND Id = $2;
         "#,
         user.uuid,
         id
@@ -99,7 +99,7 @@ pub async fn delete_move(
     sqlx::query!(
         r#"
             DELETE FROM transactions
-            WHERE UserId = $1 AND TransactionType = 'move' AND Id = $2;
+            WHERE user_id = $1 AND transaction_type = 'move' AND id = $2;
         "#,
         user.uuid,
         id,

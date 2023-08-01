@@ -23,7 +23,7 @@ impl ExternalAccount {
     pub async fn create(&self, pool: &DbPool) -> Result<()> {
         sqlx::query!(
             r#"
-                INSERT INTO ExternalAccounts
+                INSERT INTO external_accounts
                 VALUES ($1, $2, $3, $4, $5, $6, null, $7);
             "#,
             self.id,
@@ -43,9 +43,9 @@ impl ExternalAccount {
     pub async fn guard_one(pool: &DbPool, id: &String, user_id: &String) -> Result<()> {
         sqlx::query!(
             r#"
-                SELECT Id
-                FROM ExternalAccounts
-                WHERE Id = $1 AND UserId = $2;
+                SELECT id
+                FROM external_accounts
+                WHERE id = $1 AND user_id = $2;
             "#,
             id,
             user_id

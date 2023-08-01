@@ -35,18 +35,18 @@ pub async fn get_all_imports(
     let records = sqlx::query!(
         r#"
             SELECT *, (
-                SELECT COUNT(Id)
-                FROM Transactions
-                WHERE ParentImport = Imports.Id
-            )::int AS Imported,
+                SELECT COUNT(id)
+                FROM transactions
+                WHERE parent_import = imports.id
+            )::int AS imported,
             (
-                SELECT COUNT(FollowNumber)
-                FROM SkippedTransactions
-                WHERE ImportId = Imports.Id
-            )::int AS Skipped
-            FROM Imports
-            WHERE UserId = $1
-            ORDER BY ImportedAt DESC;
+                SELECT COUNT(follow_number)
+                FROM skipped_transactions
+                WHERE import_id = imports.id
+            )::int AS skipped
+            FROM imports
+            WHERE user_id = $1
+            ORDER BY imported_at DESC;
         "#,
         user.uuid
     )
@@ -78,8 +78,8 @@ pub async fn get_import_by_id(
     let record = sqlx::query!(
         r#"
             SELECT *
-            FROM Imports
-            WHERE Id = $1 AND UserId = $2;
+            FROM imports
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid
@@ -102,8 +102,8 @@ pub async fn delete_import(pool: &SharedPool, user: JwtUserPayload, id: String) 
 
     sqlx::query!(
         r#"
-            DELETE FROM Imports
-            WHERE Id = $1 AND UserId = $2;
+            DELETE FROM imports
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid

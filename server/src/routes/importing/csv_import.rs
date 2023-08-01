@@ -158,7 +158,7 @@ pub async fn import_csv(
 
         sqlx::query!(
             r#"
-                INSERT INTO SkippedTransactions
+                INSERT INTO skipped_transactions
                 VALUES ($1, $2, $3);
             "#,
             import_uuid.to_string(),
@@ -177,9 +177,9 @@ pub async fn import_csv(
 async fn get_bank_accounts_map(pool: &DbPool, user_id: &String) -> Result<HashMap<String, String>> {
     let records = sqlx::query!(
         r#"
-            SELECT Id, IBAN
-            FROM BankAccounts
-            WHERE UserId = $1;
+            SELECT id, iban
+            FROM bank_accounts
+            WHERE user_id = $1;
         "#,
         user_id
     )
@@ -201,10 +201,10 @@ async fn get_external_accounts_map(
 ) -> Result<HashMap<String, (String, Option<String>)>> {
     let records = sqlx::query!(
         r#"
-            SELECT ExternalAccountNames.Name, ParentExternalAccount, e.DefaultCategoryId
-            FROM ExternalAccountNames
-            INNER JOIN ExternalAccounts e ON e.Id = ExternalAccountNames.ParentExternalAccount
-            WHERE ExternalAccountNames.UserId = $1;
+            SELECT external_account_names.name, parent_external_account, e.default_category_id
+            FROM external_account_names
+            INNER JOIN external_accounts e ON e.id = external_account_names.parent_external_account
+            WHERE external_account_names.user_id = $1;
         "#,
         user_id
     )
@@ -226,9 +226,9 @@ async fn get_external_accounts_map(
 async fn get_order_indicator(pool: &DbPool, user_id: &String) -> Result<i32> {
     let record = sqlx::query!(
         r#"
-            SELECT MAX(OrderIndicator) AS MaxIndicator
-            FROM Transactions
-            WHERE UserId = $1;
+            SELECT MAX(order_indicator) AS max_indicator
+            FROM transactions
+            WHERE user_id = $1;
         "#,
         user_id
     )

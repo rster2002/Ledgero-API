@@ -26,12 +26,12 @@ pub async fn get_subcategory_by_id(
     let record = sqlx::query!(
         r#"
             SELECT *, (
-                SELECT SUM(Amount)::bigint
-                FROM Transactions
-                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId
-            )::bigint AS Amount
-            FROM Subcategories
-            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;
+                SELECT SUM(amount)::bigint
+                FROM transactions
+                WHERE subcategories.parent_category = transactions.category_id AND subcategories.id = transactions.subcategory_id
+            )::bigint AS amount
+            FROM subcategories
+            WHERE id = $1 AND parent_category = $2 AND user_id = $3;
         "#,
         subcategory_id,
         category_id,
@@ -60,8 +60,8 @@ pub async fn delete_subcategory(
 
     sqlx::query!(
         r#"
-            DELETE FROM Subcategories
-            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;
+            DELETE FROM subcategories
+            WHERE id = $1 AND parent_category = $2 AND user_id = $3;
         "#,
         subcategory_id,
         category_id,
@@ -84,12 +84,12 @@ pub async fn get_subcategories(
     let records = sqlx::query!(
         r#"
             SELECT *, (
-                SELECT SUM(Amount)::bigint
-                FROM Transactions
-                WHERE Subcategories.ParentCategory = Transactions.CategoryId AND Subcategories.Id = Transactions.SubcategoryId
-            )::bigint AS Amount
-            FROM Subcategories
-            WHERE ParentCategory = $1 AND UserId = $2;
+                SELECT SUM(amount)::bigint
+                FROM transactions
+                WHERE subcategories.parent_category = transactions.category_id AND subcategories.id = transactions.subcategory_id
+            )::bigint AS amount
+            FROM subcategories
+            WHERE parent_category = $1 AND user_id = $2;
         "#,
         category_id,
         user.uuid
@@ -150,9 +150,9 @@ pub async fn update_subcategory<'a>(
 
     sqlx::query!(
         r#"
-            UPDATE Subcategories
-            SET Name = $4, Description = $5, HexColor = $6
-            WHERE Id = $1 AND ParentCategory = $2 AND UserId = $3;
+            UPDATE subcategories
+            SET name = $4, description = $5, hex_color = $6
+            WHERE id = $1 AND parent_category = $2 AND user_id = $3;
         "#,
         subcategory_id,
         category_id,

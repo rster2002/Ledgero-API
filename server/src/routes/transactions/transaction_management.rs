@@ -86,9 +86,9 @@ pub async fn change_category_for_transaction(
         if let Some(subcategory_id) = &body.subcategory_id {
             sqlx::query!(
                 r#"
-                    SELECT Id
-                    FROM Subcategories
-                    WHERE Id = $1 AND ParentCategory = $2;
+                    SELECT id
+                    FROM subcategories
+                    WHERE id = $1 AND parent_category = $2;
                 "#,
                 subcategory_id,
                 category_id
@@ -101,9 +101,9 @@ pub async fn change_category_for_transaction(
     trace!("Updating transaction");
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET CategoryId = $3, SubcategoryId = $4
-            WHERE Id = $1 AND UserId = $2
+            UPDATE transactions
+            SET category_id = $3, subcategory_id = $4
+            WHERE id = $1 AND user_id = $2
         "#,
         id,
         user.uuid,
@@ -133,9 +133,9 @@ pub async fn update_transaction_details<'a>(
     trace!("Updating transactions in the database");
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET Description = $3, CategoryId = $4, SubcategoryId = $5, ExternalAccountId = $6
-            WHERE Id = $1 AND UserId = $2;
+            UPDATE transactions
+            SET description = $3, category_id = $4, subcategory_id = $5, external_account_id = $6
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid,
@@ -184,9 +184,9 @@ pub async fn update_transaction<'a>(
     trace!("Updating transactions in the database");
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET Description = $3, CategoryId = $4, SubcategoryId = $5, ExternalAccountId = $6, Amount = CompleteAmount
-            WHERE Id = $1 AND UserId = $2;
+            UPDATE transactions
+            SET description = $3, category_id = $4, subcategory_id = $5, external_account_id = $6, amount = complete_amount
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid,
@@ -201,8 +201,8 @@ pub async fn update_transaction<'a>(
     trace!("Deleting original splits");
     sqlx::query!(
         r#"
-            DELETE FROM Transactions
-            WHERE UserId = $1 AND ParentTransactionId = $2 AND TransactionType = 'split';
+            DELETE FROM transactions
+            WHERE user_id = $1 AND parent_transaction_id = $2 AND transaction_type = 'split';
         "#,
         user.uuid,
         Some(id.to_string())
@@ -246,8 +246,8 @@ pub async fn bulk_update_transaction_categories(
     let record = sqlx::query!(
         r#"
             SELECT COUNT(*)
-            FROM Transactions
-            WHERE UserId = $1 AND Id = ANY($2);
+            FROM transactions
+            WHERE user_id = $1 AND id = ANY($2);
         "#,
         user.uuid,
         &body.transactions[..]
@@ -263,9 +263,9 @@ pub async fn bulk_update_transaction_categories(
 
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET CategoryId = $3, SubcategoryId = $4
-            WHERE UserId = $1 AND Id = ANY($2);
+            UPDATE transactions
+            SET category_id = $3, subcategory_id = $4
+            WHERE user_id = $1 AND id = ANY($2);
         "#,
         user.uuid,
         &body.transactions[..],
