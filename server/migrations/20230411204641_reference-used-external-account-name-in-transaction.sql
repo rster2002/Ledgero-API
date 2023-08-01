@@ -1,8 +1,8 @@
-ALTER TABLE externalaccountnames
-ADD UNIQUE (name, userid),
-ADD UNIQUE (id, name, ParentExternalAccount, UserId);
+ALTER TABLE external_account_names
+ADD UNIQUE (name, user_id),
+ADD UNIQUE (id, name, parent_external_account, user_id);
 
 ALTER TABLE transactions
-ADD COLUMN ExternalAccountNameId varchar(36) null,
-ADD FOREIGN KEY (ExternalAccountNameId, ExternalAccountName, ExternalAccountId, UserId)
-    references ExternalAccountNames (id, name, ParentExternalAccount, UserId);
+ADD COLUMN external_account_name_id varchar(36) null,
+ADD FOREIGN KEY (external_account_name_id, external_account_name, external_account_id, user_id)
+    references external_account_names (id, name, parent_external_account, user_id);

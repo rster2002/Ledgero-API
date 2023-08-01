@@ -1,9 +1,9 @@
-create table Grants
+create table grants
 (
-    Id       varchar(36) primary key not null,
-    UserId   varchar(36)             not null
+    id       varchar(36) primary key not null,
+    user_id   varchar(36)             not null
         references users (id)
             on update cascade
             on delete cascade,
-    ExpireAt varchar                 not null
+    expire_at varchar                 not null
 );

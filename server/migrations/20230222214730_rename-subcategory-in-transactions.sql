@@ -1,2 +1,2 @@
-ALTER TABLE Transactions
-RENAME Subcategory TO SubcategoryId;
+ALTER TABLE transactions
+RENAME subcategory TO subcategory_id;

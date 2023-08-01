@@ -1,2 +1,2 @@
 ALTER TABLE Users
-ADD COLUMN mfaSecret varchar(32) null;
+ADD COLUMN mfa_secret varchar(32) null;

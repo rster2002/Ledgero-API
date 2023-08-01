@@ -1,6 +1,6 @@
 ALTER TABLE transactions
-ADD COLUMN RelatedMoveTransaction varchar(36) null,
-ADD FOREIGN KEY (userid, RelatedMoveTransaction)
-    references transactions (userid, id)
+ADD COLUMN related_move_transaction varchar(36) null,
+ADD FOREIGN KEY (user_id, related_move_transaction)
+    references transactions (user_id, id)
         on delete cascade
         initially deferred;

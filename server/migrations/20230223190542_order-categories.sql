@@ -1,2 +1,2 @@
-ALTER TABLE Categories
-ADD COLUMN OrderIndex serial not null;
+ALTER TABLE categories
+ADD COLUMN order_index serial not null;

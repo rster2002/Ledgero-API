@@ -1,2 +1,2 @@
 ALTER TABLE transactions
-ALTER COLUMN bankaccountid DROP not null;
+ALTER COLUMN bank_account_id DROP not null;

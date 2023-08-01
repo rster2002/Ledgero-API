@@ -1,2 +1,2 @@
-ALTER TABLE ExternalAccounts
-ADD COLUMN HexColor varchar(6) not null default 'ffffff';
+ALTER TABLE external_accounts
+ADD COLUMN hex_color varchar(6) not null default 'ffffff';

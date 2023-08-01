@@ -1,121 +1,121 @@
-CREATE TABLE Categories
+CREATE TABLE categories
 (
-    Id          varchar(36) primary key not null,
-    UserId      varchar(36)             not null
-        references Users (Id)
+    id          varchar(36) primary key not null,
+    user_id     varchar(36)             not null
+        references users (Id)
             on update cascade
             on delete cascade,
-    Name        varchar                 not null,
-    Description varchar                 not null,
-    HexColor    varchar                 not null
+    name        varchar                 not null,
+    description varchar                 not null,
+    hex_color   varchar                 not null
 );
 
-CREATE TABLE ExternalAccounts
+CREATE TABLE external_accounts
 (
-    Id                varchar(36) primary key not null,
-    UserId            varchar(36)             not null
-        references Users (Id)
+    id                  varchar(36) primary key not null,
+    user_id             varchar(36)             not null
+        references users (id)
             on update cascade
             on delete cascade,
-    Name              varchar                 not null,
-    Description       varchar                 not null,
-    DefaultCategoryId varchar(36)             null
-        references Categories (Id)
+    name                varchar                 not null,
+    description         varchar                 not null,
+    default_category_id varchar(36)             null
+        references categories (id)
             on update cascade
             on delete cascade
 );
 
-CREATE TABLE ExternalAccountNames
+CREATE TABLE external_account_names
 (
-    Id                    varchar(36) primary key not null,
-    UserId                varchar(36)             not null
-        references Users (Id)
+    id                      varchar(36) primary key not null,
+    user_id                 varchar(36)             not null
+        references users (id)
             on update cascade
             on delete cascade,
-    Name                  varchar                 not null,
-    ParentExternalAccount varchar(36)             not null
-        references ExternalAccounts (Id)
+    name                    varchar                 not null,
+    parent_external_account varchar(36)             not null
+        references external_accounts (id)
             on update cascade
             on delete cascade
 );
 
-CREATE TABLE BankAccounts
+CREATE TABLE bank_accounts
 (
-    Id          varchar(36) primary key not null,
-    IBAN        varchar                 not null,
-    UserId      varchar(36)             not null
-        references Users (Id)
+    id          varchar(36) primary key not null,
+    iban        varchar                 not null,
+    user_id     varchar(36)             not null
+        references users (id)
             on update cascade
             on delete cascade,
-    Name        varchar                 not null,
-    Description varchar                 not null,
-    HexColor    varchar                 not null,
+    name        varchar                 not null,
+    description varchar                 not null,
+    hex_color   varchar                 not null,
 
-    CONSTRAINT unique_iban UNIQUE (UserId, IBAN)
+    CONSTRAINT unique_iban UNIQUE (user_id, iban)
 );
 
-CREATE TABLE Imports
+CREATE TABLE imports
 (
-    Id         varchar(36) primary key  not null,
-    UserId     varchar(36)              not null
-        references Users (Id)
+    id          varchar(36) primary key  not null,
+    user_id     varchar(36)              not null
+        references users (id)
             on update cascade
             on delete cascade,
-    ImportedAt timestamp with time zone not null,
-    FileName   varchar                  not null
+    imported_at timestamp with time zone not null,
+    file_name   varchar                  not null
 );
 
-CREATE TABLE Transactions
+CREATE TABLE transactions
 (
-    Id                  varchar(36) primary key  not null,
-    UserId              varchar(36)              not null
-        references Users (Id)
+    id                    varchar(36) primary key  not null,
+    user_id               varchar(36)              not null
+        references users (id)
             on update cascade
             on delete cascade,
-    TransactionType     varchar                  not null,
-    FollowNumber        varchar                  not null,
-    Description         varchar                  not null,
-    OriginalDescription varchar                  not null,
-    CompleteAmount      bigint                   not null,
-    Amount              bigint                   not null,
-    Date                timestamp with time zone not null,
-    CategoryId          varchar(36)              null
-        references Categories (Id)
+    transaction_type      varchar                  not null,
+    follow_number         varchar                  not null,
+    description           varchar                  not null,
+    original_description  varchar                  not null,
+    complete_amount       bigint                   not null,
+    amount                bigint                   not null,
+    date                  timestamp with time zone not null,
+    category_id           varchar(36)              null
+        references categories (id)
             on update cascade
             on delete set null,
-    ParentTransactionId varchar(36)              null
-        references Transactions (Id)
+    parent_transaction_id varchar(36)              null
+        references transactions (id)
             on update cascade
             on delete cascade,
-    ExternalAccountName varchar                  not null,
-    ExternalAccountId   varchar(36)              null
-        references ExternalAccounts (Id)
+    external_account_name varchar                  not null,
+    external_account_id   varchar(36)              null
+        references external_accounts (id)
             on update cascade
             on delete set null,
-    BankAccountId       varchar(36)              not null
-        references BankAccounts (Id)
+    bank_account_id       varchar(36)              not null
+        references bank_accounts (id)
             on update cascade
             on delete cascade,
-    ParentImport        varchar(36)              null
-        references Imports (Id)
+    parent_import         varchar(36)              null
+        references Imports (id)
             on update cascade
             on delete cascade,
 
-    CONSTRAINT unique_follow_number UNIQUE (UserId, FollowNumber)
+    CONSTRAINT unique_follow_number UNIQUE (user_id, follow_number)
 );
 
-CREATE TABLE SkippedTransactions
+CREATE TABLE skipped_transactions
 (
-    ImportId     varchar(36) not null
-        references Imports (Id)
+    import_id     varchar(36) not null
+        references imports (id)
             on update cascade
             on delete cascade,
-    UserId       varchar(36) not null,
-    FollowNumber varchar(36) not null,
+    user_id       varchar(36) not null,
+    follow_number varchar(36) not null,
 
-    primary key (ImportId, UserId, FollowNumber),
-    foreign key (UserId, FollowNumber)
-        references Transactions (UserId, FollowNumber)
-            on update cascade
-            on delete cascade
+    primary key (import_id, user_id, follow_number),
+    foreign key (user_id, follow_number)
+        references transactions (user_id, follow_number)
+        on update cascade
+        on delete cascade
 );
