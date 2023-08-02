@@ -19,21 +19,21 @@ impl<'a> CategoriesQuery<'a> {
         let mut builder = QueryBuilder::new(
             r#"
                 SELECT
-                    Categories.Id as CategoryId, Categories.Name as CategoryName, Categories.Description as CategoryDescription, Categories.HexColor as CategoryHexColor,
-                    s.Id as SubcategoryId, s.Name as SubcategoryName, s.Description as SubcategoryDescription, s.HexColor as SubcategoryHexColor,
+                    categories.id as category_id, categories.name as category_name, categories.description as category_description, categories.hex_color as category_hex_color,
+                    s.id as subcategory_id, s.name as subcategory_name, s.description as subcategory_description, s.hex_color as subcategory_hex_color,
                 (
-                    SELECT SUM(Amount)::bigint
-                    FROM Transactions
-                    WHERE Categories.Id = Transactions.CategoryId
-                ) AS Amount,
+                    SELECT SUM(amount)::bigint
+                    FROM transactions
+                    WHERE categories.id = transactions.category_id
+                ) AS amount,
                 (
-                    SELECT SUM(Amount)::bigint
-                    FROM Transactions
-                    WHERE Categories.Id = Transactions.CategoryId AND s.Id = Transactions.SubcategoryId
-                ) AS SubcategoryAmount
-                FROM Categories
-                lEFT JOIN Subcategories s ON Categories.Id = s.ParentCategory
-                WHERE Categories.UserId =
+                    SELECT SUM(amount)::bigint
+                    FROM transactions
+                    WHERE categories.id = transactions.category_id AND s.Id = transactions.subcategory_id
+                ) AS subcategory_amount
+                FROM categories
+                lEFT JOIN subcategories s ON categories.id = s.parent_category
+                WHERE categories.user_id =
             "#,
         );
 
@@ -43,13 +43,13 @@ impl<'a> CategoriesQuery<'a> {
     }
 
     pub fn where_id(mut self, category_id: impl Into<String>) -> Self {
-        self.builder.push(" AND Categories.Id = ");
+        self.builder.push(" AND categories.id = ");
         self.builder.push_bind(category_id.into());
         self
     }
 
     pub fn order(mut self) -> Self {
-        self.builder.push(" ORDER BY OrderIndex ASC");
+        self.builder.push(" ORDER BY order_index ASC");
         self
     }
 

@@ -1,10 +1,10 @@
-ALTER TABLE externalaccounts
-ADD COLUMN Image varchar null
+ALTER TABLE external_accounts
+ADD COLUMN image varchar null
     references blobs (token)
         on delete set null;
 
 ALTER TABLE users
-ADD COLUMN ProfileImage varchar null
+ADD COLUMN profile_image varchar null
     references blobs (token)
         on delete set null;
 

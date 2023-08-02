@@ -63,7 +63,7 @@ pub async fn update_me_password(
     .fetch_one(inner_pool)
     .await?;
 
-    let valid_password = PasswordHashService::verify(record.passwordhash, body.old_password);
+    let valid_password = PasswordHashService::verify(record.password_hash, body.old_password);
     if !valid_password {
         return Err(Status::Unauthorized.into());
     }
@@ -120,9 +120,9 @@ pub async fn enable_mfa_me(
 
     sqlx::query!(
         r#"
-            UPDATE Users
-            SET mfaSecret = $2, mfaBackupCodes = $3
-            WHERE Id = $1
+            UPDATE users
+            SET mfa_secret = $2, mfa_backup_codes = $3
+            WHERE id = $1
         "#,
         user.uuid,
         body.secret_key,
@@ -145,9 +145,9 @@ pub async fn disable_mfa_me(
 
     sqlx::query!(
         r#"
-            UPDATE Users
-            SET mfaSecret = null, mfaBackupCodes = null
-            WHERE Id = $1;
+            UPDATE users
+            SET mfa_secret = null, mfa_backup_codes = null
+            WHERE id = $1;
         "#,
         user.uuid
     )

@@ -37,9 +37,9 @@ pub async fn refresh(
     trace!("Checking if the user for the grant still exists");
     let user = sqlx::query!(
         r#"
-            SELECT Id
-            FROM Users
-            WHERE Id = $1;
+            SELECT id
+            FROM users
+            WHERE id = $1;
         "#,
         access_payload.uuid
     )
@@ -59,8 +59,8 @@ pub async fn refresh(
     let grant = sqlx::query!(
         r#"
             SELECT *
-            FROM Grants
-            WHERE Id = $1;
+            FROM grants
+            WHERE id = $1;
         "#,
         refresh_payload.grant_id
     )
@@ -85,9 +85,9 @@ pub async fn refresh(
     );
     sqlx::query!(
         r#"
-            UPDATE Grants
-            SET Id = $2, ExpireAt = $3
-            WHERE Id = $1;
+            UPDATE grants
+            SET id = $2, expire_at = $3
+            WHERE id = $1;
         "#,
         grant.id,
         new_grant_id,

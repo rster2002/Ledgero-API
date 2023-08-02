@@ -20,9 +20,9 @@ pub async fn get_user_total_amount(
 
     let record = sqlx::query!(
         r#"
-            SELECT SUM(CompleteAmount)::bigint AS Total
-            FROM Transactions
-            WHERE TransactionType = 'transaction' AND UserId = $1
+            SELECT SUM(complete_amount)::bigint AS total
+            FROM transactions
+            WHERE transaction_type = 'transaction' AND user_id = $1
         "#,
         user.uuid
     )

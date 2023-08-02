@@ -12,7 +12,7 @@ INSERT INTO imports
 VALUES
     ('import-A', 'abc', '2023-02-11 11:00:00.000000 +00:00', 'bank-export.csv');
 
-INSERT INTO bankaccounts
+INSERT INTO bank_accounts
 VALUES
     ('bank-account-A', 'NL12 RABO 12345678910', 'abc', 'Primary bank account', 'For all of the normal stuff', 'ff3030');
 

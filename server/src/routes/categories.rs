@@ -73,9 +73,9 @@ pub async fn create_new_category(
     trace!("Finding max order index");
     let ordering_index = sqlx::query!(
         r#"
-            SELECT MAX(OrderIndex) AS MaxIndex
-            FROM Categories
-            WHERE UserId = $1;
+            SELECT MAX(order_index) AS max_index
+            FROM categories
+            WHERE user_id = $1;
         "#,
         user.uuid
     )
@@ -88,7 +88,7 @@ pub async fn create_new_category(
         name: body.name.to_string(),
         description: body.description.to_string(),
         hex_color: body.hex_color.to_string(),
-        ordering_index: ordering_index.maxindex.unwrap_or(0) + 1,
+        ordering_index: ordering_index.max_index.unwrap_or(0) + 1,
     };
 
     debug!("Creating new category for user '{}'", user);
@@ -131,9 +131,9 @@ pub async fn update_category(
     debug!("Updating category with id '{}'", id);
     sqlx::query!(
         r#"
-            UPDATE Categories
-            SET Name = $3, Description = $4, HexColor = $5
-            WHERE Id = $1 AND UserId = $2;
+            UPDATE categories
+            SET name = $3, description = $4, hex_color = $5
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid,
@@ -158,8 +158,8 @@ pub async fn delete_category(pool: &SharedPool, user: JwtUserPayload, id: &str) 
     debug!("Deleting category with id '{}'", id);
     sqlx::query!(
         r#"
-            DELETE FROM Categories
-            WHERE Id = $1 AND UserId = $2
+            DELETE FROM categories
+            WHERE id = $1 AND user_id = $2
         "#,
         id,
         user.uuid

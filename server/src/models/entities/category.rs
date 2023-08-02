@@ -17,7 +17,7 @@ impl Category {
     pub async fn create(&self, pool: &DbPool) -> Result<()> {
         sqlx::query!(
             r#"
-                INSERT INTO Categories
+                INSERT INTO categories
                 VALUES ($1, $2, $3, $4, $5, $6);
             "#,
             self.id,
@@ -36,9 +36,9 @@ impl Category {
     pub async fn guard_one(pool: &DbPool, id: &str, user_id: &str) -> Result<()> {
         sqlx::query!(
             r#"
-                SELECT Id
-                FROM Categories
-                WHERE Id = $1 AND UserId = $2;
+                SELECT id
+                FROM categories
+                WHERE id = $1 AND user_id = $2;
             "#,
             id,
             user_id

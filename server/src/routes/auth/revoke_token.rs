@@ -35,8 +35,8 @@ pub async fn revoke_all(
     debug!("Logging user {} out everywhere", user);
     sqlx::query!(
         r#"
-            DELETE FROM Grants
-            WHERE UserId = $1;
+            DELETE FROM grants
+            WHERE user_id = $1;
         "#,
         user.uuid
     )

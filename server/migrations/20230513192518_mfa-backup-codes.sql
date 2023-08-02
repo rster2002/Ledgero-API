@@ -1,2 +1,2 @@
 ALTER TABLE Users
-ADD COLUMN mfaBackupCodes varchar(8)[] null;
+ADD COLUMN mfa_backup_codes varchar(8)[] null;

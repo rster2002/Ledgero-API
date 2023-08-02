@@ -1,11 +1,11 @@
-CREATE TABLE Blobs
+CREATE TABLE blobs
 (
-    Token       varchar     not null primary key, -- This is NOT a uuid
-    UserId      varchar(36) not null
-        references Users (Id)
+    token       varchar     not null primary key, -- This is NOT a uuid
+    user_id      varchar(36) not null
+        references users (Id)
             on update cascade
             on delete cascade,
-    MimeType    varchar(32) not null,
-    UploadedAt  timestamptz not null,
-    ConfirmedAt timestamptz null
+    mime_type    varchar(32) not null,
+    uploaded_at  timestamptz not null,
+    confirmed_at timestamptz null
 );

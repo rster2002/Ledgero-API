@@ -17,9 +17,9 @@ pub async fn category_ordering(
 
     let records = sqlx::query!(
         r#"
-            SELECT Id
-            FROM Categories
-            WHERE UserId = $1;
+            SELECT id
+            FROM categories
+            WHERE user_id = $1;
         "#,
         user.uuid
     )
@@ -46,9 +46,9 @@ pub async fn category_ordering(
     for (i, id) in body.into_iter().enumerate() {
         sqlx::query!(
             r#"
-                UPDATE Categories
-                SET OrderIndex = $3
-                WHERE Id = $1 AND UserId = $2;
+                UPDATE categories
+                SET order_index = $3
+                WHERE id = $1 AND user_id = $2;
             "#,
             id,
             user.uuid,

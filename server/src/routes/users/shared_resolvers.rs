@@ -14,9 +14,9 @@ pub async fn resolve_user_by_id(pool: &SharedPool, id: &String) -> Result<Json<U
 
     let record = sqlx::query!(
         r#"
-            SELECT Id, Username, ProfileImage, Role
-            FROM Users
-            WHERE Id = $1;
+            SELECT id, username, profile_image, role
+            FROM users
+            WHERE id = $1;
         "#,
         id
     )
@@ -26,7 +26,7 @@ pub async fn resolve_user_by_id(pool: &SharedPool, id: &String) -> Result<Json<U
     Ok(Json(UserDto {
         id: record.id,
         username: record.username,
-        profile_picture: record.profileimage,
+        profile_picture: record.profile_image,
         role: UserRole::from(record.role),
     }))
 }
@@ -47,9 +47,9 @@ pub async fn resolve_update_user_info(
     let role_str: &str = body.role.into();
     let _record = sqlx::query!(
         r#"
-            UPDATE Users
-            SET Username = $2, Role = $3, ProfileImage = $4
-            WHERE Id = $1;
+            UPDATE users
+            SET username = $2, role = $3, profile_image = $4
+            WHERE id = $1;
         "#,
         user_id,
         &body.username,
@@ -73,9 +73,9 @@ pub async fn resolve_update_user_password(
 
     sqlx::query!(
         r#"
-            UPDATE Users
-            SET passwordHash = $2
-            WHERE Id = $1
+            UPDATE users
+            SET password_hash = $2
+            WHERE id = $1
         "#,
         id,
         new_hash
@@ -91,8 +91,8 @@ pub async fn resolve_delete_user(pool: &SharedPool, id: &String) -> Result<()> {
 
     let _record = sqlx::query!(
         r#"
-            DELETE FROM Users
-            WHERE Id = $1;
+            DELETE FROM users
+            WHERE id = $1;
         "#,
         id
     )

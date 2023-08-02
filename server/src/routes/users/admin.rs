@@ -29,8 +29,8 @@ pub async fn admin_get_users(
 
     let records = sqlx::query!(
         r#"
-            SELECT Id, Username, ProfileImage, Role
-            FROM Users;
+            SELECT id, username, profile_image, role
+            FROM users;
         "#
     )
     .fetch_all(inner_pool)
@@ -41,7 +41,7 @@ pub async fn admin_get_users(
         .map(|record| UserDto {
             id: record.id,
             username: record.username,
-            profile_picture: record.profileimage,
+            profile_picture: record.profile_image,
             role: UserRole::from(record.role),
         })
         .collect();

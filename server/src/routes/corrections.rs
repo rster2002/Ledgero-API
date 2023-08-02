@@ -55,9 +55,9 @@ pub async fn create_correction(
     trace!("Finding max order index");
     let record = sqlx::query!(
         r#"
-            SELECT MAX(OrderIndicator)
-            FROM Transactions
-            WHERE UserId = $1;
+            SELECT MAX(order_indicator)
+            FROM transactions
+            WHERE user_id = $1;
         "#,
         user.uuid
     )
@@ -114,9 +114,9 @@ pub async fn update_correction(
     debug!("Checking if correction '{}' exists", id);
     sqlx::query!(
         r#"
-            SELECT Id
-            FROM Transactions
-            WHERE Id = $1 AND UserId = $2 AND TransactionType = 'correction';
+            SELECT id
+            FROM transactions
+            WHERE id = $1 AND user_id = $2 AND transaction_type = 'correction';
         "#,
         id,
         user.uuid
@@ -127,9 +127,9 @@ pub async fn update_correction(
     debug!("Updating correction '{}'", id);
     sqlx::query!(
         r#"
-            UPDATE Transactions
-            SET Amount = $3, CompleteAmount = $3, Description = $4, BankAccountId = $5, CategoryId = $6, SubcategoryId = $7
-            WHERE Id = $1 AND UserId = $2 AND TransactionType = 'correction';
+            UPDATE transactions
+            SET amount = $3, complete_amount = $3, description = $4, bank_account_id = $5, category_id = $6, subcategory_id = $7
+            WHERE id = $1 AND user_id = $2 AND transaction_type = 'correction';
         "#,
         id,
         user.uuid,
@@ -160,9 +160,9 @@ pub async fn delete_correction(pool: &SharedPool, user: JwtUserPayload, id: Stri
     debug!("Checking if transaction '{}' exists", id);
     let record = sqlx::query!(
         r#"
-            SELECT TransactionType
-            FROM Transactions
-            WHERE Id = $1 AND UserId = $2;
+            SELECT transaction_type
+            FROM transactions
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid
@@ -170,7 +170,7 @@ pub async fn delete_correction(pool: &SharedPool, user: JwtUserPayload, id: Stri
     .fetch_one(inner_pool)
     .await?;
 
-    let transaction_type = TransactionType::from(&*record.transactiontype);
+    let transaction_type = TransactionType::from(&*record.transaction_type);
 
     trace!("Checking transaction type is correction");
     if transaction_type != TransactionType::Correction {
@@ -183,8 +183,8 @@ pub async fn delete_correction(pool: &SharedPool, user: JwtUserPayload, id: Stri
     debug!("Deleting correction '{}'", id);
     sqlx::query!(
         r#"
-            DELETE FROM Transactions
-            WHERE Id = $1 AND UserId = $2 AND TransactionType = 'correction';
+            DELETE FROM transactions
+            WHERE id = $1 AND user_id = $2 AND transaction_type = 'correction';
         "#,
         id,
         user.uuid

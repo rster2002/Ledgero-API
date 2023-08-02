@@ -1,8 +1,8 @@
-create table Users
+create table users
 (
-    Id           varchar(36) primary key not null,
-    Username     varchar                 not null,
-    PasswordHash varchar                 not null,
+    id           varchar(36) primary key not null,
+    username     varchar                 not null,
+    password_hash varchar                 not null,
 
-    CONSTRAINT username_unique UNIQUE (Username)
+    CONSTRAINT username_unique UNIQUE (username)
 );

@@ -1,27 +1,27 @@
-CREATE TABLE Subcategories
+CREATE TABLE subcategories
 (
-    Id             varchar(36) primary key not null,
-    UserId         varchar(36)             not null
-        references Users (Id)
+    id             varchar(36) primary key not null,
+    user_id         varchar(36)             not null
+        references users (id)
             on update cascade
             on delete cascade,
-    ParentCategory varchar(36)             not null
-        references Categories (Id)
+    parent_category varchar(36)             not null
+        references categories (id)
             on update cascade
             on delete cascade,
-    Name           varchar                 not null,
-    Description    varchar                 not null,
-    HexColor       varchar                 not null
+    name           varchar                 not null,
+    description    varchar                 not null,
+    hex_color       varchar                 not null
 );
 
-ALTER TABLE Transactions
-ADD COLUMN Subcategory varchar(36) null
-    references Subcategories (Id)
+ALTER TABLE transactions
+ADD COLUMN subcategory varchar(36) null
+    references subcategories (id)
         on update cascade
         on delete set null;
 
-ALTER TABLE ExternalAccounts
-ADD COLUMN DefaultSubcategoryId varchar(36) null
-    references Subcategories (Id)
+ALTER TABLE external_accounts
+ADD COLUMN default_subcategory_id varchar(36) null
+    references subcategories (id)
         on update cascade
         on delete set null;

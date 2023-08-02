@@ -1,2 +1,2 @@
-ALTER TABLE Transactions
-ADD COLUMN OrderIndicator int not null default 0;
+ALTER TABLE transactions
+ADD COLUMN order_indicator int not null default 0;

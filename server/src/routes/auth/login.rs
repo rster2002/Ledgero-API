@@ -49,13 +49,13 @@ pub async fn perform_login<'a>(
         return Err(Status::Unauthorized.into());
     };
 
-    let valid_password = PasswordHashService::verify(user.passwordhash, body.password);
+    let valid_password = PasswordHashService::verify(user.password_hash, body.password);
     if !valid_password {
         info!("The password for user '{}' was incorrect", body.username);
         return Err(Status::Unauthorized.into());
     }
 
-    if let Some(mfa_secret) = user.mfasecret {
+    if let Some(mfa_secret) = user.mfa_secret {
         let Some(mfa_code) = body.mfa_code else {
             return Ok(Json(AuthResponseDto::TwoFAChallenge));
         };
@@ -63,7 +63,7 @@ pub async fn perform_login<'a>(
         let valid_code = TotpService::validate_code(mfa_secret, mfa_code)?;
 
         if !valid_code {
-            let mut backup_codes = user.mfabackupcodes.unwrap();
+            let mut backup_codes = user.mfa_backup_codes.unwrap();
 
             let found_backup_code_index = backup_codes
                 .iter()
@@ -79,9 +79,9 @@ pub async fn perform_login<'a>(
 
             sqlx::query!(
                 r#"
-                    UPDATE Users
-                    SET mfaBackupCodes = $2
-                    WHERE Id = $1;
+                    UPDATE users
+                    SET mfa_backup_codes = $2
+                    WHERE id = $1;
                 "#,
                 user.id,
                 &backup_codes

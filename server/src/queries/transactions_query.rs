@@ -23,17 +23,17 @@ impl<'a> TransactionQuery<'a> {
         let mut builder = QueryBuilder::new(
             r#"
                 SELECT
-                    transactions.Id as TransactionId, TransactionType, FollowNumber, OriginalDescription, transactions.Description, Date, CompleteAmount, Amount, ExternalAccountName, RelatedMoveTransaction,
-                    c.Id as "CategoryId?", c.Name as "CategoryName?", c.Description as "CategoryDescription?", c.HexColor as "CategoryHexColor?",
-                    s.Id as "SubcategoryId?", s.Name as "SubcategoryName?", s.Description as "SubcategoryDescription?", s.HexColor as "SubcategoryHexColor?",
-                    b.Id as "BankAccountId?", b.Iban as "BankAccountIban?", b.Name as "BankAccountName?", b.Description as "BankAccountDescription?", b.HexColor as "BankAccountHexColor?",
-                    e.Id as "ExternalAccountId?", e.Name as "ExternalAccountEntityName?", e.Description as "ExternalAccountDescription?", e.HexColor as "ExternalAccountHexColor?", e.DefaultCategoryId as "ExternalAccounDefaultCategoryId?", e.DefaultSubcategoryId as "ExternalAccounDefaultSubcategoryId?"
-                FROM Transactions
-                LEFT JOIN categories c on transactions.categoryid = c.id
-                LEFT JOIN subcategories s on transactions.subcategoryid = s.id
-                LEFT JOIN bankaccounts b on transactions.bankaccountid = b.id
-                LEFT JOIN externalaccounts e on transactions.externalaccountid = e.id
-                WHERE Transactions.UserId =
+                    transactions.id as transaction_id, transaction_type, follow_number, original_description, transactions.description, date, complete_amount, amount, external_account_name, related_move_transaction,
+                    c.Id as "category_id?", c.name as "category_name?", c.description as "category_description?", c.hex_color as "category_hex_color?",
+                    s.Id as "subcategory_id?", s.name as "subcategory_name?", s.description as "subcategory_description?", s.hex_color as "subcategory_hex_color?",
+                    b.Id as "bank_account_id?", b.iban as "bank_account_iban?", b.name as "bank_account_name?", b.description as "bank_account_description?", b.hex_color as "bank_account_hex_color?",
+                    e.Id as "external_account_id?", e.name as "external_account_entity_name?", e.description as "external_account_description?", e.hex_color as "external_account_hex_color?", e.default_category_id as "external_account_default_category_id?", e.default_subcategory_id as "external_account_default_subcategory_id?"
+                FROM transactions
+                LEFT JOIN categories c on transactions.category_id = c.id
+                LEFT JOIN subcategories s on transactions.subcategory_id = s.id
+                LEFT JOIN bank_accounts b on transactions.bank_account_id = b.id
+                LEFT JOIN external_accounts e on transactions.external_account_id = e.id
+                WHERE transactions.user_id =
             "#,
         );
 
@@ -43,43 +43,43 @@ impl<'a> TransactionQuery<'a> {
     }
 
     pub fn where_id(mut self, transaction_id: impl Into<String>) -> Self {
-        self.builder.push(" AND Transactions.Id = ");
+        self.builder.push(" AND transactions.id = ");
         self.builder.push_bind(transaction_id.into());
         self
     }
 
     pub fn where_category(mut self, category_id: impl Into<String>) -> Self {
-        self.builder.push(" AND Transactions.CategoryId = ");
+        self.builder.push(" AND transactions.category_id = ");
         self.builder.push_bind(category_id.into());
         self
     }
 
     pub fn where_subcategory(mut self, subcategory_id: impl Into<String>) -> Self {
-        self.builder.push(" AND Transactions.SubcategoryId = ");
+        self.builder.push(" AND transactions.subcategory_id = ");
         self.builder.push_bind(subcategory_id.into());
         self
     }
 
     pub fn where_type(mut self, transaction_type: TransactionType) -> Self {
-        self.builder.push(" AND TransactionType = ");
+        self.builder.push(" AND transaction_type = ");
         self.builder.push_bind::<&str>(transaction_type.into());
         self
     }
 
     pub fn where_type_not(mut self, transaction_type: TransactionType) -> Self {
-        self.builder.push(" AND TransactionType != ");
+        self.builder.push(" AND transaction_type != ");
         self.builder.push_bind::<&str>(transaction_type.into());
         self
     }
 
     pub fn where_external_account(mut self, external_account_id: impl Into<String>) -> Self {
-        self.builder.push(" AND ExternalAccountId = ");
+        self.builder.push(" AND external_account_id = ");
         self.builder.push_bind(external_account_id.into());
         self
     }
 
     pub fn where_bank_account(mut self, bank_account_id: impl Into<String>) -> Self {
-        self.builder.push(" AND BankAccountId = ");
+        self.builder.push(" AND bank_account_id = ");
         self.builder.push_bind(bank_account_id.into());
         self
     }
@@ -94,7 +94,7 @@ impl<'a> TransactionQuery<'a> {
 
     pub fn order(mut self) -> Self {
         self.builder
-            .push(" ORDER BY Date DESC, OrderIndicator DESC ");
+            .push(" ORDER BY date DESC, order_indicator DESC ");
         self
     }
 

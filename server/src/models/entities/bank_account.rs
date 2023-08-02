@@ -20,7 +20,7 @@ impl BankAccount {
     pub async fn create<'d>(&self, executor: db_executor!('d)) -> Result<()> {
         sqlx::query!(
             r#"
-                INSERT INTO BankAccounts
+                INSERT INTO bank_accounts
                 VALUES ($1, $2, $3, $4, $5, $6);
             "#,
             self.id,

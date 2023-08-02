@@ -87,7 +87,7 @@ impl Transaction {
 
         sqlx::query!(
             r#"
-                INSERT INTO Transactions
+                INSERT INTO transactions
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19);
             "#,
             self.id,
@@ -119,9 +119,9 @@ impl Transaction {
     pub async fn guard_one(pool: &DbPool, id: &str, user_id: &str) -> Result<()> {
         sqlx::query!(
             r#"
-                SELECT Id
-                FROM Transactions
-                WHERE Id = $1 AND UserId = $2;
+                SELECT id
+                FROM transactions
+                WHERE id = $1 AND user_id = $2;
             "#,
             id,
             user_id
