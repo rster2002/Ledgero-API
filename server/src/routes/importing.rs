@@ -57,8 +57,8 @@ pub async fn get_all_imports(
         .into_iter()
         .map(|record| ImportDtoWithNumbers {
             id: record.id,
-            imported_at: record.importedat.to_string(),
-            filename: record.filename,
+            imported_at: record.imported_at.to_string(),
+            filename: record.file_name,
             imported: record.imported.expect("Expected a number"),
             skipped: record.skipped.expect("Expected a number"),
         })
@@ -89,8 +89,8 @@ pub async fn get_import_by_id(
 
     Ok(Json(ImportDto {
         id: record.id,
-        imported_at: record.importedat.to_string(),
-        filename: record.filename,
+        imported_at: record.imported_at.to_string(),
+        filename: record.file_name,
     }))
 }
 

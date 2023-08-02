@@ -59,9 +59,9 @@ pub async fn get_all_external_accounts(
                 id: record.id,
                 name: record.name,
                 description: record.description,
-                hex_color: record.hexcolor,
-                default_category_id: record.defaultcategoryid,
-                default_subcategory_id: record.defaultsubcategoryid,
+                hex_color: record.hex_color,
+                default_category_id: record.default_category_id,
+                default_subcategory_id: record.default_subcategory_id,
             })
             .collect(),
     ))
@@ -121,9 +121,9 @@ pub async fn get_external_account_by_id(
         id,
         name: record.name,
         description: record.description,
-        hex_color: record.hexcolor,
-        default_category_id: record.defaultcategoryid,
-        default_subcategory_id: record.defaultsubcategoryid,
+        hex_color: record.hex_color,
+        default_category_id: record.default_category_id,
+        default_subcategory_id: record.default_subcategory_id,
     }))
 }
 
@@ -225,7 +225,7 @@ pub async fn get_external_account_names(
             .map(|record| ExternalAccountNameDto {
                 id: record.id,
                 name: record.name,
-                parent_external_account: record.parentexternalaccount,
+                parent_external_account: record.parent_external_account,
             })
             .collect(),
     ))

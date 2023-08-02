@@ -23,9 +23,9 @@ impl SplitService {
         trace!("Fetching parent transaction from database");
         let parent_transaction = sqlx::query!(
             r#"
-                SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId
-                FROM Transactions
-                WHERE Id = $1 AND UserId = $2;
+                SELECT id, bank_account_id, amount, external_account_name, external_account_id
+                FROM transactions
+                WHERE id = $1 AND user_id = $2;
             "#,
             transaction_id,
             user_id
@@ -45,12 +45,12 @@ impl SplitService {
             complete_amount: body.amount,
             amount: body.amount,
             date: Utc::now(),
-            bank_account_id: parent_transaction.bankaccountid,
+            bank_account_id: parent_transaction.bank_account_id,
             category_id: body.category_id.map(|v| v.to_string()),
             subcategory_id: body.subcategory_id.map(|v| v.to_string()),
             parent_transaction_id: Some(parent_transaction.id),
-            external_account_name: parent_transaction.externalaccountname,
-            external_account_id: parent_transaction.externalaccountid,
+            external_account_name: parent_transaction.external_account_name,
+            external_account_id: parent_transaction.external_account_id,
             external_account_name_id: None,
             parent_import_id: None,
             order_indicator: 0,
@@ -65,9 +65,9 @@ impl SplitService {
         trace!("Updating parent transaction with new remainder");
         sqlx::query!(
             r#"
-                UPDATE Transactions
-                SET Amount = $3
-                WHERE Id = $1 AND UserId = $2;
+                UPDATE transactions
+                SET amount = $3
+                WHERE id = $1 AND user_id = $2;
             "#,
             transaction_id,
             user_id,
@@ -88,9 +88,9 @@ impl SplitService {
     ) -> Result<sqlx::Transaction<'a, Postgres>> {
         let parent_transaction = sqlx::query!(
             r#"
-                SELECT Id, BankAccountId, Amount, ExternalAccountName, ExternalAccountId
-                FROM Transactions
-                WHERE Id = $1 AND UserId = $2;
+                SELECT id, bank_account_id, amount, external_account_name, external_account_id
+                FROM transactions
+                WHERE id = $1 AND user_id = $2;
             "#,
             transaction_id,
             user_id
@@ -100,13 +100,13 @@ impl SplitService {
 
         let split = sqlx::query!(
             r#"
-                SELECT Id, Amount
-                FROM Transactions
+                SELECT id, amount
+                FROM transactions
                 WHERE
-                    TransactionType = 'split' AND
-                    UserId = $1 AND
-                    ParentTransactionId = $2 AND
-                    Id = $3;
+                    transaction_type = 'split' AND
+                    user_id = $1 AND
+                    parent_transaction_id = $2 AND
+                    id = $3;
             "#,
             user_id,
             transaction_id,
@@ -122,9 +122,9 @@ impl SplitService {
 
         sqlx::query!(
             r#"
-                UPDATE Transactions
-                SET Description = $3, Amount = $4, CategoryId = $5
-                WHERE Id = $1 AND UserId = $2;
+                UPDATE transactions
+                SET description = $3, amount = $4, category_id = $5
+                WHERE id = $1 AND user_id = $2;
             "#,
             split_id,
             user_id,
@@ -137,9 +137,9 @@ impl SplitService {
 
         sqlx::query!(
             r#"
-                UPDATE Transactions
-                SET Amount = $3
-                WHERE Id = $1 AND UserId = $2;
+                UPDATE transactions
+                SET amount = $3
+                WHERE id = $1 AND user_id = $2;
             "#,
             transaction_id,
             user_id,

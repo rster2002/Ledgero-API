@@ -216,7 +216,7 @@ async fn get_external_accounts_map(
     for record in records {
         map.insert(
             record.name,
-            (record.parentexternalaccount, record.defaultcategoryid),
+            (record.parent_external_account, record.default_category_id),
         );
     }
 
@@ -235,5 +235,5 @@ async fn get_order_indicator(pool: &DbPool, user_id: &String) -> Result<i32> {
     .fetch_one(pool)
     .await?;
 
-    Ok(record.maxindicator.unwrap_or(0))
+    Ok(record.max_indicator.unwrap_or(0))
 }

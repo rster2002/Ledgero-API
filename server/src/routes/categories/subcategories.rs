@@ -44,7 +44,7 @@ pub async fn get_subcategory_by_id(
         id: record.id,
         name: record.name,
         description: record.description,
-        hex_color: record.hexcolor,
+        hex_color: record.hex_color,
         amount: record.amount.unwrap_or(0),
     }))
 }
@@ -103,7 +103,7 @@ pub async fn get_subcategories(
             id: record.id,
             name: record.name,
             description: record.description,
-            hex_color: record.hexcolor,
+            hex_color: record.hex_color,
             amount: record.amount.unwrap_or(0),
         })
         .collect();

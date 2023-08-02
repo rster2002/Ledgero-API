@@ -151,7 +151,7 @@ pub async fn delete_split(
     .fetch_one(pool)
     .await?;
 
-    let Some(parent_id) = split_record.parenttransactionid else {
+    let Some(parent_id) = split_record.parent_transaction_id else {
         return HttpError::new(404)
             .message("Could not find a split with the given id for this transaction")
             .into();

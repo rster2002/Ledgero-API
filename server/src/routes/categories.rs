@@ -88,7 +88,7 @@ pub async fn create_new_category(
         name: body.name.to_string(),
         description: body.description.to_string(),
         hex_color: body.hex_color.to_string(),
-        ordering_index: ordering_index.maxindex.unwrap_or(0) + 1,
+        ordering_index: ordering_index.max_index.unwrap_or(0) + 1,
     };
 
     debug!("Creating new category for user '{}'", user);

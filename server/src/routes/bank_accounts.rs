@@ -36,12 +36,12 @@ pub async fn get_bank_accounts(
     let records = sqlx::query!(
         r#"
             SELECT *, (
-                SELECT SUM(Amount)
-                FROM Transactions
-                WHERE Transactions.BankAccountId = BankAccounts.id
-            )::bigint AS Amount
-            FROM BankAccounts
-            WHERE UserId = $1;
+                SELECT SUM(amount)
+                FROM transactions
+                WHERE transactions.bank_account_id = bank_accounts.id
+            )::bigint AS amount
+            FROM bank_accounts
+            WHERE user_id = $1;
         "#,
         user.uuid
     )
@@ -56,7 +56,7 @@ pub async fn get_bank_accounts(
             iban: record.iban,
             name: record.name,
             description: record.description,
-            hex_color: record.hexcolor,
+            hex_color: record.hex_color,
             amount: record.amount.unwrap_or(0),
         })
         .collect();
@@ -76,12 +76,12 @@ pub async fn get_bank_account_by_id(
     let record = sqlx::query!(
         r#"
             SELECT *, (
-                SELECT SUM(Amount)
-                FROM Transactions
-                WHERE Transactions.BankAccountId = BankAccounts.id
-            )::bigint AS Amount
-            FROM BankAccounts
-            WHERE Id = $1 AND UserId = $2;
+                SELECT SUM(amount)
+                FROM transactions
+                WHERE transactions.bank_account_id = bank_accounts.id
+            )::bigint AS amount
+            FROM bank_accounts
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid
@@ -95,7 +95,7 @@ pub async fn get_bank_account_by_id(
         iban: record.iban,
         name: record.name,
         description: record.description,
-        hex_color: record.hexcolor,
+        hex_color: record.hex_color,
         amount: record.amount.unwrap_or(0),
     }))
 }
@@ -113,9 +113,9 @@ pub async fn update_bank_account(
     debug!("Updating bank account '{}'", id);
     sqlx::query!(
         r#"
-            UPDATE BankAccounts
-            SET Name = $3, Description = $4, HexColor = $5
-            WHERE Id = $1 AND UserId = $2;
+            UPDATE bank_accounts
+            SET name = $3, description = $4, hex_color = $5
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid,
@@ -141,8 +141,8 @@ pub async fn delete_bank_account(
     debug!("Deleting bank account '{}'", id);
     let result = sqlx::query!(
         r#"
-            DELETE FROM BankAccounts
-            WHERE Id = $1 AND UserId = $2;
+            DELETE FROM bank_accounts
+            WHERE id = $1 AND user_id = $2;
         "#,
         id,
         user.uuid
@@ -159,7 +159,7 @@ pub async fn delete_bank_account(
             return Err(error.into())
         };
 
-        if constraint != "transactions_bankaccountid_fkey" {
+        if constraint != "transactions_bank_account_id_fkey" {
             return Err(error.into());
         }
 

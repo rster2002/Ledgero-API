@@ -151,9 +151,9 @@ impl BlobService {
 
         let record_option = sqlx::query!(
             r#"
-                SELECT Token
-                FROM Blobs
-                WHERE Token = $1 AND UserId = $2;
+                SELECT token
+                FROM blobs
+                WHERE token = $1 AND user_id = $2;
             "#,
             token,
             user_id
@@ -185,9 +185,9 @@ impl BlobService {
 
         sqlx::query!(
             r#"
-                UPDATE Blobs
-                SET ConfirmedAt = $3
-                WHERE Token = $1 AND UserId = $2;
+                UPDATE blobs
+                SET confirmed_at = $3
+                WHERE token = $1 AND user_id = $2;
             "#,
             token,
             user_id,
@@ -216,7 +216,7 @@ impl BlobService {
         let result = sqlx::query!(
             r#"
                 DELETE FROM blobs
-                WHERE confirmedat IS null AND EXTRACT(EPOCH FROM (now() - uploadedat)) > $1::bigint;
+                WHERE confirmed_at IS null AND EXTRACT(EPOCH FROM (now() - uploaded_at)) > $1::bigint;
             "#,
             self.max_blob_unconfirmed as i64
         )
@@ -234,8 +234,8 @@ impl BlobService {
                        COUNT(e.*) +
                        COUNT(u.*) AS "references"
                 FROM blobs
-                LEFT JOIN externalaccounts e on blobs.token = e.image
-                LEFT JOIN users u on blobs.token = u.profileimage
+                LEFT JOIN external_accounts e on blobs.token = e.image
+                LEFT JOIN users u on blobs.token = u.profile_image
                 GROUP BY blobs.token;
             "#
         )
